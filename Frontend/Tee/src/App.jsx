@@ -1,8 +1,8 @@
 import React from "react";
-import Image from "./disease/Image-upload.jsx";
+import Login from "./auth/Login.jsx";
 
 function App() {
-  return <Image />;
+  return <Login />;
 }
 
 export default App;

@@ -1,12 +1,12 @@
 import React from "react";
-import Header from "/src/common components/header.jsx";
-import Sidebar from "/src/common components/sidebar.jsx";
-import Footer from "/src/common components/footer.jsx";
-import { Camera, Upload } from "lucide-react";
+import Header from "../common components/header.jsx";
+import Sidebar from "../common components/sidebar.jsx";
+import Footer from "../common components/footer.jsx";
+import { Upload } from "lucide-react";
 
 const Image = () => {
   return (
-    <html data-theme="dark">
+    <div data-theme="dark">
 
       <Header />
 
@@ -43,7 +43,7 @@ const Image = () => {
         </div>
       </div>
 
-    </html>
+    </div>
   );
 };
 
