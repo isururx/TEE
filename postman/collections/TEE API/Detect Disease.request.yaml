@@ -1,0 +1,22 @@
+$kind: http-request
+name: Detect Disease
+method: POST
+url: '{{baseUrl}}/api/detection/detect'
+description: |-
+  Upload a tea leaf image to detect disease.
+
+  The response includes:
+  - `is_healthy` (boolean)
+  - `disease_name` (string): one of Healthy, Blister Blight, Brown Blight, Grey Blight, Red Leaf Spot, Algal Leaf Spot
+  - `confidence` (float 0–1)
+  - `severity` (string): Low, Moderate, or High
+  - `description` (string)
+  - `recommendations` (array of strings)
+order: 2000
+body:
+  type: formdata
+  content:
+    - key: image
+      type: file
+      src: ''
+      description: Tea leaf image file (JPG/PNG)

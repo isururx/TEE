@@ -1,0 +1,4 @@
+$kind: collection
+name: TEE API
+description: |-
+  Collection for the TEE (Tea Estate Engine) backend — a FastAPI service for tea leaf disease detection using machine learning.
