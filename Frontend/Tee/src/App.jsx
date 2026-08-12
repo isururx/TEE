@@ -1,9 +1,8 @@
 import React from "react";
-import DiseaseDetection from "./disease/DiseaseDetection.jsx";
+import Login from "./auth/Login.jsx";
 
 function App() {
-  return <DiseaseDetection />;
+  return <Login />;
 }
 
 export default App;
-
