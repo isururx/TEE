@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Leaf, User, Lock, ArrowRight, Copy } from "lucide-react";
+import { Leaf, User, Lock, ArrowRight, UserPlus } from "lucide-react";
 import "./login.css";
 
 /**
@@ -68,6 +68,10 @@ export default function Login() {
 
             <button type="submit" className="login-btn">
               Login <ArrowRight size={16} />
+            </button>
+
+            <button type="button" className="login-btn-secondary">
+              Create account <UserPlus size={16} />
             </button>
           </form>
         </div>
