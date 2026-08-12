@@ -31,7 +31,7 @@ export default function ImageUploadPage({
   onAnalyze,
 }) {
   return (
-    <div data-theme="dark">
+    <div data-theme="light">
       <Header title="Disease Detection" crumbs={[{ label: "Home", href: "#" }]} />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - 65px)" }}>
