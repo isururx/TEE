@@ -22,6 +22,7 @@ export default function Footer({
   return (
     <footer
       className="flex-between"
+      data-theme="light"
       style={{
         padding: "var(--space-5) var(--space-6)",
         borderTop: "1px solid var(--color-border)",

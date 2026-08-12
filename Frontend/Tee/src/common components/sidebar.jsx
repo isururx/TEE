@@ -61,7 +61,7 @@ export default function Sidebar({
   ];
 
   return (
-    <aside className={`sidebar${isOpen ? " is-open" : ""}`}>
+    <aside className={`sidebar${isOpen ? " is-open" : ""}`} data-theme="light">
       <div className="sidebar-brand">
         <Leaf className="icon" size={20} color="var(--color-primary)" />
         <span>TEE</span>

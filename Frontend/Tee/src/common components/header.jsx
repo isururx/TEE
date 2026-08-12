@@ -29,6 +29,7 @@ export default function Header({
   return (
     <header
       className="flex-between"
+      data-theme="light"
       style={{
         height: "var(--topbar-height)",
         padding: "0 var(--space-6)",
