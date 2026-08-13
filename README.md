@@ -1,7 +1,30 @@
+<div align="center">
 
-# TEE
+# 🌱 TEE
 
-AI-powered Tea Estate Management System with tea leaf disease detection, inventory management, attendance tracking, analytics, and estate monitoring.
+### Tea Estate Engine
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&pause=1000&color=2E7D32&center=true&vCenter=true&width=750&lines=AI-Powered+Tea+Estate+Management;Tea+Leaf+Disease+Detection;Smart+Estate+Analytics;Modernizing+Tea+Agriculture" />
+
+<br>
+
+<p>
+  <b>🌿 Smarter Estates. Better Decisions. Healthier Tea.</b>
+</p>
+
+<p>
+TEE is an AI-powered Tea Estate Management System that combines
+machine learning, estate management, workforce monitoring and
+analytics into a unified platform for modern tea estates.
+</p>
+
+<br>
+
+![Contributors](https://img.shields.io/github/contributors/isururx/TEE?style=for-the-badge)
+![Commits](https://img.shields.io/github/commit-activity/m/isururx/TEE?style=for-the-badge)
+![Last Commit](https://img.shields.io/github/last-commit/isururx/TEE?style=for-the-badge)
+
+</div>
 
 ## 👥 Contributors
 
