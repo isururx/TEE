@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* ==========================================================================
    TEE — AI-Based Tea Disease Detection & Estate Management System
    Global Design System Stylesheet
@@ -102,7 +104,17 @@
   --z-tooltip: 500;
 }
 
-/* ---- Dark Mode Ready (token overrides only; toggle via [data-theme="dark"] on <html>) ---- */
+/* ---- Dark Mode Ready (token overrides only; toggle via .dark or [data-theme="dark"] on <html>) ---- */
+html.dark,
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark,
 [data-theme='dark'] {
   --color-bg: #0F1712;
   --color-sidebar: #14201A;
