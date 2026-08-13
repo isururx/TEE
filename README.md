@@ -3,6 +3,14 @@
 
 AI-powered Tea Estate Management System with tea leaf disease detection, inventory management, attendance tracking, analytics, and estate monitoring.
 
+## 👥 Contributors
+
+<p align="center">
+  <a href="https://github.com/isururx/TEE/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=isururx/TEE" />
+  </a>
+</p>
+
 
 # TEE API Reference
 
