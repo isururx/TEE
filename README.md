@@ -11,6 +11,27 @@ AI-powered Tea Estate Management System with tea leaf disease detection, invento
   </a>
 </p>
 
+## 📊 Repository Statistics
+
+<div align="center">
+
+### 👥 Contributors
+
+[![Contributors](https://img.shields.io/github/contributors/isururx/TEE?style=for-the-badge)](https://github.com/isururx/TEE/graphs/contributors)
+
+### 📈 Contribution Activity
+
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/isururx/TEE?style=for-the-badge)
+
+### 📦 Repository Stats
+
+![GitHub repo size](https://img.shields.io/github/repo-size/isururx/TEE?style=for-the-badge)
+![GitHub code size](https://img.shields.io/github/languages/code-size/isururx/TEE?style=for-the-badge)
+![GitHub last commit](https://img.shields.io/github/last-commit/isururx/TEE?style=for-the-badge)
+![GitHub language count](https://img.shields.io/github/languages/count/isururx/TEE?style=for-the-badge)
+
+</div>
+
 
 # TEE API Reference
 
