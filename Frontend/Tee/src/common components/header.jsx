@@ -1,5 +1,14 @@
-import React, { useState } from "react";
-import { Bell, Search, ChevronDown, User, Settings, LogOut } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Bell, Search, ChevronDown, User, Settings, LogOut, Moon, Sun } from "lucide-react";
+
+const THEME_KEY = "tee-theme";
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  const isDark = theme === "dark";
+  root.classList.toggle("dark", isDark);
+  root.setAttribute("data-theme", theme);
+}
 
 /**
  * Header
@@ -25,6 +34,21 @@ export default function Header({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    const saved = localStorage.getItem(THEME_KEY);
+    const defaultTheme = saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    setTheme(defaultTheme);
+    applyTheme(defaultTheme);
+  }, []);
+
+  useEffect(() => {
+    applyTheme(theme);
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((current) => (current === "dark" ? "light" : "dark"));
 
   return (
     <header
@@ -60,6 +84,15 @@ export default function Header({
             onChange={(e) => onSearch(e.target.value)}
           />
         </div>
+
+        <button
+          className="btn-icon"
+          aria-label="Toggle theme"
+          onClick={toggleTheme}
+          style={{ marginRight: "var(--space-2)" }}
+        >
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
 
         <div style={{ position: "relative" }}>
           <button
