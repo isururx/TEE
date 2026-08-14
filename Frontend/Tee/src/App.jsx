@@ -6,6 +6,8 @@ import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
+import TaskManagement from "./worker_block/task_management.jsx";
+import TrackAttendance from "./worker_block/track_attendence.jsx";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("analytics");
@@ -48,6 +50,14 @@ function App() {
 
   if (currentPage === "BlockDetail") {
     return <BlockDetail onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "TaskManagement" || currentPage === "tasks") {
+    return <TaskManagement onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "attendance") {
+    return <TrackAttendance onNavigate={handleNavigate} />;
   }
 
   return <StateAnalytics onNavigate={handleNavigate} />;

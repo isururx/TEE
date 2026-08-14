@@ -47,7 +47,7 @@ export default function Sidebar({
         { key: "users", label: "User Management", icon: Users },
         { key: "suppliers", label: "Supplier Management", icon: Truck },
         { key: "BlockManagement", label: "Block Management", icon: Map },
-        { key: "tasks", label: "Task Management", icon: CheckSquare },
+        { key: "TaskManagement", label: "Task Management", icon: CheckSquare },
       ],
     },
     {

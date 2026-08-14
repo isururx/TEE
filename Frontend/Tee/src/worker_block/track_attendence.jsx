@@ -1,0 +1,331 @@
+import React, { useMemo, useState } from "react";
+import { Filter, Calendar, Search, Clock, Users, UserCheck, AlertTriangle, Plus } from "lucide-react";
+import Header from "../common components/header.jsx";
+import Footer from "../common components/footer.jsx";
+import Sidebar from "../common components/sidebar.jsx";
+import AddAttendanceModal from "./add_attendance.jsx";
+
+const initialAttendanceLog = [
+	{
+		id: "TEE-0482",
+		name: "Amara Nwosu",
+		initials: "AN",
+		role: "Worker",
+		assignedBlock: "Sector A-4",
+		checkInTime: "06:02 AM",
+		status: "On-time",
+	},
+	{
+		id: "TEE-0912",
+		name: "Rohan Prasad",
+		initials: "RP",
+		role: "Manager",
+		assignedBlock: "Processing Plant",
+		checkInTime: "06:42 AM",
+		status: "Late",
+	},
+	{
+		id: "TEE-0125",
+		name: "Lila Jensen",
+		initials: "LJ",
+		role: "Supervisor",
+		assignedBlock: "Sector A-1",
+		checkInTime: "-- : --",
+		status: "Absent",
+	},
+	{
+		id: "TEE-0774",
+		name: "Kenji Watanabe",
+		initials: "KW",
+		role: "Worker",
+		assignedBlock: "Sector A-4",
+		checkInTime: "06:05 AM",
+		status: "On-time",
+	},
+	{
+		id: "TEE-0341",
+		name: "Sunil Silva",
+		initials: "SS",
+		role: "Worker",
+		assignedBlock: "Sector B-2",
+		checkInTime: "06:12 AM",
+		status: "On-time",
+	},
+	{
+		id: "TEE-0568",
+		name: "Mahesh Perera",
+		initials: "MP",
+		role: "Worker",
+		assignedBlock: "Sector A-3",
+		checkInTime: "06:55 AM",
+		status: "Late",
+	},
+];
+
+export default function TrackAttendance({ onNavigate = () => {} }) {
+	const [attendance, setAttendance] = useState(initialAttendanceLog);
+	const [search, setSearch] = useState("");
+	const [selectedDate, setSelectedDate] = useState("2023-10-24");
+	const [filterStatus, setFilterStatus] = useState("ALL");
+	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+	const handleAddAttendance = (newRecord) => {
+		setAttendance((current) => {
+			// Replace existing record for the same worker if present, otherwise prepend
+			const filtered = current.filter((item) => item.id !== newRecord.id);
+			return [newRecord, ...filtered];
+		});
+	};
+
+	const filteredLog = useMemo(() => {
+		const query = search.trim().toLowerCase();
+		return attendance.filter((item) => {
+			const matchesSearch =
+				!query ||
+				[item.name, item.id, item.role, item.assignedBlock, item.status]
+					.join(" ")
+					.toLowerCase()
+					.includes(query);
+			const matchesFilter = filterStatus === "ALL" || item.status === filterStatus;
+			return matchesSearch && matchesFilter;
+		});
+	}, [attendance, search, filterStatus]);
+
+	const onTimeCount = useMemo(() => attendance.filter((i) => i.status === "On-time").length, [attendance]);
+	const lateCount = useMemo(() => attendance.filter((i) => i.status === "Late").length + 10, [attendance]);
+
+	return (
+		<div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
+			<Header
+				title="Attendance Tracking"
+				crumbs={[
+					{ label: "Home", href: "#" },
+					{ label: "Dashboard", href: "#" },
+					{ label: "Workers & Blocks", href: "#" },
+				]}
+			/>
+			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+				<Sidebar activeItem="attendance" role="manager" onNavigate={onNavigate} />
+				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+					{/* Title */}
+					<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-4)" }}>
+						<h1 style={{ margin: 0, fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", letterSpacing: "-0.03em" }}>
+							Attendance Tracking
+						</h1>
+
+						<button
+							type="button"
+							onClick={() => setIsAddModalOpen(true)}
+							style={{
+								padding: "var(--space-3) var(--space-5)",
+								borderRadius: "var(--radius-md)",
+								background: "#000000",
+								color: "#FFFFFF",
+								border: "none",
+								fontWeight: "var(--fw-semibold)",
+								fontSize: "var(--fs-sm)",
+								display: "inline-flex",
+								alignItems: "center",
+								gap: "var(--space-2)",
+								cursor: "pointer",
+								boxShadow: "var(--shadow-soft)",
+							}}
+						>
+							<Plus size={16} />
+							Add Attendance
+						</button>
+					</div>
+
+					{/* Top Metric Cards */}
+					<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 280px))", gap: "var(--space-4)" }}>
+						{/* Current Workforce Card */}
+						<div className="card" style={{ padding: "var(--space-5)", background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+							<div style={{ fontSize: "11px", fontWeight: "var(--fw-bold)", color: "var(--color-text-secondary)", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+								CURRENT WORKFORCE
+							</div>
+							<div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "var(--space-3)" }}>
+								<span style={{ fontSize: "var(--fs-3xl)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>
+									129
+								</span>
+								<span style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-muted)" }}>
+									/ 142
+								</span>
+							</div>
+						</div>
+
+						{/* Late Check-ins Card */}
+						<div className="card" style={{ padding: "var(--space-5)", background: "var(--color-card)", border: "1px solid var(--color-border)" }}>
+							<div style={{ fontSize: "11px", fontWeight: "var(--fw-bold)", color: "var(--color-text-secondary)", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+								LATE CHECK-INS
+							</div>
+							<div style={{ fontSize: "var(--fs-3xl)", fontWeight: "var(--fw-bold)", marginTop: "var(--space-3)", color: "var(--color-text-primary)" }}>
+								{lateCount}
+							</div>
+						</div>
+					</div>
+
+					{/* Attendance Log Section */}
+					<section className="card" style={{ padding: "var(--space-5)", border: "1px solid var(--color-border)", background: "var(--color-card)" }}>
+						{/* Header row */}
+						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-4)", marginBottom: "var(--space-5)" }}>
+							<h2 style={{ margin: 0, fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)" }}>
+								Attendance log
+							</h2>
+
+							<div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+								<div className="input-search" style={{ minWidth: 220 }}>
+									<Search size={16} />
+									<input
+										value={search}
+										onChange={(e) => setSearch(e.target.value)}
+										placeholder="Search name, ID, role..."
+									/>
+								</div>
+
+								<button
+									type="button"
+									className="btn-secondary"
+									onClick={() => setFilterStatus(filterStatus === "ALL" ? "Late" : filterStatus === "Late" ? "Absent" : "ALL")}
+									style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", fontSize: "var(--fs-xs)", padding: "var(--space-2) var(--space-3)" }}
+								>
+									<Filter size={14} />
+									Filter ({filterStatus})
+								</button>
+
+								<div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", background: "var(--color-hover-green)", padding: "var(--space-2) var(--space-3)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)" }}>
+									<Calendar size={14} color="var(--color-primary)" />
+									<input
+										type="date"
+										value={selectedDate}
+										onChange={(e) => setSelectedDate(e.target.value)}
+										style={{ background: "transparent", border: "none", color: "inherit", fontFamily: "inherit", fontSize: "inherit", cursor: "pointer" }}
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Log Table */}
+						<div className="table-responsive" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)" }}>
+							<table className="table-modern" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, minWidth: 720 }}>
+								<thead>
+									<tr>
+										{["EMPLOYEE NAME / ID", "ROLE", "ASSIGNED BLOCK", "CHECK-IN TIME", "STATUS"].map((heading) => (
+											<th
+												key={heading}
+												style={{
+													padding: "var(--space-3) var(--space-4)",
+													fontSize: "11px",
+													fontWeight: "var(--fw-bold)",
+													color: "var(--color-text-secondary)",
+													background: "var(--color-hover-green)",
+													borderBottom: "1px solid var(--color-border)",
+												}}
+											>
+												{heading}
+											</th>
+										))}
+									</tr>
+								</thead>
+								<tbody>
+									{filteredLog.length === 0 ? (
+										<tr>
+											<td colSpan={5} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-muted)" }}>
+												No attendance records match the search.
+											</td>
+										</tr>
+									) : (
+										filteredLog.map((row) => {
+											let statusBg = "#E8F5E9";
+											let statusColor = "#2E7D32";
+											if (row.status === "Late") {
+												statusBg = "#FFEBEE";
+												statusColor = "#D32F2F";
+											} else if (row.status === "Absent") {
+												statusBg = "#ECEFF1";
+												statusColor = "#546E7A";
+											}
+
+											let blockBg = "#E1F5FE";
+											let blockColor = "#0288D1";
+											if (row.assignedBlock === "Processing Plant") {
+												blockBg = "#ECEFF1";
+												blockColor = "#455A64";
+											}
+
+											return (
+												<tr key={row.id} style={{ transition: "background var(--transition-fast)" }}>
+													{/* Employee Name / ID */}
+													<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>
+														<div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+															<div
+																style={{
+																	width: 36,
+																	height: 36,
+																	borderRadius: "999px",
+																	background: "var(--color-hover-green)",
+																	color: "var(--color-primary)",
+																	display: "grid",
+																	placeItems: "center",
+																	fontWeight: "var(--fw-bold)",
+																	fontSize: "var(--fs-xs)",
+																	border: "1px solid var(--color-border)",
+																}}
+															>
+																{row.initials}
+															</div>
+															<div>
+																<div style={{ fontWeight: "var(--fw-bold)", fontSize: "var(--fs-sm)", color: "var(--color-text-primary)" }}>
+																	{row.name}
+																</div>
+																<div style={{ fontSize: "11px", color: "var(--color-text-muted)" }}>
+																	ID: {row.id}
+																</div>
+															</div>
+														</div>
+													</td>
+
+													{/* Role */}
+													<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)", fontSize: "var(--fs-sm)" }}>
+														{row.role}
+													</td>
+
+													{/* Assigned Block */}
+													<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>
+														<span style={{ padding: "4px 10px", borderRadius: "var(--radius-full)", background: blockBg, color: blockColor, fontSize: "11px", fontWeight: "var(--fw-semibold)" }}>
+															{row.assignedBlock}
+														</span>
+													</td>
+
+													{/* Check-in Time */}
+													<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)", fontSize: "var(--fs-sm)" }}>
+														{row.checkInTime}
+													</td>
+
+													{/* Status */}
+													<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>
+														<span style={{ padding: "4px 12px", borderRadius: "var(--radius-full)", background: statusBg, color: statusColor, fontSize: "11px", fontWeight: "var(--fw-bold)" }}>
+															{row.status}
+														</span>
+													</td>
+												</tr>
+											);
+										})
+									)}
+								</tbody>
+							</table>
+						</div>
+					</section>
+				</main>
+			</div>
+
+			<Footer />
+
+			{isAddModalOpen && (
+				<AddAttendanceModal
+					onClose={() => setIsAddModalOpen(false)}
+					onSubmit={handleAddAttendance}
+				/>
+			)}
+		</div>
+	);
+}
