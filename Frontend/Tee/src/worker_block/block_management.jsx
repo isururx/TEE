@@ -118,7 +118,7 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
 				<Sidebar activeItem="BlockManagement" role="manager" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-					<section className="card" style={{ padding: "var(--space-6)", background: "linear-gradient(135deg, #FFFFFF 0%, #F2F8F0 100%)", border: "1px solid var(--color-border)" }}>
+					<section className="card" style={{ padding: "var(--space-6)",  border: "1px solid var(--color-border)" }}>
 						<div style={{ display: "flex", justifyContent: "space-between", gap: "var(--space-4)", flexWrap: "wrap", alignItems: "flex-start" }}>
 							<div>
 								<div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-2)" }}>

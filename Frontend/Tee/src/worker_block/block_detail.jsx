@@ -3,6 +3,7 @@ import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import Sidebar from "../common components/sidebar.jsx";
 import { Clock3, Edit3, Leaf, MapPinned, RotateCcw, X } from "lucide-react";
+import BlockFormModal from "./block_form_modal.jsx";
 
 const teaVarieties = [
 	"Camellia sinensis var. assamica",
