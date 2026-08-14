@@ -196,30 +196,30 @@ async function runDetection(file) {
     const isHealthy = Math.random() > 0.5;
     return isHealthy
       ? {
-          isHealthy: true,
-          diseaseName: "Healthy Leaf",
-          confidence: 96,
-          severity: "Low",
-          description:
-            "No visible signs of disease. Leaf color, texture, and vein pattern are within normal range.",
-          recommendations: [
-            "Continue routine monitoring during the next inspection cycle.",
-            "Maintain current fertilization and irrigation schedule.",
-          ],
-        }
+        isHealthy: true,
+        diseaseName: "Healthy Leaf",
+        confidence: 96,
+        severity: "Low",
+        description:
+          "No visible signs of disease. Leaf color, texture, and vein pattern are within normal range.",
+        recommendations: [
+          "Continue routine monitoring during the next inspection cycle.",
+          "Maintain current fertilization and irrigation schedule.",
+        ],
+      }
       : {
-          isHealthy: false,
-          diseaseName: "Blister Blight",
-          confidence: 89,
-          severity: "Moderate",
-          description:
-            "Translucent, blister-like spots detected consistent with blister blight, common in high-humidity conditions.",
-          recommendations: [
-            "Isolate and prune affected shoots to limit spread.",
-            "Apply a copper-based fungicide as per estate protocol.",
-            "Improve field drainage and canopy airflow to reduce humidity.",
-            "Re-scan the block in 7 days to track progression.",
-          ],
-        };
+        isHealthy: false,
+        diseaseName: "Blister Blight",
+        confidence: 89,
+        severity: "Moderate",
+        description:
+          "Translucent, blister-like spots detected consistent with blister blight, common in high-humidity conditions.",
+        recommendations: [
+          "Isolate and prune affected shoots to limit spread.",
+          "Apply a copper-based fungicide as per estate protocol.",
+          "Improve field drainage and canopy airflow to reduce humidity.",
+          "Re-scan the block in 7 days to track progression.",
+        ],
+      };
   }
 }
