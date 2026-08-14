@@ -134,8 +134,8 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 							</div>
 						</div>
 						<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "var(--space-4)", marginTop: "var(--space-6)" }}>
-							<div className="card" style={{ background: "#070707", color: "#fff", border: "none", boxShadow: "none", textAlign: "center" }}><div style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)" }}>Total blocks</div><div style={{ fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", marginTop: 8 }}>{blocks.length}</div></div>
-							<div className="card" style={{ background: "#070707", color: "#fff", border: "none", boxShadow: "none", textAlign: "center" }}><div style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)" }}>Total Area</div><div style={{ fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", marginTop: 8 }}>{totalArea.toFixed(1)} m2</div></div>
+							<div className="card" style={{ background: "var(--color-hover-green)", color: "var(--color-text-primary)", border: "1px solid var(--color-border)", textAlign: "center" }}><div style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-secondary)" }}>Total blocks</div><div style={{ fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", marginTop: 8 }}>{blocks.length}</div></div>
+							<div className="card" style={{ background: "var(--color-hover-green)", color: "var(--color-text-primary)", border: "1px solid var(--color-border)", textAlign: "center" }}><div style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-secondary)" }}>Total Area</div><div style={{ fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", marginTop: 8 }}>{totalArea.toFixed(1)} ha</div></div>
 						</div>
 					</section>
 
@@ -147,22 +147,22 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 							</div>
 							<div className="input-search" style={{ minWidth: 260, maxWidth: 360, width: "100%" }}><Search size={16} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search blocks, variety, harvest date..." /></div>
 						</div>
-						<div style={{ overflowX: "auto", borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)", background: "#F4F4F4" }}>
-							<table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, minWidth: 860 }}>
+						<div className="table-responsive" style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)", background: "var(--color-card)" }}>
+							<table className="table-modern" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, minWidth: 860 }}>
 								<thead>
-									<tr>{["Block ID", "Area", "Total Harvest", "Last Harvest Date", "Last Month Total Harvest", "Tea variety"].map((heading) => <th key={heading} style={{ textAlign: "left", padding: "var(--space-3) var(--space-4)", fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-secondary)", background: "#F8F8F8", borderBottom: "1px solid var(--color-border)" }}>{heading}</th>)}</tr>
+									<tr>{["Block ID", "Area", "Total Harvest", "Last Harvest Date", "Last Month Total Harvest", "Tea variety"].map((heading) => <th key={heading} style={{ textAlign: "left", padding: "var(--space-3) var(--space-4)", fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-secondary)", background: "var(--color-hover-green)", borderBottom: "1px solid var(--color-border)" }}>{heading}</th>)}</tr>
 								</thead>
 								<tbody>
 									{filteredBlocks.length === 0 ? <tr><td colSpan={6} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-secondary)" }}>No blocks match the current search.</td></tr> : filteredBlocks.map((block) => {
 										const isSelected = block.id === selectedBlockId;
 										return (
-											<tr key={block.id} onClick={() => { setSelectedBlockId(block.id); navigateToDetail(block); }} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") { setSelectedBlockId(block.id); navigateToDetail(block); } }} style={{ cursor: "pointer", background: isSelected ? "#EAF5E8" : "#FFFFFF" }}>
-												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", fontWeight: "var(--fw-semibold)" }}>{block.id}</td>
-												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>{formatArea(block.area)}</td>
-												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>{block.totalHarvest}</td>
-												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>{block.lastHarvestDate}</td>
-												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>{block.lastMonthHarvest}</td>
-												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>{block.variety}</td>
+											<tr key={block.id} onClick={() => { setSelectedBlockId(block.id); navigateToDetail(block); }} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") { setSelectedBlockId(block.id); navigateToDetail(block); } }} style={{ cursor: "pointer", background: isSelected ? "var(--color-hover-green)" : "var(--color-card)", transition: "background-color var(--transition-fast)" }}>
+												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)" }}>{block.id}</td>
+												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{formatArea(block.area)}</td>
+												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{block.totalHarvest}</td>
+												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{block.lastHarvestDate}</td>
+												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{block.lastMonthHarvest}</td>
+												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{block.variety}</td>
 											</tr>
 										);
 									})}
