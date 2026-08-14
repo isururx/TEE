@@ -5,6 +5,7 @@ import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
+import BlockDetail from "./worker_block/block_detail.jsx";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("analytics");
@@ -43,6 +44,10 @@ function App() {
 
   if (currentPage === "BlockManagement") {
     return <BlockManagement onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "BlockDetail") {
+    return <BlockDetail onNavigate={handleNavigate} />;
   }
 
   return <StateAnalytics onNavigate={handleNavigate} />;
