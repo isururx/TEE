@@ -4,6 +4,7 @@ import DiseaseDetection from "./disease/DiseaseDetection.jsx";
 import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
+import BlockManagement from "./worker_block/block_management.jsx";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("analytics");
@@ -38,6 +39,10 @@ function App() {
 
   if (currentPage === "mobile-dashboard") {
     return <ManagerDashboardMobile onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "BlockManagement") {
+    return <BlockManagement onNavigate={handleNavigate} />;
   }
 
   return <StateAnalytics onNavigate={handleNavigate} />;
