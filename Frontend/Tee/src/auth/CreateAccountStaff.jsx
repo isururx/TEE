@@ -6,29 +6,24 @@ const initialForm = {
   username: "",
   firstName: "",
   lastName: "",
-  nic: "",
-  address: "",
-  dob: "",
+  email: "",
   phone1: "",
   phone2: "",
+  role: "Manager",
   password: "",
   repeatPassword: "",
 };
 
 /**
- * CreateAccountUser
- * "Create account" page for new user registration.
- * Matches the reference wireframe: top navbar, centered form card, and footer.
+ * CreateAccountStaff
+ * "Create account" page for Staff (Managers & Supervisors).
+ * Matches the reference wireframe: top navbar, 2-column form card, role selector, and footer.
  * Fully styled with index.css classes and design tokens.
- *
- * Props:
- *  - onNavigate: (pageKey: string) => void
  */
-export default function CreateAccountUser({ onNavigate = () => { } }) {
+export default function CreateAccountStaff({ onNavigate = () => { } }) {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
 
-  /* ---- helpers ---- */
   const update = (field) => (e) =>
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -38,10 +33,12 @@ export default function CreateAccountUser({ onNavigate = () => { } }) {
     req("username", "Username is required");
     req("firstName", "First name is required");
     req("lastName", "Last name is required");
-    req("nic", "NIC is required");
-    req("address", "Address is required");
-    if (!form.dob) e.dob = "Date of birthday is required";
+
+    if (!form.email.trim()) e.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = "Please enter a valid email address";
+
     req("phone1", "Phone number is required");
+    if (!form.role) e.role = "Role is required";
 
     if (!form.password) e.password = "Password is required";
     else if (form.password.length < 6) e.password = "Password must be at least 6 characters";
@@ -55,8 +52,7 @@ export default function CreateAccountUser({ onNavigate = () => { } }) {
     const v = validate();
     setErrors(v);
     if (Object.keys(v).length === 0) {
-      // TODO: send data to backend
-      console.log("Create user account payload:", form);
+      console.log("Create staff account payload:", form);
     }
   };
 
@@ -99,45 +95,66 @@ export default function CreateAccountUser({ onNavigate = () => { } }) {
         </h1>
 
         <form onSubmit={handleSubmit} className="flex-col" style={{ gap: "var(--space-5)" }}>
-          {/* Row 1: Username — full width */}
-          <InputField label="Username" field="username" placeholder="Enter your username" />
+          {/* Row 1: Username */}
+          <div className="grid-2">
+            <InputField label="Username" field="username" placeholder="Enter your username" />
+            <div />
+          </div>
 
-          {/* Row 2: First name + Last Name — side by side */}
+          {/* Row 2: First Name & Last Name */}
           <div className="grid-2">
             <InputField label="First name" field="firstName" placeholder="Enter first name" />
             <InputField label="Last Name" field="lastName" placeholder="Enter last name" />
           </div>
 
-          {/* Row 3: NIC — full width */}
-          <InputField label="NIC" field="nic" placeholder="Enter NIC number" />
-
-          {/* Row 4: Address — full width */}
-          <InputField label="Address" field="address" placeholder="Enter your address" />
-
-          {/* Row 5: Date of birthday — left half */}
+          {/* Row 3: Email */}
           <div className="grid-2">
-            <InputField label="Date of birthday" field="dob" type="date" placeholder="" />
+            <InputField label="Email" field="email" type="email" placeholder="Enter email address" />
             <div />
           </div>
 
-          {/* Row 6: Phone Number + Phone number 2 — side by side */}
+          {/* Row 4: Phone Numbers */}
           <div className="grid-2">
-            <InputField label="Phone Number" field="phone1" type="tel" placeholder="Enter phone number" />
+            <InputField label="Phone number 1" field="phone1" type="tel" placeholder="Enter phone number" />
             <InputField label="Phone number 2" field="phone2" type="tel" placeholder="Optional" />
           </div>
 
-          {/* Row 7: Password + Repeat Password — side by side */}
+          {/* Row 5: Role Radio Selector */}
+          <div className="grid-2">
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Role</label>
+              <div className="flex-center gap-lg" style={{ justifyContent: "flex-start", paddingTop: "var(--space-2)" }}>
+                {["Manager", "Supervisor"].map((r) => (
+                  <label key={r} style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", cursor: "pointer", fontSize: "var(--fs-sm)", color: "var(--color-text-primary)" }}>
+                    <input
+                      type="radio"
+                      name="role"
+                      value={r}
+                      className="radio-primary"
+                      checked={form.role === r}
+                      onChange={update("role")}
+                    />
+                    <span>{r}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.role && <span className="form-error">{errors.role}</span>}
+            </div>
+            <div />
+          </div>
+
+          {/* Row 6: Passwords */}
           <div className="grid-2">
             <InputField label="Password" field="password" type="password" placeholder="••••••••" />
             <InputField label="Repeat Password" field="repeatPassword" type="password" placeholder="••••••••" />
           </div>
 
-          {/* Buttons: Submit + Clear */}
+          {/* Action Buttons */}
           <div className="flex-center gap-md" style={{ marginTop: "var(--space-4)" }}>
-            <button type="submit" className="btn-primary" style={{ minWidth: 300, justifyContent: "center" }}>
+            <button type="submit" className="btn-primary" style={{ minWidth: 280, justifyContent: "center" }}>
               Submit
             </button>
-            <button type="button" className="btn-secondary" style={{ minWidth: 300, justifyContent: "center" }} onClick={handleClear}>
+            <button type="button" className="btn-secondary" style={{ minWidth: 280, justifyContent: "center" }} onClick={handleClear}>
               Clear
             </button>
           </div>

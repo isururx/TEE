@@ -1,37 +1,39 @@
 import React, { useState } from "react";
 import { Leaf, User, Lock, ArrowRight, UserPlus } from "lucide-react";
+import Footer from "../common components/footer.jsx";
 
 /**
  * Login Page
- * Matches the reference UI: top bar, tea-plantation background,
- * centered login card, and footer.
- * Styled entirely with index.css (global design system).
+ * Matches the reference UI: tea-plantation background, centered glassmorphic login card, and footer.
+ * Fully styled with index.css classes and design tokens.
+ *
+ * Props:
+ *  - onNavigate: (pageKey: string) => void
  */
-export default function Login() {
+export default function Login({ onNavigate = () => { } }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // TODO: add login logic
+    // TODO: add authentication logic
+    console.log("Logging in:", { username, password });
   };
 
   return (
     <div className="flex-col" style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
-
-      {/* ---- Main ---- */}
+      {/* ---- Main Section with Background Image ---- */}
       <div
         className="flex-center"
         style={{ flex: 1, position: "relative", overflow: "hidden", padding: "var(--space-8)" }}
       >
-        {/* Background image */}
+        {/* Background Plantation Image & Overlay */}
         <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
           <img
             src="/login-bg.png"
-            alt=""
+            alt="Tea Plantation"
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
-          {/* White-ish overlay */}
           <div
             style={{
               position: "absolute",
@@ -48,81 +50,60 @@ export default function Login() {
             position: "relative",
             zIndex: 1,
             background: "rgba(255, 255, 255, 0.96)",
-            padding: "40px 48px 36px",
+            padding: "var(--space-8) var(--space-10) var(--space-8)",
             width: "100%",
             maxWidth: 440,
             textAlign: "center",
-            boxShadow: "0 20px 50px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)",
+            boxShadow: "var(--shadow-modal)",
           }}
         >
+          {/* Logo Badge */}
           <div
             className="flex-center"
             style={{
               width: 56,
               height: 56,
-              borderRadius: "50%",
-              background: "#edf7ed",
+              borderRadius: "var(--radius-full)",
+              background: "var(--color-hover-green)",
               border: "2px solid #c8e6c9",
               margin: "0 auto var(--space-3)",
             }}
           >
-            <Leaf size={28} color="#2E7D32" />
+            <Leaf size={28} color="var(--color-primary)" />
           </div>
 
-          <h1
-            className="page-title"
-            style={{ marginBottom: "var(--space-2)", letterSpacing: "-0.01em" }}
-          >
+          <h1 className="page-title" style={{ marginBottom: "var(--space-1)" }}>
             TEA
           </h1>
-          <p
-            className="subtitle"
-            style={{ lineHeight: "var(--lh-normal)", marginBottom: "var(--space-8)" }}
-          >
+          <p className="subtitle" style={{ marginBottom: "var(--space-6)" }}>
             TEE AI-Based Tea Disease detection and
             <br />
             Estate management system
           </p>
 
-          <form onSubmit={handleLogin} style={{ textAlign: "left" }}>
-            <div className="form-group">
+          <form onSubmit={handleLogin} className="flex-col" style={{ textAlign: "left", gap: "var(--space-4)" }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Username</label>
-              <div
-                className="input-search"
-                style={{
-                  background: "#f3f4f6",
-                  borderRadius: "var(--radius-md)",
-                  padding: "var(--space-3) var(--space-4)",
-                }}
-              >
+              <div className="input-search" style={{ padding: "var(--space-3) var(--space-4)" }}>
                 <User size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
                   type="text"
                   placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  style={{ border: "none", background: "transparent", outline: "none", width: "100%", fontSize: "var(--fs-sm)", color: "var(--color-text-primary)" }}
                 />
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Password</label>
-              <div
-                className="input-search"
-                style={{
-                  background: "#f3f4f6",
-                  borderRadius: "var(--radius-md)",
-                  padding: "var(--space-3) var(--space-4)",
-                }}
-              >
+              <div className="input-search" style={{ padding: "var(--space-3) var(--space-4)" }}>
                 <Lock size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
                   type="password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ border: "none", background: "transparent", outline: "none", width: "100%", fontSize: "var(--fs-sm)", color: "var(--color-text-primary)" }}
                 />
               </div>
             </div>
@@ -138,7 +119,7 @@ export default function Login() {
             <button
               type="button"
               className="btn-outline"
-              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-3)" }}
+              style={{ width: "100%", justifyContent: "center" }}
               onClick={() => onNavigate("createAccount")}
             >
               Create account <UserPlus size={16} />
@@ -148,35 +129,7 @@ export default function Login() {
       </div>
 
       {/* ---- Footer ---- */}
-      <footer
-        className="flex-between"
-        style={{
-          padding: "var(--space-5) var(--space-6)",
-          background: "var(--color-card)",
-          borderTop: "1px solid var(--color-border)",
-          flexWrap: "wrap",
-          gap: "var(--space-4)",
-        }}
-      >
-        <div className="flex-center gap-xs" style={{ alignItems: "flex-start" }}>
-          <Leaf size={18} color="#2E7D32" style={{ marginTop: 2, flexShrink: 0 }} />
-          <div>
-            <div style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)" }}>
-              TEA
-            </div>
-            <div className="text-muted" style={{ fontSize: "var(--fs-xs)", lineHeight: "var(--lh-normal)", maxWidth: 360 }}>
-              © UOC FGT Mini Project Group Number 5. AI-Based Tea Disease
-              Detection and Estate Management System.
-            </div>
-          </div>
-        </div>
-        <nav className="flex-center gap-md">
-          <a href="#" style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Home</a>
-          <a href="#" style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Documentation</a>
-          <a href="#" style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Contact Us</a>
-          <a href="#" style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Terms</a>
-        </nav>
-      </footer>
+      <Footer />
     </div>
   );
 }
