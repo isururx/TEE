@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Login from "./auth/Login.jsx";
+import CreateAccountUser from "./auth/CreateAccountUser.jsx";
 import DiseaseDetection from "./disease/DiseaseDetection.jsx";
 import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
@@ -8,6 +9,7 @@ import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
 import TaskManagement from "./worker_block/task_management.jsx";
 import TrackAttendance from "./worker_block/track_attendence.jsx";
+
 
 function App() {
   const [currentPage, setCurrentPage] = useState("analytics");
@@ -31,6 +33,10 @@ function App() {
 
   if (currentPage === "login") {
     return <Login onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "createAccount") {
+    return <CreateAccountUser onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "dashboard") {
