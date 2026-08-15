@@ -141,7 +141,7 @@ export default function ManagerDashboardMobile({ onNavigate = () => {} }) {
   ];
 
   return (
-    <div data-theme="light" style={{ background: "var(--color-bg)", minHeight: "100vh", paddingBottom: "70px" }}>
+    <div style={{ background: "var(--color-bg)", minHeight: "100vh", paddingBottom: "70px" }}>
       {/* Main Container */}
       <main style={{ padding: "var(--space-4)" }}>
         {/* Toast Feedback */}

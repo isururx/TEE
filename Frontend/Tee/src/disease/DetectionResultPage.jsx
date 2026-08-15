@@ -43,7 +43,7 @@ export default function DetectionResultPage({
     severity === "High" ? "badge-danger" : severity === "Moderate" ? "badge-warning" : "badge-success";
 
   return (
-    <div data-theme="light">
+    <div>
       <Header title="Detection Result" crumbs={[{ label: "Home", href: "#" }, { label: "Disease Detection", href: "#" }]} />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - 65px)" }}>

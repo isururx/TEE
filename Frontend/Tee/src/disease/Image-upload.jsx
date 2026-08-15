@@ -6,7 +6,7 @@ import { Upload } from "lucide-react";
 
 const Image = () => {
   return (
-    <div data-theme="light">
+    <div>
 
       <Header />
 

@@ -34,14 +34,14 @@ export default function Header({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [theme, setTheme] = useState("light");
-
-  useEffect(() => {
-    const saved = localStorage.getItem(THEME_KEY);
-    const defaultTheme = saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    setTheme(defaultTheme);
-    applyTheme(defaultTheme);
-  }, []);
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved) return saved;
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    return "light";
+  });
 
   useEffect(() => {
     applyTheme(theme);

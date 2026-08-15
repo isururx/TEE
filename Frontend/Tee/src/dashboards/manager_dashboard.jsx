@@ -144,7 +144,7 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
   ];
 
   return (
-    <div data-theme="light" style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
+    <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
       {/* Header */}
       <Header
         title="Manager Dashboard"
