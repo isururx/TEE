@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Login from "./auth/Login.jsx";
 import CreateAccountUser from "./auth/CreateAccountUser.jsx";
 import CreateAccountStaff from "./auth/CreateAccountStaff.jsx";
-import UserProfile from "./auth/UserProfile.jsx";
 import DiseaseDetection from "./disease/DiseaseDetection.jsx";
 import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
@@ -14,7 +13,7 @@ import TrackAttendance from "./worker_block/track_attendence.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("profile");
+  const [currentPage, setCurrentPage] = useState("analytics");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -45,10 +44,6 @@ function App() {
 
   if (currentPage === "createAccountStaff" || currentPage === "createAccountManager" || currentPage === "createAccountSupervisor") {
     return <CreateAccountStaff onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "profile" || currentPage === "userProfile") {
-    return <UserProfile onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "dashboard") {
