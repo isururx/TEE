@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import Login from "./auth/Login.jsx";
 import CreateAccountUser from "./auth/CreateAccountUser.jsx";
 import CreateAccountStaff from "./auth/CreateAccountStaff.jsx";
+import UserProfile from "./auth/UserProfile.jsx";
+import UserProfileForAdmin from "./auth/UserProfileForAdmin.jsx";
+import TwoStepVerification from "./auth/TwoStepVerification.jsx";
 import DiseaseDetection from "./disease/DiseaseDetection.jsx";
 import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
@@ -13,7 +16,7 @@ import TrackAttendance from "./worker_block/track_attendence.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("analytics");
+  const [currentPage, setCurrentPage] = useState("twoStepVerification");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -38,12 +41,24 @@ function App() {
     return <Login onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "createAccount" || currentPage === "createAccountUser") {
+  if (currentPage === "twoStepVerification" || currentPage === "verification" || currentPage === "otp") {
+    return <TwoStepVerification onNavigate={handleNavigate} email="user***@gmail.com" />;
+  }
+
+  if (currentPage === "createAccount" ) {
     return <CreateAccountUser onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "createAccountStaff" || currentPage === "createAccountManager" || currentPage === "createAccountSupervisor") {
+  if (currentPage === "createAccountStaff" ) {
     return <CreateAccountStaff onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "profile") {
+    return <UserProfile onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "userProfileForAdmin" || currentPage === "adminProfile") {
+    return <UserProfileForAdmin onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "dashboard") {
