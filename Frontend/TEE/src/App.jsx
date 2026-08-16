@@ -5,6 +5,7 @@ import CreateAccountStaff from "./auth/CreateAccountStaff.jsx";
 import UserProfile from "./auth/UserProfile.jsx";
 import UserProfileForAdmin from "./auth/UserProfileForAdmin.jsx";
 import TwoStepVerification from "./auth/TwoStepVerification.jsx";
+import OtpResent from "./auth/OtpResent.jsx";
 import DiseaseDetection from "./disease/DiseaseDetection.jsx";
 import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
@@ -16,7 +17,7 @@ import TrackAttendance from "./worker_block/track_attendence.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("twoStepVerification");
+  const [currentPage, setCurrentPage] = useState("login");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -43,6 +44,10 @@ function App() {
 
   if (currentPage === "twoStepVerification" || currentPage === "verification" || currentPage === "otp") {
     return <TwoStepVerification onNavigate={handleNavigate} email="user***@gmail.com" />;
+  }
+
+  if (currentPage === "otpResent") {
+    return <OtpResent onNavigate={handleNavigate} onReturn={() => handleNavigate("twoStepVerification")} />;
   }
 
   if (currentPage === "createAccount" ) {

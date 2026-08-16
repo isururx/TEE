@@ -3,6 +3,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
+  Clock,
   Mail,
   Smartphone,
   KeyRound,
@@ -11,6 +12,13 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Footer from "../common components/footer.jsx";
+import OtpResent from "./OtpResent.jsx";
+
+const METHODS = [
+  { id: "email", label: "Email Verification", detail: "Send code to user***@gmail.com", icon: Mail },
+  { id: "sms", label: "SMS Verification", detail: "Send code to +94 70 *** 4164", icon: Smartphone },
+  { id: "app", label: "Authenticator App", detail: "Use Google Authenticator or Microsoft Auth", icon: KeyRound },
+];
 
 /**
  * TwoStepVerification
@@ -29,17 +37,20 @@ export default function TwoStepVerification({
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [resendTimer, setResendTimer] = useState(0);
+  const [resendTimer, setResendTimer] = useState(60);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationMethod, setVerificationMethod] = useState("email"); // "email" | "sms" | "app"
   const [showMethodModal, setShowMethodModal] = useState(false);
+  const [isResentView, setIsResentView] = useState(false);
 
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   // Auto-focus first input on initial mount
   useEffect(() => {
-    inputRefs[0]?.current?.focus();
-  }, []);
+    if (!isResentView) {
+      inputRefs[0]?.current?.focus();
+    }
+  }, [isResentView]);
 
   // Resend countdown timer
   useEffect(() => {
@@ -50,6 +61,13 @@ export default function TwoStepVerification({
       return () => clearInterval(interval);
     }
   }, [resendTimer]);
+
+  // Helper to format seconds into mm:ss
+  const formatTimer = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   // Handle single digit input
   const handleChange = (index, value) => {
@@ -110,6 +128,11 @@ export default function TwoStepVerification({
       return;
     }
 
+    if (resendTimer === 0) {
+      setError("Verification code has expired. Please click RESEND to get a new code.");
+      return;
+    }
+
     setIsVerifying(true);
     setError("");
 
@@ -124,20 +147,28 @@ export default function TwoStepVerification({
     }, 700);
   };
 
-  // Handle Resend Code
+  // Handle Resend Code -> switches to OtpResent view
   const handleResend = () => {
     if (resendTimer > 0) return;
 
     setOtp(["", "", "", ""]);
     setError("");
-    setSuccess(`A fresh verification code has been sent to your ${verificationMethod === "email" ? "email" : "phone"}.`);
-    setResendTimer(30);
-    inputRefs[0]?.current?.focus();
-
-    setTimeout(() => {
-      setSuccess("");
-    }, 4000);
+    setResendTimer(60);
+    setIsResentView(true);
   };
+
+  // If Resent Confirmation View is active, render OtpResent screen
+  if (isResentView) {
+    return (
+      <OtpResent
+        onReturn={() => {
+          setIsResentView(false);
+          setResendTimer(60);
+        }}
+        onNavigate={onNavigate}
+      />
+    );
+  }
 
   return (
     <div
@@ -237,6 +268,25 @@ export default function TwoStepVerification({
 
           {/* 4 Compact Circular OTP Input Slots */}
           <form onSubmit={handleLogin} className="flex-col" style={{ gap: "var(--space-6)" }}>
+            {/* Live Countdown Timer Badge */}
+            <div
+              className="flex-center"
+              style={{
+                gap: "var(--space-2)",
+                fontSize: "var(--fs-sm)",
+                color: resendTimer > 0 ? "var(--color-text-secondary)" : "var(--color-danger)",
+                fontWeight: "var(--fw-medium)",
+                marginBottom: "var(--space-1)",
+              }}
+            >
+              <Clock size={16} color={resendTimer > 0 ? "var(--color-primary)" : "var(--color-danger)"} />
+              <span>
+                {resendTimer > 0
+                  ? `Code valid for: ${formatTimer(resendTimer)}`
+                  : "Code has expired. Please click Resend."}
+              </span>
+            </div>
+
             <div
               className="flex-center"
               style={{
@@ -335,11 +385,11 @@ export default function TwoStepVerification({
                   letterSpacing: "0.03em",
                   fontWeight: "var(--fw-semibold)",
                   cursor: resendTimer > 0 ? "not-allowed" : "pointer",
-                  opacity: resendTimer > 0 ? 0.7 : 1,
+                  opacity: resendTimer > 0 ? 0.65 : 1,
                 }}
               >
-                <RefreshCw size={15} className={resendTimer > 0 ? "" : ""} />
-                {resendTimer > 0 ? `RESEND (${resendTimer}s)` : "RESEND"}
+                <RefreshCw size={15} />
+                RESEND
               </button>
             </div>
           </form>
@@ -390,26 +440,7 @@ export default function TwoStepVerification({
             </div>
 
             <div className="flex-col gap-sm" style={{ padding: "var(--space-2) 0 var(--space-4)" }}>
-              {[
-                {
-                  id: "email",
-                  label: "Email Verification",
-                  detail: "Send code to user***@gmail.com",
-                  icon: Mail,
-                },
-                {
-                  id: "sms",
-                  label: "SMS Verification",
-                  detail: "Send code to +94 70 *** 4164",
-                  icon: Smartphone,
-                },
-                {
-                  id: "app",
-                  label: "Authenticator App",
-                  detail: "Use Google Authenticator or Microsoft Auth",
-                  icon: KeyRound,
-                },
-              ].map(({ id, label, detail, icon: Icon }) => {
+              {METHODS.map(({ id, label, detail, icon: Icon }) => {
                 const isSelected = verificationMethod === id;
                 return (
                   <label

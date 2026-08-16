@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Leaf, User, Lock, ArrowRight, UserPlus } from "lucide-react";
+import { Leaf, User, Lock, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
 import Footer from "../common components/footer.jsx";
 
 /**
@@ -13,11 +13,26 @@ import Footer from "../common components/footer.jsx";
 export default function Login({ onNavigate = () => { } }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // TODO: add authentication logic
+
+    if (!username.trim()) {
+      setError("Please enter your username");
+      return;
+    }
+
+    if (!password.trim()) {
+      setError("Please enter your password");
+      return;
+    }
+
+    setError("");
     console.log("Logging in:", { username, password });
+
+    // Navigate to 2-Step Verification
+    onNavigate("twoStepVerification");
   };
 
   return (
@@ -82,6 +97,13 @@ export default function Login({ onNavigate = () => { } }) {
           </p>
 
           <form onSubmit={handleLogin} className="flex-col" style={{ textAlign: "left", gap: "var(--space-4)" }}>
+            {error && (
+              <div className="alert alert-danger" style={{ padding: "var(--space-2) var(--space-3)", fontSize: "var(--fs-xs)" }}>
+                <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+            )}
+
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Username</label>
               <div className="input-search" style={{ padding: "var(--space-3) var(--space-4)" }}>
