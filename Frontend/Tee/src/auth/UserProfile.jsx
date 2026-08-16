@@ -16,6 +16,22 @@ const initialProfile = {
   email: "harshanth@example.com",
 };
 
+/* Modal Input Field Helper defined outside to preserve input focus across re-renders */
+function ModalInput({ label, field, type = "text", value, onChange }) {
+  return (
+    <div className="form-group" style={{ marginBottom: 0 }}>
+      <label className="form-label">{label}</label>
+      <input
+        type={type}
+        className="input-primary"
+        value={value}
+        onChange={onChange}
+        required
+      />
+    </div>
+  );
+}
+
 /**
  * UserProfile
  * User profile view showing account status, contact & personal details,
@@ -45,20 +61,6 @@ export default function UserProfile({ onNavigate = () => { } }) {
     { icon: MapPin, label: "Address", value: user.address },
     { icon: Mail, label: "Email", value: user.email },
   ];
-
-  /* Modal Input Field Helper */
-  const ModalInput = ({ label, field, type = "text" }) => (
-    <div className="form-group" style={{ marginBottom: 0 }}>
-      <label className="form-label">{label}</label>
-      <input
-        type={type}
-        className="input-primary"
-        value={editForm[field]}
-        onChange={(e) => setEditForm((prev) => ({ ...prev, [field]: e.target.value }))}
-        required
-      />
-    </div>
-  );
 
   return (
     <div className="flex-col" style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
@@ -173,10 +175,32 @@ export default function UserProfile({ onNavigate = () => { } }) {
             </div>
 
             <form onSubmit={handleSave} className="flex-col gap-sm">
-              <ModalInput label="Full Name" field="name" />
-              <ModalInput label="Phone" field="phone" type="tel" />
-              <ModalInput label="Address" field="address" />
-              <ModalInput label="Email" field="email" type="email" />
+              <ModalInput
+                label="Full Name"
+                field="name"
+                value={editForm.name}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+              />
+              <ModalInput
+                label="Phone"
+                field="phone"
+                type="tel"
+                value={editForm.phone}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
+              />
+              <ModalInput
+                label="Address"
+                field="address"
+                value={editForm.address}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, address: e.target.value }))}
+              />
+              <ModalInput
+                label="Email"
+                field="email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
+              />
 
               <div className="modal-footer">
                 <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)}>
