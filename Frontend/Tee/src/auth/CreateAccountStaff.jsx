@@ -14,6 +14,23 @@ const initialForm = {
   repeatPassword: "",
 };
 
+/* Reusable Form Field Component defined outside the parent to preserve input focus across renders */
+function InputField({ label, field, type = "text", placeholder, value, onChange, error }) {
+  return (
+    <div className="form-group" style={{ marginBottom: 0 }}>
+      <label className="form-label">{label}</label>
+      <input
+        type={type}
+        className={`input-primary ${error ? "input-invalid" : ""}`}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+      />
+      {error && <span className="form-error">{error}</span>}
+    </div>
+  );
+}
+
 /**
  * CreateAccountStaff
  * "Create account" page for Staff (Managers & Supervisors).
@@ -61,21 +78,6 @@ export default function CreateAccountStaff({ onNavigate = () => { } }) {
     setErrors({});
   };
 
-  /* Reusable Form Field Component using index.css .input-primary class */
-  const InputField = ({ label, field, type = "text", placeholder }) => (
-    <div className="form-group" style={{ marginBottom: 0 }}>
-      <label className="form-label">{label}</label>
-      <input
-        type={type}
-        className={`input-primary ${errors[field] ? "input-invalid" : ""}`}
-        value={form[field]}
-        onChange={update(field)}
-        placeholder={placeholder}
-      />
-      {errors[field] && <span className="form-error">{errors[field]}</span>}
-    </div>
-  );
-
   return (
     <div className="flex-col" style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
       {/* ---- Header ---- */}
@@ -97,26 +99,71 @@ export default function CreateAccountStaff({ onNavigate = () => { } }) {
         <form onSubmit={handleSubmit} className="flex-col" style={{ gap: "var(--space-5)" }}>
           {/* Row 1: Username */}
           <div className="grid-2">
-            <InputField label="Username" field="username" placeholder="Enter your username" />
+            <InputField
+              label="Username"
+              field="username"
+              placeholder="Enter your username"
+              value={form.username}
+              onChange={update("username")}
+              error={errors.username}
+            />
             <div />
           </div>
 
           {/* Row 2: First Name & Last Name */}
           <div className="grid-2">
-            <InputField label="First name" field="firstName" placeholder="Enter first name" />
-            <InputField label="Last Name" field="lastName" placeholder="Enter last name" />
+            <InputField
+              label="First name"
+              field="firstName"
+              placeholder="Enter first name"
+              value={form.firstName}
+              onChange={update("firstName")}
+              error={errors.firstName}
+            />
+            <InputField
+              label="Last Name"
+              field="lastName"
+              placeholder="Enter last name"
+              value={form.lastName}
+              onChange={update("lastName")}
+              error={errors.lastName}
+            />
           </div>
 
           {/* Row 3: Email */}
           <div className="grid-2">
-            <InputField label="Email" field="email" type="email" placeholder="Enter email address" />
+            <InputField
+              label="Email"
+              field="email"
+              type="email"
+              placeholder="Enter email address"
+              value={form.email}
+              onChange={update("email")}
+              error={errors.email}
+            />
             <div />
           </div>
 
           {/* Row 4: Phone Numbers */}
           <div className="grid-2">
-            <InputField label="Phone number 1" field="phone1" type="tel" placeholder="Enter phone number" />
-            <InputField label="Phone number 2" field="phone2" type="tel" placeholder="Optional" />
+            <InputField
+              label="Phone number 1"
+              field="phone1"
+              type="tel"
+              placeholder="Enter phone number"
+              value={form.phone1}
+              onChange={update("phone1")}
+              error={errors.phone1}
+            />
+            <InputField
+              label="Phone number 2"
+              field="phone2"
+              type="tel"
+              placeholder="Optional"
+              value={form.phone2}
+              onChange={update("phone2")}
+              error={errors.phone2}
+            />
           </div>
 
           {/* Row 5: Role Radio Selector */}
@@ -145,8 +192,24 @@ export default function CreateAccountStaff({ onNavigate = () => { } }) {
 
           {/* Row 6: Passwords */}
           <div className="grid-2">
-            <InputField label="Password" field="password" type="password" placeholder="••••••••" />
-            <InputField label="Repeat Password" field="repeatPassword" type="password" placeholder="••••••••" />
+            <InputField
+              label="Password"
+              field="password"
+              type="password"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={update("password")}
+              error={errors.password}
+            />
+            <InputField
+              label="Repeat Password"
+              field="repeatPassword"
+              type="password"
+              placeholder="••••••••"
+              value={form.repeatPassword}
+              onChange={update("repeatPassword")}
+              error={errors.repeatPassword}
+            />
           </div>
 
           {/* Action Buttons */}

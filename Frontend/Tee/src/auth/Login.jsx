@@ -73,7 +73,7 @@ export default function Login({ onNavigate = () => { } }) {
           </div>
 
           <h1 className="page-title" style={{ marginBottom: "var(--space-1)" }}>
-            TEA
+            TEE
           </h1>
           <p className="subtitle" style={{ marginBottom: "var(--space-6)" }}>
             TEE AI-Based Tea Disease detection and

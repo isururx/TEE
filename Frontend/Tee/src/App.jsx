@@ -15,7 +15,7 @@ import TrackAttendance from "./worker_block/track_attendence.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("editDetails");
+  const [currentPage, setCurrentPage] = useState("login");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -40,19 +40,19 @@ function App() {
     return <Login onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "createAccount" || currentPage === "createAccountUser") {
+  if (currentPage === "createAccount" ) {
     return <CreateAccountUser onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "createAccountStaff" || currentPage === "createAccountManager" || currentPage === "createAccountSupervisor") {
+  if (currentPage === "createAccountStaff" ) {
     return <CreateAccountStaff onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "profile" || currentPage === "userProfile") {
+  if (currentPage === "profile") {
     return <UserProfile onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "editDetails" || currentPage === "editUserDetails") {
+  if (currentPage === "editUserDetails") {
     return <EditUserDetails onNavigate={handleNavigate} />;
   }
 

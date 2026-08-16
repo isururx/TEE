@@ -15,6 +15,23 @@ const initialForm = {
   repeatPassword: "",
 };
 
+/* Reusable Form Field Component defined outside the parent to preserve input focus across renders */
+function InputField({ label, field, type = "text", placeholder, value, onChange, error }) {
+  return (
+    <div className="form-group" style={{ marginBottom: 0 }}>
+      <label className="form-label">{label}</label>
+      <input
+        type={type}
+        className={`input-primary ${error ? "input-invalid" : ""}`}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+      />
+      {error && <span className="form-error">{error}</span>}
+    </div>
+  );
+}
+
 /**
  * CreateAccountUser
  * "Create account" page for new user registration.
@@ -65,21 +82,6 @@ export default function CreateAccountUser({ onNavigate = () => { } }) {
     setErrors({});
   };
 
-  /* Reusable Form Field Component using index.css .input-primary class */
-  const InputField = ({ label, field, type = "text", placeholder }) => (
-    <div className="form-group" style={{ marginBottom: 0 }}>
-      <label className="form-label">{label}</label>
-      <input
-        type={type}
-        className={`input-primary ${errors[field] ? "input-invalid" : ""}`}
-        value={form[field]}
-        onChange={update(field)}
-        placeholder={placeholder}
-      />
-      {errors[field] && <span className="form-error">{errors[field]}</span>}
-    </div>
-  );
-
   return (
     <div className="flex-col" style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
       {/* ---- Header ---- */}
@@ -100,36 +102,111 @@ export default function CreateAccountUser({ onNavigate = () => { } }) {
 
         <form onSubmit={handleSubmit} className="flex-col" style={{ gap: "var(--space-5)" }}>
           {/* Row 1: Username — full width */}
-          <InputField label="Username" field="username" placeholder="Enter your username" />
+          <InputField
+            label="Username"
+            field="username"
+            placeholder="Enter your username"
+            value={form.username}
+            onChange={update("username")}
+            error={errors.username}
+          />
 
           {/* Row 2: First name + Last Name — side by side */}
           <div className="grid-2">
-            <InputField label="First name" field="firstName" placeholder="Enter first name" />
-            <InputField label="Last Name" field="lastName" placeholder="Enter last name" />
+            <InputField
+              label="First name"
+              field="firstName"
+              placeholder="Enter first name"
+              value={form.firstName}
+              onChange={update("firstName")}
+              error={errors.firstName}
+            />
+            <InputField
+              label="Last Name"
+              field="lastName"
+              placeholder="Enter last name"
+              value={form.lastName}
+              onChange={update("lastName")}
+              error={errors.lastName}
+            />
           </div>
 
           {/* Row 3: NIC — full width */}
-          <InputField label="NIC" field="nic" placeholder="Enter NIC number" />
+          <InputField
+            label="NIC"
+            field="nic"
+            placeholder="Enter NIC number"
+            value={form.nic}
+            onChange={update("nic")}
+            error={errors.nic}
+          />
 
           {/* Row 4: Address — full width */}
-          <InputField label="Address" field="address" placeholder="Enter your address" />
+          <InputField
+            label="Address"
+            field="address"
+            placeholder="Enter your address"
+            value={form.address}
+            onChange={update("address")}
+            error={errors.address}
+          />
 
           {/* Row 5: Date of birthday — left half */}
           <div className="grid-2">
-            <InputField label="Date of birthday" field="dob" type="date" placeholder="" />
+            <InputField
+              label="Date of birthday"
+              field="dob"
+              type="date"
+              placeholder=""
+              value={form.dob}
+              onChange={update("dob")}
+              error={errors.dob}
+            />
             <div />
           </div>
 
           {/* Row 6: Phone Number + Phone number 2 — side by side */}
           <div className="grid-2">
-            <InputField label="Phone Number" field="phone1" type="tel" placeholder="Enter phone number" />
-            <InputField label="Phone number 2" field="phone2" type="tel" placeholder="Optional" />
+            <InputField
+              label="Phone Number"
+              field="phone1"
+              type="tel"
+              placeholder="Enter phone number"
+              value={form.phone1}
+              onChange={update("phone1")}
+              error={errors.phone1}
+            />
+            <InputField
+              label="Phone number 2"
+              field="phone2"
+              type="tel"
+              placeholder="Optional"
+              value={form.phone2}
+              onChange={update("phone2")}
+              error={errors.phone2}
+            />
           </div>
 
           {/* Row 7: Password + Repeat Password — side by side */}
           <div className="grid-2">
-            <InputField label="Password" field="password" type="password" placeholder="••••••••" />
-            <InputField label="Repeat Password" field="repeatPassword" type="password" placeholder="••••••••" />
+            <InputField
+              label="Password"
+              field="password"
+              type="password"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={update("password")}
+              error={errors.password}
+            />
+            <InputField
+              label="Repeat Password"
+              field="repeatPassword"
+              type="password"
+              placeholder="••••••••"
+              value={form.repeatPassword}
+              onChange={update("repeatPassword")}
+              error={errors.repeatPassword}
+            />
           </div>
 
           {/* Buttons: Submit + Clear */}
