@@ -72,8 +72,8 @@ export default function CreateAccountUser({ onNavigate = () => { } }) {
     const v = validate();
     setErrors(v);
     if (Object.keys(v).length === 0) {
-      // TODO: send data to backend
       console.log("Create user account payload:", form);
+      onNavigate("login");
     }
   };
 

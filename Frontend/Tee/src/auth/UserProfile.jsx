@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Pencil, Phone, MapPin, Mail, X, Check } from "lucide-react";
+import { Pencil, Phone, MapPin, Mail } from "lucide-react";
 import Header from "../common components/header.jsx";
 import Sidebar from "../common components/sidebar.jsx";
 import Footer from "../common components/footer.jsx";
+import EditProfileModal from "./EditProfileModal.jsx";
 
 const initialProfile = {
   name: "Hashanth J",
@@ -16,22 +17,6 @@ const initialProfile = {
   email: "harshanth@example.com",
 };
 
-/* Modal Input Field Helper defined outside to preserve input focus across re-renders */
-function ModalInput({ label, field, type = "text", value, onChange }) {
-  return (
-    <div className="form-group" style={{ marginBottom: 0 }}>
-      <label className="form-label">{label}</label>
-      <input
-        type={type}
-        className="input-primary"
-        value={value}
-        onChange={onChange}
-        required
-      />
-    </div>
-  );
-}
-
 /**
  * UserProfile
  * User profile view showing account status, contact & personal details,
@@ -41,12 +26,9 @@ function ModalInput({ label, field, type = "text", value, onChange }) {
 export default function UserProfile({ onNavigate = () => { } }) {
   const [user, setUser] = useState(initialProfile);
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState(initialProfile);
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    setUser({ ...editForm });
-    setIsEditing(false);
+  const handleSave = (updatedData) => {
+    setUser((prev) => ({ ...prev, ...updatedData }));
   };
 
   const statusItems = [
@@ -113,10 +95,7 @@ export default function UserProfile({ onNavigate = () => { } }) {
               <button
                 type="button"
                 className="btn-primary"
-                onClick={() => {
-                  setEditForm({ ...user });
-                  setIsEditing(true);
-                }}
+                onClick={() => setIsEditing(true)}
                 style={{ background: "#000000", color: "#FFFFFF", marginBottom: "var(--space-3)", padding: "var(--space-2) var(--space-4)" }}
               >
                 <Pencil size={15} /> Edit Profile
@@ -163,57 +142,13 @@ export default function UserProfile({ onNavigate = () => { } }) {
       {/* ---- Full-Width Footer across entire bottom ---- */}
       <Footer />
 
-      {/* ---- Edit Profile Modal ---- */}
-      {isEditing && (
-        <div className="modal-backdrop" onClick={() => setIsEditing(false)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="section-title" style={{ margin: 0 }}>Edit Profile</h2>
-              <button type="button" className="btn-icon" onClick={() => setIsEditing(false)} aria-label="Close">
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSave} className="flex-col gap-sm">
-              <ModalInput
-                label="Full Name"
-                field="name"
-                value={editForm.name}
-                onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
-              />
-              <ModalInput
-                label="Phone"
-                field="phone"
-                type="tel"
-                value={editForm.phone}
-                onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
-              />
-              <ModalInput
-                label="Address"
-                field="address"
-                value={editForm.address}
-                onChange={(e) => setEditForm((prev) => ({ ...prev, address: e.target.value }))}
-              />
-              <ModalInput
-                label="Email"
-                field="email"
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
-              />
-
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setIsEditing(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary">
-                  <Check size={16} /> Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* ---- Reusable Edit Profile Modal ---- */}
+      <EditProfileModal
+        isOpen={isEditing}
+        onClose={() => setIsEditing(false)}
+        initialData={user}
+        onSave={handleSave}
+      />
     </div>
   );
 }
