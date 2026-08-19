@@ -164,7 +164,7 @@ export default function Header({
                 </div>
               </div>
               <div className="dropdown-item">
-                <User size={15} /> Edit Profile
+                <User size={15} /> Profile
               </div>
               <div className="dropdown-item">
                 <Settings size={15} /> Settings
