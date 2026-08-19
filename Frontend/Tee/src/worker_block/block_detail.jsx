@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import Sidebar from "../common components/sidebar.jsx";
@@ -32,7 +32,7 @@ const defaultHistory = [
 	{ date: "Aug 12, 2023", teaVariety: "Assamica Gold", quantity: "1,420.5", efficiency: "91.4%", status: "VERIFIED" },
 ];
 
-const activityLog = [
+const defaultActivityLog = [
 	{ title: "Soil Testing", meta: "Oct 24, 14:20  Operator: R.Chen" },
 	{ title: "Irrigation Scheduled", meta: "Oct 22, 06:00  Automated System" },
 	{ title: "Pesticide Application", meta: "Oct 19, 09:15  Operator: K.Patel" },
@@ -69,6 +69,10 @@ function BlockBadge({ text }) {
 
 export default function BlockDetail({ onNavigate = () => {} }) {
 	const [block, setBlock] = useState(() => safeParseBlock());
+	const [history, setHistory] = useState([]);
+	const [activityLog, setActivityLog] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState("");
 	const [modalMode, setModalMode] = useState(null);
 	const [formData, setFormData] = useState({
 		id: block.id,
@@ -80,7 +84,47 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 		yearPlanted: block.yearPlanted,
 	});
 
-	const history = useMemo(() => defaultHistory.map((entry) => ({ ...entry, teaVariety: block.variety || entry.teaVariety })), [block.variety]);
+	useEffect(() => {
+		const controller = new AbortController();
+		const blockId = encodeURIComponent(block.id);
+
+		async function loadBlockDetails() {
+			setIsLoading(true);
+			setError("");
+			try {
+				const [blockResponse, historyResponse, activityResponse] = await Promise.all([
+					fetch(`http://localhost:8000/api/routes/blocks/${blockId}`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/routes/blocks/${blockId}/harvest-history`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/routes/blocks/${blockId}/activities`, { signal: controller.signal }),
+				]);
+				if (!blockResponse.ok || !historyResponse.ok || !activityResponse.ok) throw new Error("Unable to load block details.");
+				const blockData = await blockResponse.json();
+				const historyData = await historyResponse.json();
+				const activityData = await activityResponse.json();
+				setBlock((current) => ({ ...current, ...blockData }));
+				setHistory((Array.isArray(historyData) ? historyData : historyData.items ?? historyData.records ?? []).map((entry) => ({
+					...entry,
+					date: entry.date ?? "--",
+					teaVariety: entry.teaVariety ?? entry.tea_variety ?? block.variety,
+					quantity: entry.quantity ?? entry.quantity_kg ?? "--",
+					efficiency: entry.efficiency ?? entry.efficiency_pct ?? "--",
+					status: entry.status ?? "--",
+				})));
+				setActivityLog(Array.isArray(activityData) ? activityData : activityData.items ?? activityData.records ?? []);
+			} catch (loadError) {
+				if (loadError.name !== "AbortError") {
+					setError(loadError.message);
+					setHistory(defaultHistory);
+					setActivityLog(defaultActivityLog);
+				}
+			} finally {
+				if (!controller.signal.aborted) setIsLoading(false);
+			}
+		}
+
+		loadBlockDetails();
+		return () => controller.abort();
+	}, [block.id]);
 
 	const openEditModal = () => {
 		setFormData({
@@ -155,7 +199,8 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 					</section>
 
 					<section style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.6fr) minmax(280px, 1fr)", gap: "var(--space-6)" }}>
-						<div className="card" style={{ padding: "var(--space-5)" }}>
+							<div className="card" style={{ padding: "var(--space-5)" }}>
+								{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
 							<div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
 								<div>
 									<h2 className="section-title" style={{ marginBottom: 0 }}>Current Status</h2>
@@ -189,12 +234,13 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 								<Clock3 size={18} color="var(--color-primary)" />
 							</div>
 							<div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-								{activityLog.map((item) => (
-									<div key={item.title} className="card" style={{ padding: "var(--space-3)", boxShadow: "none" }}>
-										<div style={{ fontWeight: "var(--fw-semibold)" }}>{item.title}</div>
-										<div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>{item.meta}</div>
-									</div>
-								))}
+													{isLoading && <div className="text-muted">Loading activity...</div>}
+													{!isLoading && activityLog.map((item) => (
+														<div key={item.title ?? item.name} className="card" style={{ padding: "var(--space-3)", boxShadow: "none" }}>
+															<div style={{ fontWeight: "var(--fw-semibold)" }}>{item.title ?? item.name ?? "Activity"}</div>
+															<div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>{item.meta ?? item.timestamp ?? item.operator ?? "--"}</div>
+														</div>
+													))}
 							</div>
 						</div>
 					</section>
@@ -217,7 +263,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 									</tr>
 								</thead>
 								<tbody>
-									{history.map((entry) => (
+									{isLoading ? <tr><td colSpan={5} style={{ textAlign: "center" }}>Loading harvest history...</td></tr> : history.map((entry) => (
 										<tr key={`${entry.date}-${entry.quantity}`} className="hover-row">
 											<td>{entry.date}</td>
 											<td>{entry.teaVariety}</td>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, Clock, CheckCircle } from "lucide-react";
 
 export const availableWorkers = [
@@ -29,25 +29,56 @@ function formatCurrentTime() {
 	return `${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
 }
 
-export default function AddAttendanceModal({ onClose, onSubmit }) {
+export default function AddAttendanceModal({ onClose, onSubmit, selectedDate }) {
+	const [workers, setWorkers] = useState(availableWorkers);
 	const [selectedWorkerId, setSelectedWorkerId] = useState(availableWorkers[0].id);
 	const [timeOption, setTimeOption] = useState("now"); // "now" | "custom"
 	const [customTime, setCustomTime] = useState("06:00");
 	const [assignedBlock, setAssignedBlock] = useState(availableWorkers[0].defaultBlock);
 	const [status, setStatus] = useState("On-time");
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [error, setError] = useState("");
 
-	const selectedWorker = availableWorkers.find((w) => w.id === selectedWorkerId) || availableWorkers[0];
+	useEffect(() => {
+		const controller = new AbortController();
+		async function loadWorkers() {
+			try {
+				const response = await fetch("http://localhost:8000/api/routes/workers", { signal: controller.signal });
+				if (!response.ok) throw new Error("Unable to load workers.");
+				const payload = await response.json();
+				const loadedWorkers = (Array.isArray(payload) ? payload : payload.items ?? payload.workers ?? []).map((worker) => ({
+					...worker,
+					id: worker.id ?? worker.worker_id,
+					name: worker.name ?? worker.full_name,
+					initials: worker.initials ?? (worker.name ?? "?").split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+					role: worker.role ?? worker.role_type ?? "Worker",
+					defaultBlock: worker.defaultBlock ?? worker.default_block_id ?? "",
+				}));
+				if (loadedWorkers.length) {
+					setWorkers(loadedWorkers);
+					setSelectedWorkerId(loadedWorkers[0].id);
+					setAssignedBlock(loadedWorkers[0].defaultBlock);
+				}
+			} catch (loadError) {
+				if (loadError.name !== "AbortError") setError(loadError.message);
+			}
+		}
+		loadWorkers();
+		return () => controller.abort();
+	}, []);
+
+	const selectedWorker = workers.find((w) => w.id === selectedWorkerId) || workers[0];
 
 	const handleWorkerChange = (e) => {
 		const id = e.target.value;
 		setSelectedWorkerId(id);
-		const found = availableWorkers.find((w) => w.id === id);
+		const found = workers.find((w) => w.id === id);
 		if (found) {
 			setAssignedBlock(found.defaultBlock);
 		}
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 		let checkInTime = "-- : --";
 
@@ -66,23 +97,34 @@ export default function AddAttendanceModal({ onClose, onSubmit }) {
 			}
 		}
 
-		const newRecord = {
-			id: selectedWorker.id,
-			name: selectedWorker.name,
-			initials: selectedWorker.initials,
-			role: selectedWorker.role,
-			assignedBlock: assignedBlock,
-			checkInTime: checkInTime,
-			status: status,
-		};
-
-		onSubmit(newRecord);
-		onClose();
+		setIsSubmitting(true);
+		setError("");
+		try {
+			const response = await fetch("http://localhost:8000/api/routes/attendance", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					worker_id: selectedWorker.id,
+					date: selectedDate ?? new Date().toISOString().slice(0, 10),
+					check_in_time: status === "Absent" ? null : checkInTime,
+					assigned_block_id: assignedBlock,
+					status,
+				}),
+			});
+			if (!response.ok) throw new Error("Unable to save attendance record.");
+			onSubmit(await response.json());
+			onClose();
+		} catch (submitError) {
+			setError(submitError.message);
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	return (
 		<div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: "var(--z-modal-backdrop)", display: "grid", placeItems: "center", padding: "var(--space-4)" }}>
 			<div className="modal-card" style={{ background: "var(--color-card)", color: "var(--color-text-primary)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-xl)", width: "100%", maxWidth: "440px", padding: "var(--space-6)", boxShadow: "var(--shadow-modal)" }}>
+				{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
 				<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-5)" }}>
 					<h3 style={{ margin: 0, fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)" }}>Add Attendance Record</h3>
 					<button type="button" className="btn-icon" onClick={onClose} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}>
@@ -102,7 +144,7 @@ export default function AddAttendanceModal({ onClose, onSubmit }) {
 							onChange={handleWorkerChange}
 							style={{ width: "100%", padding: "var(--space-3)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", background: "var(--color-card)", color: "var(--color-text-primary)" }}
 						>
-							{availableWorkers.map((w) => (
+							{workers.map((w) => (
 								<option key={w.id} value={w.id}>
 									{w.id} - {w.name} ({w.role})
 								</option>
@@ -227,7 +269,7 @@ export default function AddAttendanceModal({ onClose, onSubmit }) {
 						}}
 					>
 						<CheckCircle size={16} />
-						Save Attendance
+						{isSubmitting ? "SAVING..." : "Save Attendance"}
 					</button>
 				</form>
 			</div>

@@ -8,10 +8,13 @@ export default function BlockFormModal({
 	onClose,
 	onSubmit,
 	teaVarieties,
+	isSubmitting,
+	error,
 }) {
 	return (
 		<div className="modal-backdrop">
 			<div className="modal-card">
+				{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
 				<div className="modal-header">
 					<h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", margin: 0 }}>
 						{mode === "edit" ? "Edit Block Details" : "Add New Block"}
@@ -111,8 +114,8 @@ export default function BlockFormModal({
 						<button type="button" className="btn-secondary" onClick={onClose}>
 							Cancel
 						</button>
-						<button type="submit" className="btn-primary">
-							{mode === "edit" ? "Save Changes" : "Add Block"}
+						<button type="submit" className="btn-primary" disabled={isSubmitting}>
+							{isSubmitting ? "Saving..." : mode === "edit" ? "Save Changes" : "Add Block"}
 						</button>
 					</div>
 				</form>

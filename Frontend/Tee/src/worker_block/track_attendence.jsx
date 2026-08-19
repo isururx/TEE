@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Filter, Calendar, Search, Clock, Users, UserCheck, AlertTriangle, Plus } from "lucide-react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
@@ -63,11 +63,58 @@ const initialAttendanceLog = [
 ];
 
 export default function TrackAttendance({ onNavigate = () => {} }) {
-	const [attendance, setAttendance] = useState(initialAttendanceLog);
+	const [attendance, setAttendance] = useState([]);
 	const [search, setSearch] = useState("");
 	const [selectedDate, setSelectedDate] = useState("2023-10-24");
 	const [filterStatus, setFilterStatus] = useState("ALL");
 	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+	const [metrics, setMetrics] = useState({ active: 0, total: 0, late: 0 });
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState("");
+
+	useEffect(() => {
+		const controller = new AbortController();
+		const query = new URLSearchParams({ date: selectedDate });
+		if (search.trim()) query.set("search", search.trim());
+		if (filterStatus !== "ALL") query.set("status", filterStatus);
+
+		async function loadAttendance() {
+			setIsLoading(true);
+			setError("");
+			try {
+				const [attendanceResponse, metricsResponse] = await Promise.all([
+					fetch(`http://localhost:8000/api/routes/attendance?${query.toString()}`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/routes/attendance/metrics?date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal }),
+				]);
+				if (!attendanceResponse.ok || !metricsResponse.ok) throw new Error("Unable to load attendance data.");
+				const attendancePayload = await attendanceResponse.json();
+				const metricsPayload = await metricsResponse.json();
+				const records = Array.isArray(attendancePayload) ? attendancePayload : attendancePayload.items ?? attendancePayload.records ?? [];
+				setAttendance(records.map((record) => ({
+					...record,
+					id: record.id ?? record.worker_id,
+					name: record.name ?? record.worker_name ?? "Unknown worker",
+					initials: record.initials ?? (record.name ?? "?").split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
+					role: record.role ?? record.role_type ?? "Worker",
+					assignedBlock: record.assignedBlock ?? record.assigned_block_id ?? "--",
+					checkInTime: record.checkInTime ?? record.check_in_time ?? "-- : --",
+					status: record.status ?? "Absent",
+				})));
+				setMetrics({
+					active: metricsPayload.active ?? metricsPayload.active_workers ?? 0,
+					total: metricsPayload.total ?? metricsPayload.total_workers ?? 0,
+					late: metricsPayload.late ?? metricsPayload.late_count ?? 0,
+				});
+			} catch (loadError) {
+				if (loadError.name !== "AbortError") setError(loadError.message);
+			} finally {
+				if (!controller.signal.aborted) setIsLoading(false);
+			}
+		}
+
+		loadAttendance();
+		return () => controller.abort();
+	}, [selectedDate, search, filterStatus]);
 
 	const handleAddAttendance = (newRecord) => {
 		setAttendance((current) => {
@@ -92,7 +139,7 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 	}, [attendance, search, filterStatus]);
 
 	const onTimeCount = useMemo(() => attendance.filter((i) => i.status === "On-time").length, [attendance]);
-	const lateCount = useMemo(() => attendance.filter((i) => i.status === "Late").length + 10, [attendance]);
+	const lateCount = metrics.late;
 
 	return (
 		<div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
@@ -107,6 +154,7 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
 				<Sidebar activeItem="attendance" role="manager" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+					{error && <div role="alert" style={{ color: "var(--color-danger, #b42318)" }}>{error}</div>}
 					{/* Title */}
 					<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-4)" }}>
 						<h1 style={{ margin: 0, fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", letterSpacing: "-0.03em" }}>
@@ -145,10 +193,10 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 							</div>
 							<div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "var(--space-3)" }}>
 								<span style={{ fontSize: "var(--fs-3xl)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>
-									129
+									{metrics.active}
 								</span>
 								<span style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-muted)" }}>
-									/ 142
+									/ {metrics.total}
 								</span>
 							</div>
 						</div>
@@ -227,7 +275,9 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 									</tr>
 								</thead>
 								<tbody>
-									{filteredLog.length === 0 ? (
+									{isLoading ? (
+										<tr><td colSpan={5} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-muted)" }}>Loading attendance records...</td></tr>
+									) : filteredLog.length === 0 ? (
 										<tr>
 											<td colSpan={5} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-muted)" }}>
 												No attendance records match the search.
@@ -322,6 +372,7 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 
 			{isAddModalOpen && (
 				<AddAttendanceModal
+					selectedDate={selectedDate}
 					onClose={() => setIsAddModalOpen(false)}
 					onSubmit={handleAddAttendance}
 				/>

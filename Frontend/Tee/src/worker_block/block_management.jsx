@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Edit3, Leaf, MapPinned, Plus, Search, SquareActivity, Trash2 } from "lucide-react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
@@ -14,12 +14,7 @@ const teaVarieties = [
 	"TV-1",
 ];
 
-const initialBlocks = [
-	{ id: "A-12", area: 12.4, totalHarvest: "1,420.5 kg", lastHarvestDate: "2023-09-28", lastMonthHarvest: "5,620.0 kg", variety: "Assamica Gold", yearPlanted: 2018 },
-	{ id: "B-03", area: 9.8, totalHarvest: "980.0 kg", lastHarvestDate: "2023-09-14", lastMonthHarvest: "4,120.0 kg", variety: "TRI 2025", yearPlanted: 2020 },
-	{ id: "C-07", area: 16.1, totalHarvest: "1,550.8 kg", lastHarvestDate: "2023-08-15", lastMonthHarvest: "6,008.2 kg", variety: "B.O.P. Hybrid", yearPlanted: 2016 },
-	{ id: "D-02", area: 11.3, totalHarvest: "910.2 kg", lastHarvestDate: "2023-08-12", lastMonthHarvest: "3,840.4 kg", variety: "High Yield Clonal", yearPlanted: 2021 },
-];
+const BLOCKS_API_URL = "http://localhost:8000/api/routes/blocks";
 
 const emptyForm = {
 	id: "",
@@ -36,18 +31,57 @@ function formatArea(value) {
 	return Number.isNaN(numeric) ? value : `${numeric.toFixed(1)} ha`;
 }
 
+function normalizeBlock(block) {
+	return {
+		...block,
+		id: block.id ?? block.block_id,
+		area: block.area ?? block.area_ha ?? 0,
+		totalHarvest: block.totalHarvest ?? block.total_harvest_kg ?? "0.0 kg",
+		lastHarvestDate: block.lastHarvestDate ?? block.last_harvest_date ?? "--",
+		lastMonthHarvest: block.lastMonthHarvest ?? block.last_month_harvest_kg ?? "0.0 kg",
+		variety: block.variety ?? block.tea_variety ?? "--",
+		yearPlanted: block.yearPlanted ?? block.year_planted ?? new Date().getFullYear(),
+	};
+}
+
 export default function BlockManagement({ onNavigate = () => {} }) {
-	const [blocks, setBlocks] = useState(initialBlocks);
-	const [selectedBlockId, setSelectedBlockId] = useState(initialBlocks[0]?.id ?? "");
+	const [blocks, setBlocks] = useState([]);
+	const [selectedBlockId, setSelectedBlockId] = useState("");
 	const [search, setSearch] = useState("");
 	const [modalMode, setModalMode] = useState(null);
 	const [formData, setFormData] = useState(emptyForm);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const filteredBlocks = useMemo(() => {
-		const query = search.trim().toLowerCase();
-		if (!query) return blocks;
-		return blocks.filter((block) => [block.id, block.area, block.totalHarvest, block.lastHarvestDate, block.lastMonthHarvest, block.variety].join(" ").toLowerCase().includes(query));
-	}, [blocks, search]);
+	useEffect(() => {
+		const controller = new AbortController();
+		const query = search.trim();
+
+		async function loadBlocks() {
+			setIsLoading(true);
+			setError("");
+			try {
+				const url = query ? `${BLOCKS_API_URL}?search=${encodeURIComponent(query)}` : BLOCKS_API_URL;
+				const response = await fetch(url, { signal: controller.signal });
+				if (!response.ok) throw new Error("Unable to load plantation blocks.");
+				const payload = await response.json();
+				const records = Array.isArray(payload) ? payload : payload.items ?? payload.blocks ?? [];
+				const loadedBlocks = records.map(normalizeBlock);
+				setBlocks(loadedBlocks);
+				setSelectedBlockId((currentId) => loadedBlocks.some((block) => block.id === currentId) ? currentId : loadedBlocks[0]?.id ?? "");
+			} catch (loadError) {
+				if (loadError.name !== "AbortError") setError(loadError.message);
+			} finally {
+				if (!controller.signal.aborted) setIsLoading(false);
+			}
+		}
+
+		loadBlocks();
+		return () => controller.abort();
+	}, [search]);
+
+	const filteredBlocks = useMemo(() => blocks, [blocks]);
 
 	const selectedBlock = blocks.find((block) => block.id === selectedBlockId) ?? null;
 	const totalArea = useMemo(() => blocks.reduce((sum, block) => sum + Number(block.area || 0), 0), [blocks]);
@@ -76,8 +110,12 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 		setFormData(emptyForm);
 	};
 
-	const handleSubmit = (event) => {
+	const handleSubmit = async (event) => {
 		event.preventDefault();
+		if (!formData.id.trim() || Number.parseFloat(formData.area) <= 0) {
+			setError("Block ID and a positive area are required.");
+			return;
+		}
 		const nextBlock = {
 			id: formData.id.trim(),
 			area: Number.parseFloat(formData.area) || 0,
@@ -87,24 +125,46 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 			variety: formData.variety,
 			yearPlanted: Number.parseInt(formData.yearPlanted, 10) || new Date().getFullYear(),
 		};
-
-		setBlocks((current) => {
-			if (modalMode === "edit") {
-				return current.map((block) => (block.id === nextBlock.id ? nextBlock : block));
-			}
-			return [nextBlock, ...current.filter((block) => block.id !== nextBlock.id)];
-		});
-		setSelectedBlockId(nextBlock.id);
-		closeModal();
+		setIsSubmitting(true);
+		setError("");
+		try {
+			const endpoint = modalMode === "edit" ? `${BLOCKS_API_URL}/${encodeURIComponent(nextBlock.id)}` : BLOCKS_API_URL;
+			const response = await fetch(endpoint, {
+				method: modalMode === "edit" ? "PUT" : "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					id: nextBlock.id,
+					area: nextBlock.area,
+					tea_variety: nextBlock.variety,
+					year_planted: nextBlock.yearPlanted,
+					total_harvest_kg: nextBlock.totalHarvest,
+					last_harvest_date: nextBlock.lastHarvestDate,
+					last_month_harvest_kg: nextBlock.lastMonthHarvest,
+				}),
+			});
+			if (!response.ok) throw new Error("Unable to save the block.");
+			const savedBlock = response.status === 204 ? nextBlock : normalizeBlock(await response.json());
+			setBlocks((current) => modalMode === "edit" ? current.map((block) => (block.id === savedBlock.id ? savedBlock : block)) : [savedBlock, ...current.filter((block) => block.id !== savedBlock.id)]);
+			setSelectedBlockId(savedBlock.id);
+			closeModal();
+		} catch (submitError) {
+			setError(submitError.message);
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
-	const handleRemoveSelected = () => {
+	const handleRemoveSelected = async () => {
 		if (!selectedBlock) return;
-		setBlocks((current) => {
-			const remaining = current.filter((block) => block.id !== selectedBlock.id);
-			setSelectedBlockId(remaining[0]?.id ?? "");
-			return remaining;
-		});
+		setError("");
+		try {
+			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(selectedBlock.id)}`, { method: "DELETE" });
+			if (!response.ok) throw new Error("Unable to remove the selected block.");
+			setBlocks((current) => current.filter((block) => block.id !== selectedBlock.id));
+			setSelectedBlockId("");
+		} catch (removeError) {
+			setError(removeError.message);
+		}
 	};
 
 	const navigateToDetail = (block) => {
@@ -140,6 +200,7 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 					</section>
 
 					<section className="card" style={{ padding: "var(--space-5)", border: "1px solid var(--color-border)" }}>
+						{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
 						<div style={{ display: "flex", justifyContent: "space-between", gap: "var(--space-4)", flexWrap: "wrap", alignItems: "center", marginBottom: "var(--space-4)" }}>
 							<div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
 								<div style={{ width: 40, height: 40, borderRadius: 999, background: "var(--color-hover-green)", display: "grid", placeItems: "center" }}><SquareActivity size={18} color="var(--color-primary)" /></div>
@@ -153,7 +214,7 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 									<tr>{["Block ID", "Area", "Total Harvest", "Last Harvest Date", "Last Month Total Harvest", "Tea variety"].map((heading) => <th key={heading} style={{ textAlign: "left", padding: "var(--space-3) var(--space-4)", fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-secondary)", background: "var(--color-hover-green)", borderBottom: "1px solid var(--color-border)" }}>{heading}</th>)}</tr>
 								</thead>
 								<tbody>
-									{filteredBlocks.length === 0 ? <tr><td colSpan={6} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-secondary)" }}>No blocks match the current search.</td></tr> : filteredBlocks.map((block) => {
+									{isLoading ? <tr><td colSpan={6} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-secondary)" }}>Loading blocks...</td></tr> : filteredBlocks.length === 0 ? <tr><td colSpan={6} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-secondary)" }}>No blocks match the current search.</td></tr> : filteredBlocks.map((block) => {
 										const isSelected = block.id === selectedBlockId;
 										return (
 											<tr key={block.id} onClick={() => { setSelectedBlockId(block.id); navigateToDetail(block); }} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") { setSelectedBlockId(block.id); navigateToDetail(block); } }} style={{ cursor: "pointer", background: isSelected ? "var(--color-hover-green)" : "var(--color-card)", transition: "background-color var(--transition-fast)" }}>
@@ -179,7 +240,7 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 				</main>
 			</div>
 			<Footer />
-			{modalMode && <BlockFormModal mode={modalMode} formData={formData} setFormData={setFormData} onClose={closeModal} onSubmit={handleSubmit} teaVarieties={teaVarieties} />}
+			{modalMode && <BlockFormModal mode={modalMode} formData={formData} setFormData={setFormData} onClose={closeModal} onSubmit={handleSubmit} teaVarieties={teaVarieties} isSubmitting={isSubmitting} error={error} />}
 		</div>
 	);
 }
