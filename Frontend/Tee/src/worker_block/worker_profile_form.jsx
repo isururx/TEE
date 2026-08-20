@@ -1,0 +1,140 @@
+import React, { useMemo, useState } from "react";
+import { UserPlus, X } from "lucide-react";
+
+const ROLE_OPTIONS = ["Worker", "Supervisor", "Manager"];
+
+const emptyForm = {
+	fullName: "",
+	nic: "",
+	dob: "",
+	address: "",
+	contactNumber: "",
+	roleType: ROLE_OPTIONS[0],
+};
+
+function validateWorkerProfile(formData) {
+	const nicPattern = /^[A-Za-z0-9]{10,12}$/;
+	const phonePattern = /^\+?[0-9]{10,15}$/;
+
+	if (!formData.fullName.trim()) return "Worker name is required.";
+	if (!nicPattern.test(formData.nic.trim())) return "NIC must be 10 to 12 letters or numbers.";
+	if (!formData.dob) return "Date of birth is required.";
+	if (!formData.address.trim()) return "Address is required.";
+	if (!phonePattern.test(formData.contactNumber.trim())) return "Contact number must be 10 to 15 digits and may start with +.";
+	if (!ROLE_OPTIONS.includes(formData.roleType)) return "Role type is required.";
+
+	const selectedDate = new Date(formData.dob);
+	const today = new Date();
+	today.setHours(0, 0, 0, 0);
+	if (selectedDate >= today) return "Date of birth must be in the past.";
+
+	return "";
+}
+
+export default function WorkerProfileForm({ onClose, onCreated }) {
+	const [formData, setFormData] = useState(emptyForm);
+	const [error, setError] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const maxDob = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+	const handleSubmit = async (event) => {
+		event.preventDefault();
+		const validationMessage = validateWorkerProfile(formData);
+		if (validationMessage) {
+			setError(validationMessage);
+			return;
+		}
+
+		setError("");
+		setIsSubmitting(true);
+		try {
+			const response = await fetch("http://localhost:8000/api/routes/workers", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					full_name: formData.fullName.trim(),
+					name: formData.fullName.trim(),
+					nic: formData.nic.trim(),
+					dob: formData.dob,
+					date_of_birth: formData.dob,
+					address: formData.address.trim(),
+					phone_num: formData.contactNumber.trim(),
+					contact_number: formData.contactNumber.trim(),
+					role_type: formData.roleType,
+				}),
+			});
+
+			if (!response.ok) throw new Error("Unable to register worker profile.");
+			const createdWorker = await response.json();
+			onCreated(createdWorker);
+			onClose();
+		} catch (submitError) {
+			setError(submitError.message);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	return (
+		<div className="modal-backdrop" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: "var(--z-modal-backdrop)", display: "grid", placeItems: "center", padding: "var(--space-4)" }}>
+			<div className="modal-card" style={{ width: "100%", maxWidth: 560, maxHeight: "calc(100vh - 32px)", overflowY: "auto", padding: "var(--space-6)" }}>
+				<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-5)" }}>
+					<div>
+						<h3 style={{ margin: 0, fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)" }}>Worker Profile Registration</h3>
+						<p className="text-muted" style={{ margin: "var(--space-1) 0 0", fontSize: "var(--fs-sm)" }}>Register worker identity and role details required by SRS 5.1.5.</p>
+					</div>
+					<button type="button" className="btn-icon" onClick={onClose} style={{ background: "transparent", border: "none", cursor: "pointer" }}>
+						<X size={20} />
+					</button>
+				</div>
+
+				{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
+
+				<form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+					<div>
+						<label className="form-label">Worker Name</label>
+						<input className="input-primary" value={formData.fullName} onChange={(event) => setFormData((current) => ({ ...current, fullName: event.target.value }))} required />
+					</div>
+
+					<div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "var(--space-3)" }}>
+						<div>
+							<label className="form-label">NIC</label>
+							<input className="input-primary" value={formData.nic} onChange={(event) => setFormData((current) => ({ ...current, nic: event.target.value }))} placeholder="e.g. 200145678912" required />
+						</div>
+						<div>
+							<label className="form-label">Date of Birth (DOB)</label>
+							<input className="input-primary" type="date" max={maxDob} value={formData.dob} onChange={(event) => setFormData((current) => ({ ...current, dob: event.target.value }))} required />
+						</div>
+					</div>
+
+					<div>
+						<label className="form-label">Address</label>
+						<textarea className="input-primary" value={formData.address} onChange={(event) => setFormData((current) => ({ ...current, address: event.target.value }))} rows={3} required style={{ resize: "vertical" }} />
+					</div>
+
+					<div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "var(--space-3)" }}>
+						<div>
+							<label className="form-label">Contact Number</label>
+							<input className="input-primary" type="tel" value={formData.contactNumber} onChange={(event) => setFormData((current) => ({ ...current, contactNumber: event.target.value }))} placeholder="e.g. +94771234567" required />
+						</div>
+						<div>
+							<label className="form-label">Role Type</label>
+							<select className="input-primary" value={formData.roleType} onChange={(event) => setFormData((current) => ({ ...current, roleType: event.target.value }))} required>
+								{ROLE_OPTIONS.map((role) => <option key={role} value={role}>{role}</option>)}
+							</select>
+						</div>
+					</div>
+
+					<div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-3)" }}>
+						<button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>Cancel</button>
+						<button type="submit" className="btn-primary" disabled={isSubmitting} style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)" }}>
+							<UserPlus size={16} />
+							{isSubmitting ? "Registering..." : "Register Worker"}
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	);
+}

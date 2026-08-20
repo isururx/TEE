@@ -4,6 +4,7 @@ import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import Sidebar from "../common components/sidebar.jsx";
 import AddAttendanceModal from "./add_attendance.jsx";
+import WorkerProfileForm from "./worker_profile_form.jsx";
 
 const initialAttendanceLog = [
 	{
@@ -68,9 +69,11 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 	const [selectedDate, setSelectedDate] = useState("2023-10-24");
 	const [filterStatus, setFilterStatus] = useState("ALL");
 	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+	const [isWorkerModalOpen, setIsWorkerModalOpen] = useState(false);
 	const [metrics, setMetrics] = useState({ active: 0, total: 0, late: 0 });
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState("");
+	const [successMessage, setSuccessMessage] = useState("");
 
 	useEffect(() => {
 		const controller = new AbortController();
@@ -124,6 +127,11 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 		});
 	};
 
+	const handleWorkerCreated = (newWorker) => {
+		const workerName = newWorker?.name ?? newWorker?.full_name ?? "Worker";
+		setSuccessMessage(`${workerName} profile registered successfully.`);
+	};
+
 	const filteredLog = useMemo(() => {
 		const query = search.trim().toLowerCase();
 		return attendance.filter((item) => {
@@ -155,33 +163,39 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 				<Sidebar activeItem="attendance" role="manager" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
 					{error && <div role="alert" style={{ color: "var(--color-danger, #b42318)" }}>{error}</div>}
+					{successMessage && <div role="status" style={{ color: "var(--color-success, #1b5e20)" }}>{successMessage}</div>}
 					{/* Title */}
 					<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-4)" }}>
 						<h1 style={{ margin: 0, fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", letterSpacing: "-0.03em" }}>
 							Attendance Tracking
 						</h1>
 
-						<button
-							type="button"
-							onClick={() => setIsAddModalOpen(true)}
-							style={{
-								padding: "var(--space-3) var(--space-5)",
-								borderRadius: "var(--radius-md)",
-								background: "#000000",
-								color: "#FFFFFF",
-								border: "none",
-								fontWeight: "var(--fw-semibold)",
-								fontSize: "var(--fs-sm)",
-								display: "inline-flex",
-								alignItems: "center",
-								gap: "var(--space-2)",
-								cursor: "pointer",
-								boxShadow: "var(--shadow-soft)",
-							}}
-						>
-							<Plus size={16} />
-							Add Attendance
-						</button>
+						<div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+							<button type="button" className="btn-secondary" onClick={() => setIsWorkerModalOpen(true)} style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)" }}>
+								Register Worker
+							</button>
+							<button
+								type="button"
+								onClick={() => setIsAddModalOpen(true)}
+								style={{
+									padding: "var(--space-3) var(--space-5)",
+									borderRadius: "var(--radius-md)",
+									background: "#000000",
+									color: "#FFFFFF",
+									border: "none",
+									fontWeight: "var(--fw-semibold)",
+									fontSize: "var(--fs-sm)",
+									display: "inline-flex",
+									alignItems: "center",
+									gap: "var(--space-2)",
+									cursor: "pointer",
+									boxShadow: "var(--shadow-soft)",
+								}}
+							>
+								<Plus size={16} />
+								Add Attendance
+							</button>
+						</div>
 					</div>
 
 					{/* Top Metric Cards */}
@@ -375,6 +389,13 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 					selectedDate={selectedDate}
 					onClose={() => setIsAddModalOpen(false)}
 					onSubmit={handleAddAttendance}
+				/>
+			)}
+
+			{isWorkerModalOpen && (
+				<WorkerProfileForm
+					onClose={() => setIsWorkerModalOpen(false)}
+					onCreated={handleWorkerCreated}
 				/>
 			)}
 		</div>
