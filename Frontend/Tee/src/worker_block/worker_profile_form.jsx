@@ -9,6 +9,7 @@ const emptyForm = {
 	dob: "",
 	address: "",
 	contactNumber: "",
+	email: "",
 	roleType: ROLE_OPTIONS[0],
 };
 
@@ -21,6 +22,7 @@ function validateWorkerProfile(formData) {
 	if (!formData.dob) return "Date of birth is required.";
 	if (!formData.address.trim()) return "Address is required.";
 	if (!phonePattern.test(formData.contactNumber.trim())) return "Contact number must be 10 to 15 digits and may start with +.";
+	if (!formData.email.trim()) return "Email is required.";
 	if (!ROLE_OPTIONS.includes(formData.roleType)) return "Role type is required.";
 
 	const selectedDate = new Date(formData.dob);
@@ -57,6 +59,7 @@ export default function WorkerProfileForm({ onClose, onCreated }) {
 					name: formData.fullName.trim(),
 					nic: formData.nic.trim(),
 					dob: formData.dob,
+					email: formData.email.trim(),
 					date_of_birth: formData.dob,
 					address: formData.address.trim(),
 					phone_num: formData.contactNumber.trim(),
@@ -111,6 +114,11 @@ export default function WorkerProfileForm({ onClose, onCreated }) {
 					<div>
 						<label className="form-label">Address</label>
 						<textarea className="input-primary" value={formData.address} onChange={(event) => setFormData((current) => ({ ...current, address: event.target.value }))} rows={3} required style={{ resize: "vertical" }} />
+					</div>
+
+					<div>
+						<label className="form-label">Email</label>
+						<input className="input-primary" type="email" value={formData.email} onChange={(event) => setFormData((current) => ({ ...current, email: event.target.value }))} placeholder="e.g. john.doe@example.com" required />
 					</div>
 
 					<div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "var(--space-3)" }}>
