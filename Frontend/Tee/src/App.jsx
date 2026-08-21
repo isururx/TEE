@@ -14,6 +14,7 @@ import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
 import TaskManagement from "./worker_block/task_management.jsx";
 import TrackAttendance from "./worker_block/track_attendence.jsx";
+import WorkerLogin from "./worker_block/workerlogin.jsx";
 import InventoryManagement from "./inventory/inventory_management.jsx";
 import SupplierManagement from "./inventory/supplier_management.jsx";
 
@@ -42,6 +43,10 @@ function App() {
 
   if (currentPage === "login") {
     return <Login onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "workerLogin") {
+    return <WorkerLogin onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "twoStepVerification" || currentPage === "verification" || currentPage === "otp") {
@@ -94,15 +99,13 @@ function App() {
   if (currentPage === "attendance") {
     return <TrackAttendance onNavigate={handleNavigate} />;
   }
-  
-  if (currentPage === "inventory") {
+ if (currentPage === "inventory") {
     return <InventoryManagement onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "suppliers") {
     return <SupplierManagement onNavigate={handleNavigate} />;
   }
-
   return <StateAnalytics onNavigate={handleNavigate} />;
 }
 
