@@ -93,9 +93,9 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 			setError("");
 			try {
 				const [blockResponse, historyResponse, activityResponse] = await Promise.all([
-					fetch(`http://localhost:8000/api/routes/blocks/${blockId}`, { signal: controller.signal }),
-					fetch(`http://localhost:8000/api/routes/blocks/${blockId}/harvest-history`, { signal: controller.signal }),
-					fetch(`http://localhost:8000/api/routes/blocks/${blockId}/activities`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/blocks/${blockId}`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/blocks/${blockId}/harvest-history`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/blocks/${blockId}/activities`, { signal: controller.signal }),
 				]);
 				if (!blockResponse.ok || !historyResponse.ok || !activityResponse.ok) throw new Error("Unable to load block details.");
 				const blockData = await blockResponse.json();

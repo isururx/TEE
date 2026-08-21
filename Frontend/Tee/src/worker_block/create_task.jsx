@@ -45,8 +45,8 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
 		async function loadOptions() {
 			try {
 				const [workersResponse, blocksResponse] = await Promise.all([
-					fetch("http://localhost:8000/api/routes/workers", { signal: controller.signal }),
-					fetch("http://localhost:8000/api/routes/blocks", { signal: controller.signal }),
+					fetch("http://localhost:8000/api/workers", { signal: controller.signal }),
+					fetch("http://localhost:8000/api/blocks", { signal: controller.signal }),
 				]);
 				if (!workersResponse.ok || !blocksResponse.ok) throw new Error("Unable to load task assignment options.");
 				const workerPayload = await workersResponse.json();
@@ -87,7 +87,7 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
 		setIsSubmitting(true);
 		setError("");
 		try {
-			const response = await fetch("http://localhost:8000/api/routes/tasks", {
+			const response = await fetch("http://localhost:8000/api/tasks", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

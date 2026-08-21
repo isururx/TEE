@@ -86,8 +86,8 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 			setError("");
 			try {
 				const [attendanceResponse, metricsResponse] = await Promise.all([
-					fetch(`http://localhost:8000/api/routes/attendance?${query.toString()}`, { signal: controller.signal }),
-					fetch(`http://localhost:8000/api/routes/attendance/metrics?date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/attendance?${query.toString()}`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/attendance/metrics?date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal }),
 				]);
 				if (!attendanceResponse.ok || !metricsResponse.ok) throw new Error("Unable to load attendance data.");
 				const attendancePayload = await attendanceResponse.json();

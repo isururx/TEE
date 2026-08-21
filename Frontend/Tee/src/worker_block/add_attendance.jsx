@@ -43,7 +43,7 @@ export default function AddAttendanceModal({ onClose, onSubmit, selectedDate }) 
 		const controller = new AbortController();
 		async function loadWorkers() {
 			try {
-				const response = await fetch("http://localhost:8000/api/routes/workers", { signal: controller.signal });
+				const response = await fetch("http://localhost:8000/api/workers", { signal: controller.signal });
 				if (!response.ok) throw new Error("Unable to load workers.");
 				const payload = await response.json();
 				const loadedWorkers = (Array.isArray(payload) ? payload : payload.items ?? payload.workers ?? []).map((worker) => ({
@@ -100,7 +100,7 @@ export default function AddAttendanceModal({ onClose, onSubmit, selectedDate }) 
 		setIsSubmitting(true);
 		setError("");
 		try {
-			const response = await fetch("http://localhost:8000/api/routes/attendance", {
+			const response = await fetch("http://localhost:8000/api/attendance", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({

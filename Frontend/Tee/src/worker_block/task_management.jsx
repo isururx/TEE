@@ -5,7 +5,7 @@ import Footer from "../common components/footer.jsx";
 import Sidebar from "../common components/sidebar.jsx";
 import CreateTaskModal from "./create_task.jsx";
 
-const TASKS_API_URL = "http://localhost:8000/api/routes/tasks";
+const TASKS_API_URL = "http://localhost:8000/api/tasks";
 
 function normalizeTask(task) {
 	return {

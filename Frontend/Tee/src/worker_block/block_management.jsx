@@ -14,7 +14,7 @@ const teaVarieties = [
 	"TV-1",
 ];
 
-const BLOCKS_API_URL = "http://localhost:8000/api/routes/blocks";
+const BLOCKS_API_URL = "http://localhost:8000/api/blocks";
 
 const emptyForm = {
 	id: "",

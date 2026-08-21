@@ -50,7 +50,7 @@ export default function WorkerProfileForm({ onClose, onCreated }) {
 		setError("");
 		setIsSubmitting(true);
 		try {
-			const response = await fetch("http://localhost:8000/api/routes/workers", {
+			const response = await fetch("http://localhost:8000/api/workers", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
