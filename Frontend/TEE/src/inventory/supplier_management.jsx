@@ -117,23 +117,13 @@ const SupplierManagement = ({ onNavigate = () => {} }) => {
                 {/* Left Area (Catalogue & Table) */}
                 <div style={{ flex: "1 1 60%" }}>
                   
-                  {/* Search Bar */}
-                  <div style={{ marginBottom: "var(--space-4)", display: "inline-block" }}>
-                    <div className="input-search" style={{ background: "var(--color-card)", cursor: "pointer", padding: "var(--space-2) var(--space-4)" }}>
-                      <span style={{ marginRight: "var(--space-2)", fontWeight: "var(--fw-medium)", color: "var(--color-text-primary)" }}>Search suppliers</span>
-                      <div style={{ background: "var(--color-text-muted)", borderRadius: "var(--radius-sm)", padding: "2px" }}>
-                        <ChevronDown size={14} color="white" />
-                      </div>
-                    </div>
-                  </div>
+                 
 
                   {/* Main Catalogue Card */}
                   <div className="card" style={{ position: "relative", paddingBottom: "var(--space-10)" }}>
                     <div className="flex-between" style={{ marginBottom: "var(--space-6)" }}>
-                      <h2 style={{ fontSize: "var(--fs-lg)", fontWeight: "var(--fw-semibold)" }}>Supplier Directory</h2>
-                      <button className="btn-secondary" style={{ padding: "var(--space-2) var(--space-4)", borderRadius: "var(--radius-full)" }}>
-                        export
-                      </button>
+                     
+                     
                     </div>
 
                     {/* Category Tabs */}
