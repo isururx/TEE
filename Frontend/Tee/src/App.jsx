@@ -14,7 +14,7 @@ import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
 import TaskManagement from "./worker_block/task_management.jsx";
 import TrackAttendance from "./worker_block/track_attendence.jsx";
-
+import WorkerLogin from "./worker_block/workerlogin.jsx";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("login");
@@ -40,6 +40,10 @@ function App() {
 
   if (currentPage === "login") {
     return <Login onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "workerLogin") {
+    return <WorkerLogin onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "twoStepVerification" || currentPage === "verification" || currentPage === "otp") {
