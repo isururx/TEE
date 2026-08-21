@@ -117,14 +117,11 @@ const SupplierManagement = ({ onNavigate = () => {} }) => {
                 {/* Left Area (Catalogue & Table) */}
                 <div style={{ flex: "1 1 60%" }}>
                   
-                 
+                  <button style={{ marginBottom: "10px" }} type="button" className="btn-primary"onClick={() => setActiveModal('add')}> <Plus size={16} /><span>Add new Block</span></button>
 
                   {/* Main Catalogue Card */}
                   <div className="card" style={{ position: "relative", paddingBottom: "var(--space-10)" }}>
-                    <div className="flex-between" style={{ marginBottom: "var(--space-6)" }}>
-                     
-                     
-                    </div>
+                    
 
                     {/* Category Tabs */}
                     <div style={{ 
@@ -226,13 +223,8 @@ const SupplierManagement = ({ onNavigate = () => {} }) => {
 
                     {/* Floating Add Supplier Button */}
                     <div style={{ position: "absolute", bottom: "-20px", right: "var(--space-6)" }}>
-                      <button 
-                        className="btn-primary" 
-                        onClick={() => setActiveModal('add')}
-                        style={{ padding: "var(--space-3) var(--space-5)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-hover)" }}>
-                        <Plus size={20} />
-                        <span style={{ textAlign: "left" }}>Add<br/>Supplier</span>
-                      </button>
+                      
+                       
                     </div>
                   </div>
                 </div>
