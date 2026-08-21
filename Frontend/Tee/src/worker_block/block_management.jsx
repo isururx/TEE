@@ -19,9 +19,6 @@ const BLOCKS_API_URL = "http://localhost:8000/api/blocks";
 const emptyForm = {
 	id: "",
 	area: "",
-	totalHarvest: "0.0 kg",
-	lastHarvestDate: new Date().toISOString().slice(0, 10),
-	lastMonthHarvest: "0.0 kg",
 	variety: teaVarieties[0],
 	yearPlanted: new Date().getFullYear(),
 };
@@ -31,14 +28,19 @@ function formatArea(value) {
 	return Number.isNaN(numeric) ? value : `${numeric.toFixed(1)} ha`;
 }
 
+function formatKg(value) {
+	const numeric = Number(value);
+	return Number.isNaN(numeric) ? value : `${numeric.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`;
+}
+
 function normalizeBlock(block) {
 	return {
 		...block,
 		id: block.id ?? block.block_id,
 		area: block.area ?? block.area_ha ?? 0,
-		totalHarvest: block.totalHarvest ?? block.total_harvest_kg ?? "0.0 kg",
+		totalHarvest: formatKg(block.totalHarvest ?? block.total_harvest_kg ?? 0),
 		lastHarvestDate: block.lastHarvestDate ?? block.last_harvest_date ?? "--",
-		lastMonthHarvest: block.lastMonthHarvest ?? block.last_month_harvest_kg ?? "0.0 kg",
+		lastMonthHarvest: formatKg(block.lastMonthHarvest ?? block.last_month_harvest_kg ?? 0),
 		variety: block.variety ?? block.tea_variety ?? "--",
 		yearPlanted: block.yearPlanted ?? block.year_planted ?? new Date().getFullYear(),
 	};
@@ -96,9 +98,6 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 		setFormData({
 			id: selectedBlock.id,
 			area: String(selectedBlock.area),
-			totalHarvest: selectedBlock.totalHarvest,
-			lastHarvestDate: selectedBlock.lastHarvestDate,
-			lastMonthHarvest: selectedBlock.lastMonthHarvest,
 			variety: selectedBlock.variety,
 			yearPlanted: selectedBlock.yearPlanted,
 		});
@@ -119,9 +118,6 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 		const nextBlock = {
 			id: formData.id.trim(),
 			area: Number.parseFloat(formData.area) || 0,
-			totalHarvest: formData.totalHarvest || "0.0 kg",
-			lastHarvestDate: formData.lastHarvestDate,
-			lastMonthHarvest: formData.lastMonthHarvest || "0.0 kg",
 			variety: formData.variety,
 			yearPlanted: Number.parseInt(formData.yearPlanted, 10) || new Date().getFullYear(),
 		};
@@ -137,9 +133,6 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 					area: nextBlock.area,
 					tea_variety: nextBlock.variety,
 					year_planted: nextBlock.yearPlanted,
-					total_harvest_kg: nextBlock.totalHarvest,
-					last_harvest_date: nextBlock.lastHarvestDate,
-					last_month_harvest_kg: nextBlock.lastMonthHarvest,
 				}),
 			});
 			if (!response.ok) throw new Error("Unable to save the block.");

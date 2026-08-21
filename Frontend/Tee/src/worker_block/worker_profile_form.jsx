@@ -10,6 +10,7 @@ const emptyForm = {
 	address: "",
 	contactNumber: "",
 	email: "",
+	password: "",
 };
 
 function validateWorkerProfile(formData) {
@@ -22,6 +23,7 @@ function validateWorkerProfile(formData) {
 	if (!formData.address.trim()) return "Address is required.";
 	if (!phonePattern.test(formData.contactNumber.trim())) return "Contact number must be 10 to 15 digits and may start with +.";
 	if (!formData.email.trim()) return "Email is required.";
+	if (!formData.password.trim()) return "Password is required.";
 	
 
 	const selectedDate = new Date(formData.dob);
@@ -54,16 +56,13 @@ export default function WorkerProfileForm({ onClose, onCreated }) {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					full_name: formData.fullName.trim(),
 					name: formData.fullName.trim(),
-					nic: formData.nic.trim(),
-					dob: formData.dob,
 					email: formData.email.trim(),
-					date_of_birth: formData.dob,
-					address: formData.address.trim(),
 					phone_num: formData.contactNumber.trim(),
-					contact_number: formData.contactNumber.trim(),
-					role_type: formData.roleType,
+					password: formData.password,
+					NIC: formData.nic.trim(),
+					dob: formData.dob,
+					address: formData.address.trim(),
 				}),
 			});
 
@@ -138,6 +137,7 @@ export default function WorkerProfileForm({ onClose, onCreated }) {
 						<label className="form-label">Password</label>
 						<input className="input-primary" type="password" value={formData.password} onChange={(event) => setFormData((current) => ({ ...current, password: event.target.value }))} required />
 					</div>
+
 
 					<div className="modal-footer" style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-3)" }}>
 						<button type="button" className="btn-secondary" onClick={onClose} disabled={isSubmitting}>Cancel</button>

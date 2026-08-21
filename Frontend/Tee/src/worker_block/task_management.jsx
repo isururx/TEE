@@ -11,13 +11,23 @@ function normalizeTask(task) {
 	return {
 		...task,
 		id: task.id ?? task.task_id,
-		description: task.description ?? task.task_type ?? "Untitled task",
-		assignedWorker: task.assignedWorker ?? task.assigned_worker ?? task.worker_name ?? "Unassigned",
-		plantationBlock: task.plantationBlock ?? task.plantation_block ?? task.block_name ?? "Unassigned",
+		description: task.description ?? "Untitled task",
+		assignedWorker: task.assignedWorker ?? task.assigned_worker ?? task.worker_name ?? task.assigned_worker_names?.join(", ") ?? "Unassigned",
+		plantationBlock: task.plantationBlock ?? task.plantation_block ?? task.block_name ?? (task.block_id ? `Block ${task.block_id}` : "Unassigned"),
 		deadline: task.deadline ?? "--",
 		priority: task.priority ?? "LOW",
 		status: task.status ?? "QUEUED",
 	};
+}
+
+function normalizeAllocation(allocation) {
+	const colors = ["#1B5E20", "#4CAF50", "#81C784", "#C8E6C9"];
+	if (Array.isArray(allocation)) return allocation;
+	return Object.entries(allocation ?? {}).map(([label, percent], index) => ({
+		label,
+		percent,
+		color: colors[index % colors.length],
+	}));
 }
 
 export default function TaskManagement({ onNavigate = () => {} }) {
@@ -54,7 +64,7 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 					critical: metricsPayload.critical ?? metricsPayload.critical_count ?? 0,
 					inProgress: metricsPayload.inProgress ?? metricsPayload.in_progress_count ?? 0,
 					workforce: metricsPayload.workforce ?? metricsPayload.active_workers ?? 0,
-					allocation: metricsPayload.allocation ?? metricsPayload.labor_allocation ?? [],
+					allocation: normalizeAllocation(metricsPayload.allocation ?? metricsPayload.labor_allocation ?? {}),
 				});
 			} catch (loadError) {
 				if (loadError.name !== "AbortError") setError(loadError.message);
@@ -68,7 +78,7 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 	}, [search, filterStatus]);
 
 	const handleCreateTask = (newTask) => {
-		setTasks((current) => [newTask, ...current]);
+		setTasks((current) => [normalizeTask(newTask), ...current]);
 	};
 
 	const filteredTasks = useMemo(() => {

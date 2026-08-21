@@ -6,67 +6,36 @@ import Sidebar from "../common components/sidebar.jsx";
 import AddAttendanceModal from "./add_attendance.jsx";
 import WorkerProfileForm from "./worker_profile_form.jsx";
 
-const initialAttendanceLog = [
-	{
-		id: "TEE-0482",
-		name: "Amara Nwosu",
-		initials: "AN",
-		role: "Worker",
-		assignedBlock: "Sector A-4",
-		checkInTime: "06:02 AM",
-		status: "On-time",
-	},
-	{
-		id: "TEE-0912",
-		name: "Rohan Prasad",
-		initials: "RP",
-		role: "Manager",
-		assignedBlock: "Processing Plant",
-		checkInTime: "06:42 AM",
-		status: "Late",
-	},
-	{
-		id: "TEE-0125",
-		name: "Lila Jensen",
-		initials: "LJ",
-		role: "Supervisor",
-		assignedBlock: "Sector A-1",
-		checkInTime: "-- : --",
-		status: "Absent",
-	},
-	{
-		id: "TEE-0774",
-		name: "Kenji Watanabe",
-		initials: "KW",
-		role: "Worker",
-		assignedBlock: "Sector A-4",
-		checkInTime: "06:05 AM",
-		status: "On-time",
-	},
-	{
-		id: "TEE-0341",
-		name: "Sunil Silva",
-		initials: "SS",
-		role: "Worker",
-		assignedBlock: "Sector B-2",
-		checkInTime: "06:12 AM",
-		status: "On-time",
-	},
-	{
-		id: "TEE-0568",
-		name: "Mahesh Perera",
-		initials: "MP",
-		role: "Worker",
-		assignedBlock: "Sector A-3",
-		checkInTime: "06:55 AM",
-		status: "Late",
-	},
-];
+function getInitials(name) {
+	return (name ?? "?").split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function formatCheckInTime(value) {
+	if (!value) return "-- : --";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return value;
+	return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function normalizeAttendanceRecord(record) {
+	const name = record.worker_name ?? record.name ?? record.worker?.name ?? "Unknown worker";
+	return {
+		...record,
+		id: record.id,
+		workerId: record.worker_id,
+		name,
+		initials: record.initials ?? getInitials(name),
+		role: record.worker_role_type ?? record.role ?? record.role_type ?? "Worker",
+		assignedBlock: record.assignedBlock ?? (record.assigned_block_id ? `Block ${record.assigned_block_id}` : "--"),
+		checkInTime: record.checkInTime ?? formatCheckInTime(record.check_in_time),
+		status: record.status ?? "Absent",
+	};
+}
 
 export default function TrackAttendance({ onNavigate = () => {} }) {
 	const [attendance, setAttendance] = useState([]);
 	const [search, setSearch] = useState("");
-	const [selectedDate, setSelectedDate] = useState("2023-10-24");
+	const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
 	const [filterStatus, setFilterStatus] = useState("ALL");
 	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 	const [isWorkerModalOpen, setIsWorkerModalOpen] = useState(false);
@@ -77,7 +46,7 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 
 	useEffect(() => {
 		const controller = new AbortController();
-		const query = new URLSearchParams({ date: selectedDate });
+		const query = new URLSearchParams({ target_date: selectedDate });
 		if (search.trim()) query.set("search", search.trim());
 		if (filterStatus !== "ALL") query.set("status", filterStatus);
 
@@ -87,24 +56,15 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 			try {
 				const [attendanceResponse, metricsResponse] = await Promise.all([
 					fetch(`http://localhost:8000/api/attendance?${query.toString()}`, { signal: controller.signal }),
-					fetch(`http://localhost:8000/api/attendance/metrics?date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/attendance/metrics?target_date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal }),
 				]);
 				if (!attendanceResponse.ok || !metricsResponse.ok) throw new Error("Unable to load attendance data.");
 				const attendancePayload = await attendanceResponse.json();
 				const metricsPayload = await metricsResponse.json();
 				const records = Array.isArray(attendancePayload) ? attendancePayload : attendancePayload.items ?? attendancePayload.records ?? [];
-				setAttendance(records.map((record) => ({
-					...record,
-					id: record.id ?? record.worker_id,
-					name: record.name ?? record.worker_name ?? "Unknown worker",
-					initials: record.initials ?? (record.name ?? "?").split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase(),
-					role: record.role ?? record.role_type ?? "Worker",
-					assignedBlock: record.assignedBlock ?? record.assigned_block_id ?? "--",
-					checkInTime: record.checkInTime ?? record.check_in_time ?? "-- : --",
-					status: record.status ?? "Absent",
-				})));
+				setAttendance(records.map(normalizeAttendanceRecord));
 				setMetrics({
-					active: metricsPayload.active ?? metricsPayload.active_workers ?? 0,
+					active: metricsPayload.active ?? metricsPayload.active_count ?? 0,
 					total: metricsPayload.total ?? metricsPayload.total_workers ?? 0,
 					late: metricsPayload.late ?? metricsPayload.late_count ?? 0,
 				});
@@ -120,10 +80,11 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 	}, [selectedDate, search, filterStatus]);
 
 	const handleAddAttendance = (newRecord) => {
+		const normalizedRecord = normalizeAttendanceRecord(newRecord);
 		setAttendance((current) => {
 			// Replace existing record for the same worker if present, otherwise prepend
-			const filtered = current.filter((item) => item.id !== newRecord.id);
-			return [newRecord, ...filtered];
+			const filtered = current.filter((item) => item.id !== normalizedRecord.id);
+			return [normalizedRecord, ...filtered];
 		});
 	};
 

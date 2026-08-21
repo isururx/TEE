@@ -78,38 +78,6 @@ export default function BlockFormModal({
 						</div>
 					</div>
 
-					<div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "var(--space-3)" }}>
-						<div className="form-group">
-							<label className="form-label">Total Harvest</label>
-							<input
-								className="input-primary"
-								value={formData.totalHarvest}
-								onChange={(e) => setFormData((current) => ({ ...current, totalHarvest: e.target.value }))}
-								placeholder="e.g. 1200 kg"
-							/>
-						</div>
-
-						<div className="form-group">
-							<label className="form-label">Last Harvest Date</label>
-							<input
-								className="input-primary"
-								type="date"
-								value={formData.lastHarvestDate}
-								onChange={(e) => setFormData((current) => ({ ...current, lastHarvestDate: e.target.value }))}
-							/>
-						</div>
-					</div>
-
-					<div className="form-group">
-						<label className="form-label">Last Month Total Harvest</label>
-						<input
-							className="input-primary"
-							value={formData.lastMonthHarvest}
-							onChange={(e) => setFormData((current) => ({ ...current, lastMonthHarvest: e.target.value }))}
-							placeholder="e.g. 5000 kg"
-						/>
-					</div>
-
 					<div className="modal-footer">
 						<button type="button" className="btn-secondary" onClick={onClose}>
 							Cancel
