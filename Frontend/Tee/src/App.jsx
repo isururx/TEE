@@ -20,7 +20,7 @@ import SupplierManagement from "./inventory/supplier_management.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("login");
+  const [currentPage, setCurrentPage] = useState("profile");
 
 
   const [isMobile, setIsMobile] = useState(
