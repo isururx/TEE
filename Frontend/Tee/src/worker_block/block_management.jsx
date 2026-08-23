@@ -210,13 +210,15 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 									{isLoading ? <tr><td colSpan={6} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-secondary)" }}>Loading blocks...</td></tr> : filteredBlocks.length === 0 ? <tr><td colSpan={6} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-secondary)" }}>No blocks match the current search.</td></tr> : filteredBlocks.map((block) => {
 										const isSelected = block.id === selectedBlockId;
 										return (
-											<tr key={block.id} onClick={() => { setSelectedBlockId(block.id); navigateToDetail(block); }} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") { setSelectedBlockId(block.id); navigateToDetail(block); } }} style={{ cursor: "pointer", background: isSelected ? "var(--color-hover-green)" : "var(--color-card)", transition: "background-color var(--transition-fast)" }}>
+											<tr key={block.id} onClick={() => { setSelectedBlockId(block.id); }} role="button" tabIndex={0} onKeyDown={(event) => { if (event.key === "Enter") { setSelectedBlockId(block.id); navigateToDetail(block); } }} style={{ cursor: "pointer", background: isSelected ? "var(--color-hover-green)" : "var(--color-card)", transition: "background-color var(--transition-fast)" }}>
 												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)" }}>{block.id}</td>
 												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{formatArea(block.area)}</td>
 												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{block.totalHarvest}</td>
 												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{block.lastHarvestDate}</td>
 												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{block.lastMonthHarvest}</td>
 												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>{block.variety}</td>
+												<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)", color: "var(--color-text-primary)" }}><button className="btn-ghost"
+                                    style={{ padding: "2px 8px", fontSize: "10px", fontWeight: "var(--fw-bold)" }} onClick={ () => {navigateToDetail(block); } }>View Details</button></td>
 											</tr>
 										);
 									})}
