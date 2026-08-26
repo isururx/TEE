@@ -17,7 +17,6 @@ import OtpResent from "./OtpResent.jsx";
 const METHODS = [
   { id: "email", label: "Email Verification", detail: "Send code to user***@gmail.com", icon: Mail },
   { id: "sms", label: "SMS Verification", detail: "Send code to +94 70 *** 4164", icon: Smartphone },
-  { id: "app", label: "Authenticator App", detail: "Use Google Authenticator or Microsoft Auth", icon: KeyRound },
 ];
 
 /**
@@ -34,7 +33,7 @@ export default function TwoStepVerification({
   onNavigate = () => { },
   onVerifySuccess = () => { },
 }) {
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [resendTimer, setResendTimer] = useState(60);
@@ -43,7 +42,7 @@ export default function TwoStepVerification({
   const [showMethodModal, setShowMethodModal] = useState(false);
   const [isResentView, setIsResentView] = useState(false);
 
-  const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
 
   // Auto-focus first input on initial mount
   useEffect(() => {
@@ -85,7 +84,7 @@ export default function TwoStepVerification({
     setOtp(newOtp);
 
     // Auto advance to next input if filled
-    if (value && index < 3) {
+    if (value && index < 5) {
       inputRefs[index + 1]?.current?.focus();
     }
   };
@@ -101,7 +100,7 @@ export default function TwoStepVerification({
       }
     } else if (e.key === "ArrowLeft" && index > 0) {
       inputRefs[index - 1]?.current?.focus();
-    } else if (e.key === "ArrowRight" && index < 3) {
+    } else if (e.key === "ArrowRight" && index < 5) {
       inputRefs[index + 1]?.current?.focus();
     }
   };
@@ -110,10 +109,10 @@ export default function TwoStepVerification({
   const handlePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text").trim();
-    if (/^\d{4}$/.test(pastedData)) {
+    if (/^\d{6}$/.test(pastedData)) {
       const digits = pastedData.split("");
       setOtp(digits);
-      inputRefs[3]?.current?.focus();
+      inputRefs[5]?.current?.focus();
       setError("");
     }
   };
@@ -123,8 +122,8 @@ export default function TwoStepVerification({
     e?.preventDefault();
     const code = otp.join("");
 
-    if (code.length < 4) {
-      setError("Please enter all 4 digits of the verification code.");
+    if (code.length < 6) {
+      setError("Please enter all 6 digits of the verification code.");
       return;
     }
 
@@ -151,7 +150,7 @@ export default function TwoStepVerification({
   const handleResend = () => {
     if (resendTimer > 0) return;
 
-    setOtp(["", "", "", ""]);
+    setOtp(["", "", "", "", "", ""]);
     setError("");
     setResendTimer(60);
     setIsResentView(true);
@@ -236,7 +235,7 @@ export default function TwoStepVerification({
               marginBottom: "var(--space-4)",
             }}
           >
-            {email}
+            {verificationMethod === "email" ? email : "+94 70 *** 4164"}
           </p>
 
           {/* Main Heading */}
@@ -266,7 +265,7 @@ export default function TwoStepVerification({
             </div>
           )}
 
-          {/* 4 Compact Circular OTP Input Slots */}
+          {/* 6 Compact Circular OTP Input Slots */}
           <form onSubmit={handleLogin} className="flex-col" style={{ gap: "var(--space-6)" }}>
             {/* Live Countdown Timer Badge */}
             <div
@@ -290,7 +289,7 @@ export default function TwoStepVerification({
             <div
               className="flex-center"
               style={{
-                gap: "var(--space-4)",
+                gap: "var(--space-3)",
                 justifyContent: "center",
               }}
             >

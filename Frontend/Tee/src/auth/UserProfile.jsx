@@ -60,7 +60,7 @@ export default function UserProfile({ onNavigate = () => { } }) {
         {/* ---- Main Profile Content ---- */}
         <main style={{ flex: 1, minWidth: 0, paddingBottom: "var(--space-12)", overflowX: "hidden" }}>
           {/* Cover Banner */}
-          <div style={{ height: 200, background: "linear-gradient(135deg, #606770 0%, #474E57 100%)", width: "100%" }} />
+          <div style={{ height: 200, background: "linear-gradient(135deg, var(--color-dark-green) 0%, var(--color-primary) 100%)", width: "100%" }} />
 
           {/* Profile Container */}
           <div style={{ maxWidth: 1024, margin: "0 auto", padding: "0 var(--space-6)" }}>
@@ -72,8 +72,8 @@ export default function UserProfile({ onNavigate = () => { } }) {
                     width: 140,
                     height: 140,
                     borderRadius: "var(--radius-full)",
-                    background: "#D1D5DB",
-                    border: "5px solid #FFFFFF",
+                    background: "var(--color-primary)",
+                    border: "5px solid var(--color-bg)",
                     boxShadow: "var(--shadow-card)",
                     display: "flex",
                     alignItems: "center",
@@ -96,7 +96,7 @@ export default function UserProfile({ onNavigate = () => { } }) {
                 type="button"
                 className="btn-primary"
                 onClick={() => setIsEditing(true)}
-                style={{ background: "#000000", color: "#FFFFFF", marginBottom: "var(--space-3)", padding: "var(--space-2) var(--space-4)" }}
+                style={{ marginBottom: "var(--space-3)", padding: "var(--space-2) var(--space-4)" }}
               >
                 <Pencil size={15} /> Edit Profile
               </button>
@@ -105,7 +105,7 @@ export default function UserProfile({ onNavigate = () => { } }) {
             {/* Cards Grid: Account Status & Contact */}
             <div className="grid-2">
               {/* Left Card: Account Status */}
-              <div style={{ background: "#EDEDEE", borderRadius: "var(--radius-lg)", padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+              <div style={{ background: "var(--color-hover-green)", border: "1px solid var(--color-primary)", borderRadius: "var(--radius-lg)", padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
                 <h2 className="section-title" style={{ margin: 0 }}>Account Status</h2>
                 <div className="flex-col gap-md">
                   {statusItems.map((item) => (
@@ -118,7 +118,7 @@ export default function UserProfile({ onNavigate = () => { } }) {
               </div>
 
               {/* Right Card: Contact & Personal */}
-              <div style={{ background: "#EDEDEE", borderRadius: "var(--radius-lg)", padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
+              <div style={{ background: "var(--color-hover-green)", border: "1px solid var(--color-primary)", borderRadius: "var(--radius-lg)", padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-5)" }}>
                 <h2 className="section-title" style={{ margin: 0 }}>Contact & Personal</h2>
                 <div className="flex-col gap-md">
                   {contactItems.map(({ icon: Icon, label, value }) => (

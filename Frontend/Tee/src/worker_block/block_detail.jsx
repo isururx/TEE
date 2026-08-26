@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import Sidebar from "../common components/sidebar.jsx";
-import { Clock3, Edit3, Leaf, MapPinned, RotateCcw, X } from "lucide-react";
+import { Clock3, Edit3, Plus, RotateCcw, X } from "lucide-react";
 import BlockFormModal from "./block_form_modal.jsx";
 
 const teaVarieties = [
@@ -14,12 +14,14 @@ const teaVarieties = [
 	"TV-1",
 ];
 
+const BLOCKS_API_URL = "http://localhost:8000/api/blocks";
+
 const fallbackBlock = {
 	id: "A-12",
 	area: 12.4,
-	totalHarvest: "1,420.5 kg",
-	lastHarvestDate: "2023-09-28",
-	lastMonthHarvest: "5,620.0 kg",
+	totalHarvest: "0 kg",
+	lastHarvestDate: "--",
+	lastMonthHarvest: "0 kg",
 	variety: "Assamica Gold",
 	yearPlanted: 2018,
 };
@@ -32,12 +34,20 @@ const defaultHistory = [
 	{ date: "Aug 12, 2023", teaVariety: "Assamica Gold", quantity: "1,420.5", efficiency: "91.4%", status: "VERIFIED" },
 ];
 
-const activityLog = [
+const defaultActivityLog = [
 	{ title: "Soil Testing", meta: "Oct 24, 14:20  Operator: R.Chen" },
 	{ title: "Irrigation Scheduled", meta: "Oct 22, 06:00  Automated System" },
 	{ title: "Pesticide Application", meta: "Oct 19, 09:15  Operator: K.Patel" },
 	{ title: "Pruning", meta: "Oct 15, 11:45  Team Beta (12 members)" },
 ];
+
+const emptyHarvestForm = {
+	date: new Date().toISOString().slice(0, 10),
+	teaVariety: "",
+	quantityKg: "",
+	efficiencyPct: "",
+	status: "VERIFIED",
+};
 
 function safeParseBlock() {
 	if (typeof sessionStorage === "undefined") {
@@ -67,53 +77,186 @@ function BlockBadge({ text }) {
 	);
 }
 
+function formatKg(value) {
+	const numeric = Number(value);
+	return Number.isNaN(numeric) ? value : `${numeric.toLocaleString(undefined, { maximumFractionDigits: 1 })} kg`;
+}
+
+function normalizeBlock(block) {
+	return {
+		...block,
+		id: block.id ?? block.block_id,
+		area: block.area ?? block.area_ha ?? 0,
+		totalHarvest: formatKg(block.totalHarvest ?? block.total_harvest_kg ?? 0),
+		lastHarvestDate: block.lastHarvestDate ?? block.last_harvest_date ?? "--",
+		lastMonthHarvest: formatKg(block.lastMonthHarvest ?? block.last_month_harvest_kg ?? 0),
+		variety: block.variety ?? block.tea_variety ?? "--",
+		yearPlanted: block.yearPlanted ?? block.year_planted ?? new Date().getFullYear(),
+	};
+}
+
+function normalizeHarvestEntry(entry, fallbackVariety) {
+	const efficiencyValue = entry.efficiency ?? entry.efficiency_pct;
+	const quantityValue = entry.quantity ?? entry.quantity_kg;
+
+	return {
+		...entry,
+		date: entry.date ?? "--",
+		teaVariety: entry.teaVariety ?? entry.tea_variety ?? fallbackVariety ?? "--",
+		quantity: quantityValue === null || quantityValue === undefined || quantityValue === "" ? "--" : quantityValue,
+		efficiency: efficiencyValue === null || efficiencyValue === undefined || efficiencyValue === "" ? "--" : efficiencyValue,
+		status: entry.status ?? "--",
+	};
+}
+
 export default function BlockDetail({ onNavigate = () => {} }) {
-	const [block, setBlock] = useState(() => safeParseBlock());
+	const [block, setBlock] = useState(() => normalizeBlock(safeParseBlock()));
+	const [history, setHistory] = useState([]);
+	const [activityLog, setActivityLog] = useState([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState("");
 	const [modalMode, setModalMode] = useState(null);
+	const [harvestFormData, setHarvestFormData] = useState(() => ({ ...emptyHarvestForm, teaVariety: block.variety ?? teaVarieties[0] }));
+	const [harvestError, setHarvestError] = useState("");
+	const [isHarvestSubmitting, setIsHarvestSubmitting] = useState(false);
 	const [formData, setFormData] = useState({
 		id: block.id,
 		area: String(block.area),
-		totalHarvest: block.totalHarvest,
-		lastHarvestDate: block.lastHarvestDate,
-		lastMonthHarvest: block.lastMonthHarvest,
 		variety: block.variety,
 		yearPlanted: block.yearPlanted,
 	});
 
-	const history = useMemo(() => defaultHistory.map((entry) => ({ ...entry, teaVariety: block.variety || entry.teaVariety })), [block.variety]);
+	useEffect(() => {
+		const controller = new AbortController();
+		const blockId = encodeURIComponent(block.id);
+
+		async function loadBlockDetails() {
+			setIsLoading(true);
+			setError("");
+			try {
+				const [blockResponse, historyResponse, activityResponse] = await Promise.all([
+					fetch(`http://localhost:8000/api/blocks/${blockId}`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/blocks/${blockId}/harvest-history`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/blocks/${blockId}/activities`, { signal: controller.signal }),
+				]);
+				if (!blockResponse.ok || !historyResponse.ok || !activityResponse.ok) throw new Error("Unable to load block details.");
+				const blockData = await blockResponse.json();
+				const historyData = await historyResponse.json();
+				const activityData = await activityResponse.json();
+				const nextBlock = normalizeBlock({ ...block, ...blockData });
+				setBlock(nextBlock);
+				sessionStorage.setItem("tee-selected-block", JSON.stringify(nextBlock));
+				setHistory((Array.isArray(historyData) ? historyData : historyData.items ?? historyData.records ?? []).map((entry) => normalizeHarvestEntry(entry, block.variety)));
+				setActivityLog(Array.isArray(activityData) ? activityData : activityData.items ?? activityData.records ?? []);
+			} catch (loadError) {
+				if (loadError.name !== "AbortError") {
+					setError(loadError.message);
+					setHistory(defaultHistory);
+					setActivityLog(defaultActivityLog);
+				}
+			} finally {
+				if (!controller.signal.aborted) setIsLoading(false);
+			}
+		}
+
+		loadBlockDetails();
+		return () => controller.abort();
+	}, [block.id]);
 
 	const openEditModal = () => {
 		setFormData({
 			id: block.id,
 			area: String(block.area),
-			totalHarvest: block.totalHarvest,
-			lastHarvestDate: block.lastHarvestDate,
-			lastMonthHarvest: block.lastMonthHarvest,
 			variety: block.variety,
 			yearPlanted: block.yearPlanted,
 		});
 		setModalMode("edit");
 	};
 
-	const closeModal = () => {
-		setModalMode(null);
+	const openHarvestModal = () => {
+		setHarvestError("");
+		setHarvestFormData({ ...emptyHarvestForm, teaVariety: block.variety ?? teaVarieties[0] });
+		setModalMode("harvest");
 	};
 
-	const handleSubmit = (event) => {
+	const closeModal = () => {
+		setModalMode(null);
+		setHarvestError("");
+	};
+
+	const handleSubmit = async (event) => {
 		event.preventDefault();
 		const nextBlock = {
 			id: formData.id.trim(),
 			area: Number.parseFloat(formData.area) || 0,
-			totalHarvest: formData.totalHarvest,
-			lastHarvestDate: formData.lastHarvestDate,
-			lastMonthHarvest: formData.lastMonthHarvest,
 			variety: formData.variety,
 			yearPlanted: Number.parseInt(formData.yearPlanted, 10) || new Date().getFullYear(),
 		};
 
-		setBlock(nextBlock);
-		sessionStorage.setItem("tee-selected-block", JSON.stringify(nextBlock));
-		setModalMode(null);
+		try {
+			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`, {
+				method: "PUT",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					area: nextBlock.area,
+					tea_variety: nextBlock.variety,
+					year_planted: nextBlock.yearPlanted,
+				}),
+			});
+			if (!response.ok) throw new Error("Unable to save the block.");
+			const savedBlock = normalizeBlock(await response.json());
+			setBlock(savedBlock);
+			sessionStorage.setItem("tee-selected-block", JSON.stringify(savedBlock));
+			setModalMode(null);
+		} catch (submitError) {
+			setError(submitError.message);
+		}
+	};
+
+	const handleHarvestSubmit = async (event) => {
+		event.preventDefault();
+		const quantity = Number.parseFloat(harvestFormData.quantityKg);
+		const efficiency = Number.parseFloat(harvestFormData.efficiencyPct);
+
+		if (!harvestFormData.date || Number.isNaN(quantity) || quantity <= 0) {
+			setHarvestError("Harvest date and a positive quantity are required.");
+			return;
+		}
+
+		if (harvestFormData.efficiencyPct !== "" && (Number.isNaN(efficiency) || efficiency < 0 || efficiency > 100)) {
+			setHarvestError("Efficiency must be between 0 and 100.");
+			return;
+		}
+
+		setIsHarvestSubmitting(true);
+		setHarvestError("");
+		try {
+			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}/harvest-history`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					date: harvestFormData.date,
+					tea_variety: harvestFormData.teaVariety || block.variety || null,
+					quantity_kg: quantity,
+					efficiency_pct: harvestFormData.efficiencyPct === "" ? null : efficiency,
+					status: harvestFormData.status,
+				}),
+			});
+			if (!response.ok) throw new Error("Unable to save the harvest entry.");
+			const savedRecord = normalizeHarvestEntry(await response.json(), harvestFormData.teaVariety || block.variety);
+			setHistory((current) => [savedRecord, ...current.filter((entry) => entry.id !== savedRecord.id)]);
+			const blockResponse = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`);
+			if (blockResponse.ok) {
+				const refreshedBlock = normalizeBlock(await blockResponse.json());
+				setBlock(refreshedBlock);
+				sessionStorage.setItem("tee-selected-block", JSON.stringify(refreshedBlock));
+			}
+			setModalMode(null);
+		} catch (submitError) {
+			setHarvestError(submitError.message);
+		} finally {
+			setIsHarvestSubmitting(false);
+		}
 	};
 
 	return (
@@ -155,7 +298,8 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 					</section>
 
 					<section style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.6fr) minmax(280px, 1fr)", gap: "var(--space-6)" }}>
-						<div className="card" style={{ padding: "var(--space-5)" }}>
+							<div className="card" style={{ padding: "var(--space-5)" }}>
+								{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
 							<div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
 								<div>
 									<h2 className="section-title" style={{ marginBottom: 0 }}>Current Status</h2>
@@ -189,12 +333,13 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 								<Clock3 size={18} color="var(--color-primary)" />
 							</div>
 							<div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-								{activityLog.map((item) => (
-									<div key={item.title} className="card" style={{ padding: "var(--space-3)", boxShadow: "none" }}>
-										<div style={{ fontWeight: "var(--fw-semibold)" }}>{item.title}</div>
-										<div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>{item.meta}</div>
-									</div>
-								))}
+													{isLoading && <div className="text-muted">Loading activity...</div>}
+													{!isLoading && activityLog.map((item) => (
+														<div key={item.title ?? item.name} className="card" style={{ padding: "var(--space-3)", boxShadow: "none" }}>
+															<div style={{ fontWeight: "var(--fw-semibold)" }}>{item.title ?? item.name ?? "Activity"}</div>
+															<div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>{item.meta ?? item.timestamp ?? item.operator ?? "--"}</div>
+														</div>
+													))}
 							</div>
 						</div>
 					</section>
@@ -205,7 +350,10 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 								<h2 className="section-title" style={{ marginBottom: 0 }}>Harvest History</h2>
 								<p className="text-muted" style={{ fontSize: "var(--fs-sm)" }}>Last 5 cycles for Block {block.id}</p>
 							</div>
-							<a href="#">View Full Archive →</a>
+							<button type="button" className="btn-primary" onClick={openHarvestModal}>
+								<Plus size={16} />
+								<span>New Harvest Entry</span>
+							</button>
 						</div>
 						<div className="table-responsive">
 							<table className="table-modern">
@@ -217,8 +365,8 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 									</tr>
 								</thead>
 								<tbody>
-									{history.map((entry) => (
-										<tr key={`${entry.date}-${entry.quantity}`} className="hover-row">
+									{isLoading ? <tr><td colSpan={5} style={{ textAlign: "center" }}>Loading harvest history...</td></tr> : history.length === 0 ? <tr><td colSpan={5} style={{ textAlign: "center" }}>No harvest entries yet.</td></tr> : history.map((entry) => (
+										<tr key={entry.id ?? `${entry.date}-${entry.quantity}`} className="hover-row">
 											<td>{entry.date}</td>
 											<td>{entry.teaVariety}</td>
 											<td>{entry.quantity}</td>
@@ -255,7 +403,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 			</div>
 			<Footer />
 
-			{modalMode && (
+			{modalMode === "edit" && (
 				<BlockFormModal
 					mode={modalMode}
 					formData={formData}
@@ -264,6 +412,96 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 					onSubmit={handleSubmit}
 					teaVarieties={teaVarieties}
 				/>
+			)}
+			{modalMode === "harvest" && (
+				<div className="modal-backdrop">
+					<div className="modal-card">
+						{harvestError && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{harvestError}</div>}
+						<div className="modal-header">
+							<h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", margin: 0 }}>New Harvest Entry</h3>
+							<button type="button" className="btn-icon" onClick={closeModal}>
+								<X size={18} />
+							</button>
+						</div>
+
+						<form onSubmit={handleHarvestSubmit}>
+							<div className="form-group">
+								<label className="form-label">Harvest Date</label>
+								<input
+									className="input-primary"
+									type="date"
+									value={harvestFormData.date}
+									onChange={(e) => setHarvestFormData((current) => ({ ...current, date: e.target.value }))}
+									required
+								/>
+							</div>
+
+							<div className="form-group">
+								<label className="form-label">Tea Variety</label>
+								<select
+									className="input-primary"
+									value={harvestFormData.teaVariety}
+									onChange={(e) => setHarvestFormData((current) => ({ ...current, teaVariety: e.target.value }))}
+								>
+									{teaVarieties.map((variety) => (
+										<option key={variety} value={variety}>
+											{variety}
+										</option>
+									))}
+								</select>
+							</div>
+
+							<div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "var(--space-3)" }}>
+								<div className="form-group">
+									<label className="form-label">Quantity (kg)</label>
+									<input
+										className="input-primary"
+										type="number"
+										step="0.1"
+										min="0.1"
+										value={harvestFormData.quantityKg}
+										onChange={(e) => setHarvestFormData((current) => ({ ...current, quantityKg: e.target.value }))}
+										required
+									/>
+								</div>
+
+								<div className="form-group">
+									<label className="form-label">Efficiency (%)</label>
+									<input
+										className="input-primary"
+										type="number"
+										step="0.1"
+										min="0"
+										max="100"
+										value={harvestFormData.efficiencyPct}
+										onChange={(e) => setHarvestFormData((current) => ({ ...current, efficiencyPct: e.target.value }))}
+									/>
+								</div>
+							</div>
+
+							<div className="form-group">
+								<label className="form-label">Status</label>
+								<select
+									className="input-primary"
+									value={harvestFormData.status}
+									onChange={(e) => setHarvestFormData((current) => ({ ...current, status: e.target.value }))}
+								>
+									<option value="VERIFIED">VERIFIED</option>
+									<option value="FLAGGED">FLAGGED</option>
+								</select>
+							</div>
+
+							<div className="modal-footer">
+								<button type="button" className="btn-secondary" onClick={closeModal}>
+									Cancel
+								</button>
+								<button type="submit" className="btn-primary" disabled={isHarvestSubmitting}>
+									{isHarvestSubmitting ? "Saving..." : "Add Harvest"}
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
 			)}
 		</div>
 	);

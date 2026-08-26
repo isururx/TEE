@@ -74,8 +74,8 @@ export default function EditProfileModal({
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
-        <div className="modal-header">
-          <h2 className="section-title" style={{ margin: 0 }}>
+        <div className="modal-header" style={{ borderBottom: "2px solid var(--color-primary)", paddingBottom: "10px", marginBottom: "20px" }}>
+          <h2 className="section-title" style={{ margin: 0, color: "var(--color-dark-green)" }}>
             {title}
           </h2>
           <button

@@ -1,80 +1,96 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Filter, Calendar, Search, Clock, Users, UserCheck, AlertTriangle, Plus } from "lucide-react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import Sidebar from "../common components/sidebar.jsx";
 import AddAttendanceModal from "./add_attendance.jsx";
+import WorkerProfileForm from "./worker_profile_form.jsx";
 
-const initialAttendanceLog = [
-	{
-		id: "TEE-0482",
-		name: "Amara Nwosu",
-		initials: "AN",
-		role: "Worker",
-		assignedBlock: "Sector A-4",
-		checkInTime: "06:02 AM",
-		status: "On-time",
-	},
-	{
-		id: "TEE-0912",
-		name: "Rohan Prasad",
-		initials: "RP",
-		role: "Manager",
-		assignedBlock: "Processing Plant",
-		checkInTime: "06:42 AM",
-		status: "Late",
-	},
-	{
-		id: "TEE-0125",
-		name: "Lila Jensen",
-		initials: "LJ",
-		role: "Supervisor",
-		assignedBlock: "Sector A-1",
-		checkInTime: "-- : --",
-		status: "Absent",
-	},
-	{
-		id: "TEE-0774",
-		name: "Kenji Watanabe",
-		initials: "KW",
-		role: "Worker",
-		assignedBlock: "Sector A-4",
-		checkInTime: "06:05 AM",
-		status: "On-time",
-	},
-	{
-		id: "TEE-0341",
-		name: "Sunil Silva",
-		initials: "SS",
-		role: "Worker",
-		assignedBlock: "Sector B-2",
-		checkInTime: "06:12 AM",
-		status: "On-time",
-	},
-	{
-		id: "TEE-0568",
-		name: "Mahesh Perera",
-		initials: "MP",
-		role: "Worker",
-		assignedBlock: "Sector A-3",
-		checkInTime: "06:55 AM",
-		status: "Late",
-	},
-];
+function getInitials(name) {
+	return (name ?? "?").split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function formatCheckInTime(value) {
+	if (!value) return "-- : --";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return value;
+	return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function normalizeAttendanceRecord(record) {
+	const name = record.worker_name ?? record.name ?? record.worker?.name ?? "Unknown worker";
+	return {
+		...record,
+		id: record.id,
+		workerId: record.worker_id,
+		name,
+		initials: record.initials ?? getInitials(name),
+		role: record.worker_role_type ?? record.role ?? record.role_type ?? "Worker",
+		assignedBlock: record.assignedBlock ?? (record.assigned_block_id ? `Block ${record.assigned_block_id}` : "--"),
+		checkInTime: record.checkInTime ?? formatCheckInTime(record.check_in_time),
+		status: record.status ?? "Absent",
+	};
+}
 
 export default function TrackAttendance({ onNavigate = () => {} }) {
-	const [attendance, setAttendance] = useState(initialAttendanceLog);
+	const [attendance, setAttendance] = useState([]);
 	const [search, setSearch] = useState("");
-	const [selectedDate, setSelectedDate] = useState("2023-10-24");
+	const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
 	const [filterStatus, setFilterStatus] = useState("ALL");
 	const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+	const [isWorkerModalOpen, setIsWorkerModalOpen] = useState(false);
+	const [metrics, setMetrics] = useState({ active: 0, total: 0, late: 0 });
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState("");
+	const [successMessage, setSuccessMessage] = useState("");
+
+	useEffect(() => {
+		const controller = new AbortController();
+		const query = new URLSearchParams({ target_date: selectedDate });
+		if (search.trim()) query.set("search", search.trim());
+		if (filterStatus !== "ALL") query.set("status", filterStatus);
+
+		async function loadAttendance() {
+			setIsLoading(true);
+			setError("");
+			try {
+				const [attendanceResponse, metricsResponse] = await Promise.all([
+					fetch(`http://localhost:8000/api/attendance?${query.toString()}`, { signal: controller.signal }),
+					fetch(`http://localhost:8000/api/attendance/metrics?target_date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal }),
+				]);
+				if (!attendanceResponse.ok || !metricsResponse.ok) throw new Error("Unable to load attendance data.");
+				const attendancePayload = await attendanceResponse.json();
+				const metricsPayload = await metricsResponse.json();
+				const records = Array.isArray(attendancePayload) ? attendancePayload : attendancePayload.items ?? attendancePayload.records ?? [];
+				setAttendance(records.map(normalizeAttendanceRecord));
+				setMetrics({
+					active: metricsPayload.active ?? metricsPayload.active_count ?? 0,
+					total: metricsPayload.total ?? metricsPayload.total_workers ?? 0,
+					late: metricsPayload.late ?? metricsPayload.late_count ?? 0,
+				});
+			} catch (loadError) {
+				if (loadError.name !== "AbortError") setError(loadError.message);
+			} finally {
+				if (!controller.signal.aborted) setIsLoading(false);
+			}
+		}
+
+		loadAttendance();
+		return () => controller.abort();
+	}, [selectedDate, search, filterStatus]);
 
 	const handleAddAttendance = (newRecord) => {
+		const normalizedRecord = normalizeAttendanceRecord(newRecord);
 		setAttendance((current) => {
 			// Replace existing record for the same worker if present, otherwise prepend
-			const filtered = current.filter((item) => item.id !== newRecord.id);
-			return [newRecord, ...filtered];
+			const filtered = current.filter((item) => item.id !== normalizedRecord.id);
+			return [normalizedRecord, ...filtered];
 		});
+	};
+
+	const handleWorkerCreated = (newWorker) => {
+		const workerName = newWorker?.name ?? newWorker?.full_name ?? "Worker";
+		setSuccessMessage(`${workerName} profile registered successfully.`);
 	};
 
 	const filteredLog = useMemo(() => {
@@ -92,7 +108,7 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 	}, [attendance, search, filterStatus]);
 
 	const onTimeCount = useMemo(() => attendance.filter((i) => i.status === "On-time").length, [attendance]);
-	const lateCount = useMemo(() => attendance.filter((i) => i.status === "Late").length + 10, [attendance]);
+	const lateCount = metrics.late;
 
 	return (
 		<div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
@@ -107,33 +123,40 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
 				<Sidebar activeItem="attendance" role="manager" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+					{error && <div role="alert" style={{ color: "var(--color-danger, #b42318)" }}>{error}</div>}
+					{successMessage && <div role="status" style={{ color: "var(--color-success, #1b5e20)" }}>{successMessage}</div>}
 					{/* Title */}
 					<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-4)" }}>
 						<h1 style={{ margin: 0, fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", letterSpacing: "-0.03em" }}>
 							Attendance Tracking
 						</h1>
 
-						<button
-							type="button"
-							onClick={() => setIsAddModalOpen(true)}
-							style={{
-								padding: "var(--space-3) var(--space-5)",
-								borderRadius: "var(--radius-md)",
-								background: "#000000",
-								color: "#FFFFFF",
-								border: "none",
-								fontWeight: "var(--fw-semibold)",
-								fontSize: "var(--fs-sm)",
-								display: "inline-flex",
-								alignItems: "center",
-								gap: "var(--space-2)",
-								cursor: "pointer",
-								boxShadow: "var(--shadow-soft)",
-							}}
-						>
-							<Plus size={16} />
-							Add Attendance
-						</button>
+						<div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+							<button type="button" className="btn-secondary" onClick={() => setIsWorkerModalOpen(true)} style={{ display: "inline-flex", alignItems: "center", gap: "var(--space-2)" }}>
+								Register Worker
+							</button>
+							<button
+								type="button"
+								onClick={() => setIsAddModalOpen(true)}
+								style={{
+									padding: "var(--space-3) var(--space-5)",
+									borderRadius: "var(--radius-md)",
+									background: "#000000",
+									color: "#FFFFFF",
+									border: "none",
+									fontWeight: "var(--fw-semibold)",
+									fontSize: "var(--fs-sm)",
+									display: "inline-flex",
+									alignItems: "center",
+									gap: "var(--space-2)",
+									cursor: "pointer",
+									boxShadow: "var(--shadow-soft)",
+								}}
+							>
+								<Plus size={16} />
+								Add Attendance
+							</button>
+						</div>
 					</div>
 
 					{/* Top Metric Cards */}
@@ -145,10 +168,10 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 							</div>
 							<div style={{ display: "flex", alignItems: "baseline", gap: "6px", marginTop: "var(--space-3)" }}>
 								<span style={{ fontSize: "var(--fs-3xl)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>
-									129
+									{metrics.active}
 								</span>
 								<span style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-muted)" }}>
-									/ 142
+									/ {metrics.total}
 								</span>
 							</div>
 						</div>
@@ -227,7 +250,9 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 									</tr>
 								</thead>
 								<tbody>
-									{filteredLog.length === 0 ? (
+									{isLoading ? (
+										<tr><td colSpan={5} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-muted)" }}>Loading attendance records...</td></tr>
+									) : filteredLog.length === 0 ? (
 										<tr>
 											<td colSpan={5} style={{ padding: "var(--space-8)", textAlign: "center", color: "var(--color-text-muted)" }}>
 												No attendance records match the search.
@@ -322,8 +347,16 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 
 			{isAddModalOpen && (
 				<AddAttendanceModal
+					selectedDate={selectedDate}
 					onClose={() => setIsAddModalOpen(false)}
 					onSubmit={handleAddAttendance}
+				/>
+			)}
+
+			{isWorkerModalOpen && (
+				<WorkerProfileForm
+					onClose={() => setIsWorkerModalOpen(false)}
+					onCreated={handleWorkerCreated}
 				/>
 			)}
 		</div>

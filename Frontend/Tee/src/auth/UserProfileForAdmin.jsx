@@ -111,7 +111,7 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
           <div
             style={{
               height: 200,
-              background: "linear-gradient(135deg, #6B7280 0%, #4B5563 100%)",
+              background: "linear-gradient(135deg, var(--color-dark-green) 0%, var(--color-primary) 100%)",
               width: "100%",
             }}
           />
@@ -136,7 +136,7 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
                     width: 140,
                     height: 140,
                     borderRadius: "var(--radius-full)",
-                    background: "#D1D5DB",
+                    background: "var(--color-primary)",
                     border: "5px solid #FFFFFF",
                     boxShadow: "var(--shadow-card)",
                     display: "flex",
@@ -222,7 +222,7 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
                   type="button"
                   onClick={() => setIsEditing(true)}
                   style={{
-                    background: "#000000",
+                    background: "var(--color-primary)",
                     color: "var(--color-text-inverse)",
                     border: "none",
                     borderRadius: "var(--radius-sm)",
@@ -254,7 +254,8 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
               {/* Left Card: Account Status */}
               <div
                 style={{
-                  background: "#EDEDEE",
+                  background: "var(--color-hover-green)",
+                  border: "1px solid var(--color-primary)",
                   borderRadius: "var(--radius-lg)",
                   padding: "var(--space-6)",
                   display: "flex",
@@ -262,7 +263,7 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
                   gap: "var(--space-5)",
                 }}
               >
-                <h2 className="section-title" style={{ margin: 0 }}>
+                <h2 className="section-title" style={{ margin: 0, color: "var(--color-dark-green)" }}>
                   Account Status
                 </h2>
                 <div className="flex-col gap-md">
@@ -294,7 +295,8 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
               {/* Right Card: Contact & Personal */}
               <div
                 style={{
-                  background: "#EDEDEE",
+                  background: "var(--color-hover-green)",
+                  border: "1px solid var(--color-primary)",
                   borderRadius: "var(--radius-lg)",
                   padding: "var(--space-6)",
                   display: "flex",
@@ -302,7 +304,7 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
                   gap: "var(--space-5)",
                 }}
               >
-                <h2 className="section-title" style={{ margin: 0 }}>
+                <h2 className="section-title" style={{ margin: 0, color: "var(--color-dark-green)" }}>
                   Contact & Personal
                 </h2>
                 <div className="flex-col gap-md">
