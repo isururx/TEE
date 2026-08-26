@@ -93,7 +93,7 @@ function App() {
     return <TrackAttendance onNavigate={handleNavigate} />;
   }
 
-  return <StateAnalytics onNavigate={handleNavigate} />;
+  return <Login onNavigate={handleNavigate} />;
 }
 
 export default App;
