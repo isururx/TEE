@@ -9,8 +9,6 @@ import OtpResent from "./auth/OtpResent.jsx";
 import DiseaseDetection from "./disease/DiseaseDetection.jsx";
 import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
-import SupervisorDashboard from "./dashboards/supervisor_dashboard.jsx";
-import SupervisorDashboardMobile from "./dashboards/supervisor_dashboard_mobile.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
@@ -19,10 +17,10 @@ import TrackAttendance from "./worker_block/track_attendence.jsx";
 import WorkerLogin from "./worker_block/workerlogin.jsx";
 import InventoryManagement from "./inventory/inventory_management.jsx";
 import SupplierManagement from "./inventory/supplier_management.jsx";
-import WorkerProfileForm from "./worker_block/worker_profile_form.jsx";
+
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("login");
+  const [currentPage, setCurrentPage] = useState("profile");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -75,25 +73,14 @@ function App() {
     return <UserProfileForAdmin onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "ManagerDashboard") {
+  if (currentPage === "dashboard") {
     if (isMobile) {
       return <ManagerDashboardMobile onNavigate={handleNavigate} />;
     }
     return <ManagerDashboard onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "supervisorDashboard" || currentPage === "supervisor-dashboard" || currentPage === "supervisor") {
-    if (isMobile) {
-      return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
-    }
-    return <SupervisorDashboard onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "supervisorMobileDashboard") {
-    return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "ManagerMobileDashboard") {
+  if (currentPage === "mobile-dashboard") {
     return <ManagerDashboardMobile onNavigate={handleNavigate} />;
   }
 
@@ -119,11 +106,6 @@ function App() {
   if (currentPage === "suppliers") {
     return <SupplierManagement onNavigate={handleNavigate} />;
   }
-  
-  if (currentPage === "workerProfileForm") {
-    return <WorkerProfileForm onClose={() => handleNavigate("dashboard")} onCreated={() => {}} />;
-  }
-
   return <StateAnalytics onNavigate={handleNavigate} />;
 }
 
