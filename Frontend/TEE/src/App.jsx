@@ -11,6 +11,8 @@ import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
 import SupervisorDashboard from "./dashboards/supervisor_dashboard.jsx";
 import SupervisorDashboardMobile from "./dashboards/supervisor_dashboard_mobile.jsx";
+import AdminDashboard from "./dashboards/admin_dashboard.jsx";
+import AdminDashboardMobile from "./dashboards/admin_dashboard_mobile.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
@@ -22,7 +24,7 @@ import SupplierManagement from "./inventory/supplier_management.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("mobile-supervisor-dashboard");
+  const [currentPage, setCurrentPage] = useState("adminDashboard");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -95,6 +97,17 @@ function App() {
 
   if (currentPage === "mobile-supervisor-dashboard") {
     return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "adminDashboard" || currentPage === "admin-dashboard" || currentPage === "admin") {
+    if (isMobile) {
+      return <AdminDashboardMobile onNavigate={handleNavigate} />;
+    }
+    return <AdminDashboard onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "mobile-admin-dashboard") {
+    return <AdminDashboardMobile onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "BlockManagement") {
