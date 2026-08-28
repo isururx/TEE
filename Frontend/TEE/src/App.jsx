@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import WelcomePage from "./auth/WelcomePage.jsx";
 import Login from "./auth/Login.jsx";
 import CreateAccountUser from "./auth/CreateAccountUser.jsx";
 import CreateAccountStaff from "./auth/CreateAccountStaff.jsx";
@@ -11,8 +12,6 @@ import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
 import SupervisorDashboard from "./dashboards/supervisor_dashboard.jsx";
 import SupervisorDashboardMobile from "./dashboards/supervisor_dashboard_mobile.jsx";
-import AdminDashboard from "./dashboards/admin_dashboard.jsx";
-import AdminDashboardMobile from "./dashboards/admin_dashboard_mobile.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
@@ -24,7 +23,7 @@ import SupplierManagement from "./inventory/supplier_management.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("adminDashboard");
+  const [currentPage, setCurrentPage] = useState("welcomePage");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -45,6 +44,10 @@ function App() {
     return <DiseaseDetection onNavigate={handleNavigate} />;
   }
 
+  if (currentPage === "welcomePage" || currentPage === "welcome") {
+    return <WelcomePage onNavigate={handleNavigate} />;
+  }
+
   if (currentPage === "login") {
     return <Login onNavigate={handleNavigate} />;
   }
@@ -61,11 +64,11 @@ function App() {
     return <OtpResent onNavigate={handleNavigate} onReturn={() => handleNavigate("twoStepVerification")} />;
   }
 
-  if (currentPage === "createAccount" ) {
+  if (currentPage === "createAccount") {
     return <CreateAccountUser onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "createAccountStaff" ) {
+  if (currentPage === "createAccountStaff") {
     return <CreateAccountStaff onNavigate={handleNavigate} />;
   }
 
@@ -99,17 +102,6 @@ function App() {
     return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "adminDashboard" || currentPage === "admin-dashboard" || currentPage === "admin") {
-    if (isMobile) {
-      return <AdminDashboardMobile onNavigate={handleNavigate} />;
-    }
-    return <AdminDashboard onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "mobile-admin-dashboard") {
-    return <AdminDashboardMobile onNavigate={handleNavigate} />;
-  }
-
   if (currentPage === "BlockManagement") {
     return <BlockManagement onNavigate={handleNavigate} />;
   }
@@ -125,7 +117,7 @@ function App() {
   if (currentPage === "attendance") {
     return <TrackAttendance onNavigate={handleNavigate} />;
   }
- if (currentPage === "inventory") {
+  if (currentPage === "inventory") {
     return <InventoryManagement onNavigate={handleNavigate} />;
   }
 

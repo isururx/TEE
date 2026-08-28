@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { User, Lock, ArrowRight, AlertCircle, Leaf } from "lucide-react";
+import { HardHat, User, Lock, ArrowRight, AlertCircle, UserPlus } from "lucide-react";
 import Footer from "../common components/footer.jsx";
 
 /**
@@ -81,14 +81,16 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
               margin: "0 auto var(--space-3)",
             }}
           >
-            <Leaf size={28} color="var(--color-primary)" />
+            <HardHat size={30} color="var(--color-primary)" strokeWidth={1.75} />
           </div>
 
           <h1 className="page-title" style={{ marginBottom: "var(--space-1)" }}>
             Worker Login
           </h1>
           <p className="subtitle" style={{ marginBottom: "var(--space-6)" }}>
-            Access your tasks and plantation block assignments
+            TEE AI-Based Tea Disease detection and
+            <br />
+            Estate management system
           </p>
 
           <form onSubmit={handleWorkerLogin} className="flex-col" style={{ textAlign: "left", gap: "var(--space-4)" }}>
@@ -100,12 +102,12 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
             )}
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Worker ID</label>
+              <label className="form-label">Username</label>
               <div className="input-search" style={{ padding: "var(--space-3) var(--space-4)" }}>
                 <User size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
                   type="text"
-                  placeholder="Enter your Worker ID"
+                  placeholder="Enter your Username"
                   value={workerId}
                   onChange={(e) => setWorkerId(e.target.value)}
                 />
@@ -133,13 +135,22 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
               Login <ArrowRight size={16} />
             </button>
 
+             <button
+              type="button"
+              className="btn-outline"
+              style={{ width: "100%", justifyContent: "center" }}
+              onClick={() => onNavigate("createAccount")}
+            >
+              Create account <UserPlus size={16} />
+            </button>
+            
             <button
               type="button"
               className="btn-link"
-              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color:"var(--color-primary)" }}
-              onClick={() => onNavigate("login")}
+              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color: "var(--color-text-secondary)" }}
+              onClick={() => onNavigate("welcomePage")}
             >
-              Back to main login
+            Back to Home
             </button>
           </form>
         </div>

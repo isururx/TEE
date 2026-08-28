@@ -88,7 +88,7 @@ export default function Login({ onNavigate = () => { } }) {
           </div>
 
           <h1 className="page-title" style={{ marginBottom: "var(--space-1)" }}>
-            TEE
+            Staff Login
           </h1>
           <p className="subtitle" style={{ marginBottom: "var(--space-6)" }}>
             TEE AI-Based Tea Disease detection and
@@ -142,17 +142,17 @@ export default function Login({ onNavigate = () => { } }) {
               type="button"
               className="btn-outline"
               style={{ width: "100%", justifyContent: "center" }}
-              onClick={() => onNavigate("createAccount")}
+              onClick={() => onNavigate("createAccountStaff")}
             >
               Create account <UserPlus size={16} />
             </button>
             <button
               type="button"
               className="btn-link"
-              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color:"var(--color-primary)" }}
-              onClick={() => onNavigate("workerLogin")}
+              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color: "var(--color-text-secondary)" }}
+              onClick={() => onNavigate("welcomePage")}
             >
-              Login as worker
+              Back to Home
             </button>
 
           </form>

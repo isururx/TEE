@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import WelcomePage from "./auth/WelcomePage.jsx";
 import Login from "./auth/Login.jsx";
 import CreateAccountUser from "./auth/CreateAccountUser.jsx";
 import CreateAccountStaff from "./auth/CreateAccountStaff.jsx";
@@ -22,7 +23,7 @@ import SupplierManagement from "./inventory/supplier_management.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("mobile-supervisor-dashboard");
+  const [currentPage, setCurrentPage] = useState("welcomePage");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -43,6 +44,10 @@ function App() {
     return <DiseaseDetection onNavigate={handleNavigate} />;
   }
 
+  if (currentPage === "welcomePage" || currentPage === "welcome") {
+    return <WelcomePage onNavigate={handleNavigate} />;
+  }
+
   if (currentPage === "login") {
     return <Login onNavigate={handleNavigate} />;
   }
@@ -59,11 +64,11 @@ function App() {
     return <OtpResent onNavigate={handleNavigate} onReturn={() => handleNavigate("twoStepVerification")} />;
   }
 
-  if (currentPage === "createAccount" ) {
+  if (currentPage === "createAccount") {
     return <CreateAccountUser onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "createAccountStaff" ) {
+  if (currentPage === "createAccountStaff") {
     return <CreateAccountStaff onNavigate={handleNavigate} />;
   }
 
@@ -112,7 +117,7 @@ function App() {
   if (currentPage === "attendance") {
     return <TrackAttendance onNavigate={handleNavigate} />;
   }
- if (currentPage === "inventory") {
+  if (currentPage === "inventory") {
     return <InventoryManagement onNavigate={handleNavigate} />;
   }
 
