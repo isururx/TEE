@@ -9,6 +9,8 @@ import OtpResent from "./auth/OtpResent.jsx";
 import DiseaseDetection from "./disease/DiseaseDetection.jsx";
 import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
+import SupervisorDashboard from "./dashboards/supervisor_dashboard.jsx";
+import SupervisorDashboardMobile from "./dashboards/supervisor_dashboard_mobile.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
@@ -20,7 +22,7 @@ import SupplierManagement from "./inventory/supplier_management.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("profile");
+  const [currentPage, setCurrentPage] = useState("mobile-supervisor-dashboard");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -73,7 +75,7 @@ function App() {
     return <UserProfileForAdmin onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "dashboard") {
+  if (currentPage === "dashboard" || currentPage === "managerDashboard") {
     if (isMobile) {
       return <ManagerDashboardMobile onNavigate={handleNavigate} />;
     }
@@ -82,6 +84,17 @@ function App() {
 
   if (currentPage === "mobile-dashboard") {
     return <ManagerDashboardMobile onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "supervisorDashboard" || currentPage === "supervisor-dashboard" || currentPage === "supervisor") {
+    if (isMobile) {
+      return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
+    }
+    return <SupervisorDashboard onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "mobile-supervisor-dashboard") {
+    return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "BlockManagement") {
