@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { User, Lock, ArrowRight, AlertCircle, Leaf } from "lucide-react";
+import { HardHat, User, Lock, ArrowRight, AlertCircle, UserPlus } from "lucide-react";
 import Footer from "../common components/footer.jsx";
 
 const WORKER_LOGIN_URL = "http://localhost:8000/api/auth/worker-login";
@@ -115,7 +115,7 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
               margin: "0 auto var(--space-3)",
             }}
           >
-            <Leaf size={28} color="var(--color-primary)" />
+            <HardHat size={30} color="var(--color-primary)" strokeWidth={1.75} />
           </div>
 
           <h1 className="page-title" style={{ marginBottom: "var(--space-1)" }}>
@@ -134,7 +134,7 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
             )}
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Worker ID</label>
+              <label className="form-label">Username</label>
               <div className="input-search" style={{ padding: "var(--space-3) var(--space-4)" }}>
                 <User size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
@@ -171,8 +171,8 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
             <button
               type="button"
               className="btn-link"
-              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color:"var(--color-primary)" }}
-              onClick={() => onNavigate("login")}
+              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color: "var(--color-text-secondary)" }}
+              onClick={() => onNavigate("welcomePage")}
             >
               Back to staff login
             </button>

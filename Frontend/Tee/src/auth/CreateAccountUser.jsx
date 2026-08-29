@@ -86,23 +86,7 @@ export default function CreateAccountUser({ onNavigate = () => { } }) {
     <div className="flex-col" style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
       {/* ---- Main Form Content ---- */}
       <main style={{ flex: 1, padding: "var(--space-8) var(--space-6)", maxWidth: 860, width: "100%", margin: "0 auto" }}>
-        <button
-          type="button"
-          className="btn-ghost hover-lift"
-          onClick={() => onNavigate("login")}
-          style={{
-            marginBottom: "var(--space-6)",
-            padding: "var(--space-2) var(--space-3)",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "var(--space-2)",
-            color: "var(--color-text-secondary)",
-            fontWeight: "var(--fw-medium)",
-          }}
-        >
-          <ArrowLeft size={20} />
-          Back
-        </button>
+        
         <h1
           className="page-title text-center"
           style={{
@@ -223,13 +207,16 @@ export default function CreateAccountUser({ onNavigate = () => { } }) {
             />
           </div>
 
-          {/* Buttons: Submit + Clear */}
+          {/* Action Buttons */}
           <div className="flex-center gap-md" style={{ marginTop: "var(--space-4)" }}>
-            <button type="submit" className="btn-primary" style={{ minWidth: 300, justifyContent: "center" }}>
+            <button type="submit" className="btn-primary" style={{ minWidth: 200, justifyContent: "center" }}>
               Submit
             </button>
-            <button type="button" className="btn-secondary" style={{ minWidth: 300, justifyContent: "center" }} onClick={handleClear}>
+            <button type="button" className="btn-secondary" style={{ minWidth: 200, justifyContent: "center" }} onClick={handleClear}>
               Clear
+            </button>
+            <button type="button" className="btn-danger" style={{ minWidth: 200, justifyContent: "center" }} onClick={() => onNavigate("workerLogin")}>
+              Cancel
             </button>
           </div>
         </form>

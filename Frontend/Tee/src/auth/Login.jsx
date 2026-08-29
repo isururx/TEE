@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Leaf, User, Lock, ArrowRight, UserPlus, AlertCircle, Sun, Moon } from "lucide-react";
+import React, { useState } from "react";
+import { Leaf, User, Lock, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
 import Footer from "../common components/footer.jsx";
-
-const THEME_KEY = "tee-theme";
 
 /**
  * Login Page
  * Matches the reference UI: tea-plantation background, centered glassmorphic login card, and footer.
- * Light mode turned on by default, fully styled with index.css classes and design tokens.
+ * Fully styled with index.css classes and design tokens.
  *
  * Props:
  *  - onNavigate: (pageKey: string) => void
@@ -16,25 +14,6 @@ export default function Login({ onNavigate = () => { } }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [theme, setTheme] = useState("light");
-
-  // Force / set light mode when Login page mounts
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove("dark");
-    root.setAttribute("data-theme", "light");
-    localStorage.setItem(THEME_KEY, "light");
-    setTheme("light");
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-    const root = document.documentElement;
-    root.classList.toggle("dark", nextTheme === "dark");
-    root.setAttribute("data-theme", nextTheme);
-    localStorage.setItem(THEME_KEY, nextTheme);
-  };
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -56,8 +35,6 @@ export default function Login({ onNavigate = () => { } }) {
     onNavigate("twoStepVerification");
   };
 
-  const isLight = theme === "light";
-
   return (
     <div className="flex-col" style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
       {/* ---- Main Section with Background Image ---- */}
@@ -65,27 +42,6 @@ export default function Login({ onNavigate = () => { } }) {
         className="flex-center"
         style={{ flex: 1, position: "relative", overflow: "hidden", padding: "var(--space-8)" }}
       >
-        {/* Top-Right Theme Toggle Control */}
-        <div style={{ position: "absolute", top: "var(--space-4)", right: "var(--space-6)", zIndex: 10 }}>
-          <button
-            type="button"
-            className="btn-icon"
-            aria-label="Toggle theme"
-            onClick={toggleTheme}
-            title={`Switch to ${isLight ? "Dark" : "Light"} mode`}
-            style={{
-              background: isLight ? "rgba(255, 255, 255, 0.9)" : "rgba(22, 34, 28, 0.9)",
-              backdropFilter: "blur(8px)",
-              border: "1px solid var(--color-border)",
-              boxShadow: "var(--shadow-soft)",
-              color: "var(--color-text-primary)",
-              cursor: "pointer"
-            }}
-          >
-            {isLight ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
-        </div>
-
         {/* Background Plantation Image & Overlay */}
         <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
           <img
@@ -97,8 +53,7 @@ export default function Login({ onNavigate = () => { } }) {
             style={{
               position: "absolute",
               inset: 0,
-              background: isLight ? "rgba(248, 250, 247, 0.65)" : "rgba(15, 23, 18, 0.75)",
-              transition: "background var(--transition-base)",
+              background: "rgba(248, 250, 247, 0.6)",
             }}
           />
         </div>
@@ -109,13 +64,12 @@ export default function Login({ onNavigate = () => { } }) {
           style={{
             position: "relative",
             zIndex: 1,
-            background: isLight ? "rgba(255, 255, 255, 0.96)" : "var(--color-card)",
+            background: "rgba(255, 255, 255, 0.96)",
             padding: "var(--space-8) var(--space-10) var(--space-8)",
             width: "100%",
             maxWidth: 440,
             textAlign: "center",
             boxShadow: "var(--shadow-modal)",
-            border: "1px solid var(--color-border)",
           }}
         >
           {/* Logo Badge */}
@@ -134,7 +88,7 @@ export default function Login({ onNavigate = () => { } }) {
           </div>
 
           <h1 className="page-title" style={{ marginBottom: "var(--space-1)" }}>
-            TEE
+            Staff Login
           </h1>
           <p className="subtitle" style={{ marginBottom: "var(--space-6)" }}>
             TEE AI-Based Tea Disease detection and
@@ -188,17 +142,17 @@ export default function Login({ onNavigate = () => { } }) {
               type="button"
               className="btn-outline"
               style={{ width: "100%", justifyContent: "center" }}
-              onClick={() => onNavigate("createAccount")}
+              onClick={() => onNavigate("createAccountStaff")}
             >
               Create account <UserPlus size={16} />
             </button>
             <button
               type="button"
               className="btn-link"
-              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color:"var(--color-primary)" }}
-              onClick={() => onNavigate("workerLogin")}
+              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color: "var(--color-text-secondary)" }}
+              onClick={() => onNavigate("welcomePage")}
             >
-              Login as worker
+              Back to Home
             </button>
 
           </form>
