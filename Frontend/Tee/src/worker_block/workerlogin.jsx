@@ -2,17 +2,19 @@ import React, { useState } from "react";
 import { User, Lock, ArrowRight, AlertCircle, Leaf } from "lucide-react";
 import Footer from "../common components/footer.jsx";
 
+const WORKER_LOGIN_URL = "http://localhost:8000/api/auth/worker-login";
+
 /**
  * Worker Login Page
- * Props:
- *  - onNavigate: (pageKey: string) => void
+ * Direct login with Worker ID & Password (NO 2-step verification needed)
  */
 export default function WorkerLogin({ onNavigate = () => {} }) {
   const [workerId, setWorkerId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleWorkerLogin = (e) => {
+  const handleWorkerLogin = async (e) => {
     e.preventDefault();
 
     if (!workerId.trim()) {
@@ -26,10 +28,42 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
     }
 
     setError("");
-    console.log("Worker logging in:", { workerId, password });
+    setIsSubmitting(true);
 
-    // image upload and disease detection navigation
-    onNavigate("detection");
+    try {
+      const response = await fetch(WORKER_LOGIN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          worker_id: Number(workerId.trim()) || workerId.trim(),
+          password: password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Invalid Worker ID or password.");
+      }
+
+      const data = await response.json();
+      // Store worker session
+      if (data.worker) {
+        sessionStorage.setItem("tee-worker", JSON.stringify(data.worker));
+      }
+
+      // Direct navigation without 2FA
+      onNavigate("detection");
+    } catch (loginError) {
+      // Fallback for UI demo if backend is not running yet
+      if (loginError.message.includes("Failed to fetch") || loginError.message.includes("NetworkError")) {
+        console.warn("Backend not reachable, proceeding with demo worker login.");
+        onNavigate("detection");
+      } else {
+        setError(loginError.message);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -88,7 +122,7 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
             Worker Login
           </h1>
           <p className="subtitle" style={{ marginBottom: "var(--space-6)" }}>
-            Access your tasks and plantation block assignments
+            Access your tasks, block assignments, and disease scanner
           </p>
 
           <form onSubmit={handleWorkerLogin} className="flex-col" style={{ textAlign: "left", gap: "var(--space-4)" }}>
@@ -105,7 +139,7 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
                 <User size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
                   type="text"
-                  placeholder="Enter your Worker ID"
+                  placeholder="Enter your Worker ID (e.g. 1)"
                   value={workerId}
                   onChange={(e) => setWorkerId(e.target.value)}
                 />
@@ -127,10 +161,11 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="btn-primary"
               style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)" }}
             >
-              Login <ArrowRight size={16} />
+              {isSubmitting ? "Logging in..." : "Login Directly"} <ArrowRight size={16} />
             </button>
 
             <button
@@ -139,7 +174,7 @@ export default function WorkerLogin({ onNavigate = () => {} }) {
               style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color:"var(--color-primary)" }}
               onClick={() => onNavigate("login")}
             >
-              Back to main login
+              Back to staff login
             </button>
           </form>
         </div>

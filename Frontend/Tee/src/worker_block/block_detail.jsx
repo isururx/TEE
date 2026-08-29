@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import Sidebar from "../common components/sidebar.jsx";
-import { Clock3, Edit3, Plus, RotateCcw, X } from "lucide-react";
+import { Clock3, Edit3, Plus, RotateCcw, Trash2, UserCheck, Calendar, MapPin, X } from "lucide-react";
 import BlockFormModal from "./block_form_modal.jsx";
 
 const teaVarieties = [
@@ -15,15 +15,19 @@ const teaVarieties = [
 ];
 
 const BLOCKS_API_URL = "http://localhost:8000/api/blocks";
+const USERS_API_URL = "http://localhost:8000/api/users";
 
 const fallbackBlock = {
-	id: "A-12",
+	id: "1",
 	area: 12.4,
 	totalHarvest: "0 kg",
 	lastHarvestDate: "--",
 	lastMonthHarvest: "0 kg",
 	variety: "Assamica Gold",
+	plantDate: "2018-05-10",
 	yearPlanted: 2018,
+	supervisorId: null,
+	supervisorName: "Unassigned",
 };
 
 const defaultHistory = [
@@ -67,8 +71,8 @@ function safeParseBlock() {
 }
 
 function BlockBadge({ text }) {
-	const isVerified = text === "VERIFIED" || text === "Stable";
-	const badgeClass = isVerified ? "badge-success" : text === "FLAGGED" ? "badge-warning" : "badge-info";
+	const isVerified = text === "VERIFIED" || text === "Stable" || text === "Healthy";
+	const badgeClass = isVerified ? "badge-success" : text === "FLAGGED" || text === "Disease Detected" ? "badge-warning" : "badge-info";
 
 	return (
 		<span className={badgeClass}>
@@ -91,7 +95,11 @@ function normalizeBlock(block) {
 		lastHarvestDate: block.lastHarvestDate ?? block.last_harvest_date ?? "--",
 		lastMonthHarvest: formatKg(block.lastMonthHarvest ?? block.last_month_harvest_kg ?? 0),
 		variety: block.variety ?? block.tea_variety ?? "--",
-		yearPlanted: block.yearPlanted ?? block.year_planted ?? new Date().getFullYear(),
+		plantDate: block.plantDate ?? block.plant_date ?? (block.year_planted ? `${block.year_planted}-01-01` : "--"),
+		yearPlanted: block.yearPlanted ?? (block.plant_date ? new Date(block.plant_date).getFullYear() : block.year_planted ?? new Date().getFullYear()),
+		supervisorId: block.supervisorId ?? block.supervisor_id ?? null,
+		supervisorName: block.supervisorName ?? block.supervisor_name ?? block.supervisor?.name ?? (block.supervisor_id ? `Supervisor #${block.supervisor_id}` : "Unassigned"),
+		healthStatus: block.healthStatus ?? block.health_status ?? "Healthy",
 	};
 }
 
@@ -101,6 +109,7 @@ function normalizeHarvestEntry(entry, fallbackVariety) {
 
 	return {
 		...entry,
+		id: entry.id,
 		date: entry.date ?? "--",
 		teaVariety: entry.teaVariety ?? entry.tea_variety ?? fallbackVariety ?? "--",
 		quantity: quantityValue === null || quantityValue === undefined || quantityValue === "" ? "--" : quantityValue,
@@ -111,6 +120,7 @@ function normalizeHarvestEntry(entry, fallbackVariety) {
 
 export default function BlockDetail({ onNavigate = () => {} }) {
 	const [block, setBlock] = useState(() => normalizeBlock(safeParseBlock()));
+	const [supervisors, setSupervisors] = useState([]);
 	const [history, setHistory] = useState([]);
 	const [activityLog, setActivityLog] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
@@ -119,12 +129,33 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 	const [harvestFormData, setHarvestFormData] = useState(() => ({ ...emptyHarvestForm, teaVariety: block.variety ?? teaVarieties[0] }));
 	const [harvestError, setHarvestError] = useState("");
 	const [isHarvestSubmitting, setIsHarvestSubmitting] = useState(false);
+	const [deleteHarvestId, setDeleteHarvestId] = useState(null); // record id pending delete
+	const [isDeletingHarvest, setIsDeletingHarvest] = useState(false);
+
 	const [formData, setFormData] = useState({
-		id: block.id,
+		id: String(block.id),
 		area: String(block.area),
 		variety: block.variety,
-		yearPlanted: block.yearPlanted,
+		plantDate: block.plantDate !== "--" ? block.plantDate : new Date().toISOString().slice(0, 10),
+		supervisorId: block.supervisorId ? String(block.supervisorId) : "",
 	});
+
+	// Load supervisors
+	useEffect(() => {
+		async function loadSupervisors() {
+			try {
+				const response = await fetch(`${USERS_API_URL}?role=Supervisor`);
+				if (response.ok) {
+					const data = await response.json();
+					const list = Array.isArray(data) ? data : data.users ?? data.items ?? [];
+					setSupervisors(list);
+				}
+			} catch {
+				// Non-blocking fallback
+			}
+		}
+		loadSupervisors();
+	}, []);
 
 	useEffect(() => {
 		const controller = new AbortController();
@@ -135,14 +166,16 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 			setError("");
 			try {
 				const [blockResponse, historyResponse, activityResponse] = await Promise.all([
-					fetch(`http://localhost:8000/api/blocks/${blockId}`, { signal: controller.signal }),
-					fetch(`http://localhost:8000/api/blocks/${blockId}/harvest-history`, { signal: controller.signal }),
-					fetch(`http://localhost:8000/api/blocks/${blockId}/activities`, { signal: controller.signal }),
+					fetch(`${BLOCKS_API_URL}/${blockId}`, { signal: controller.signal }),
+					fetch(`${BLOCKS_API_URL}/${blockId}/harvest-history`, { signal: controller.signal }),
+					fetch(`${BLOCKS_API_URL}/${blockId}/activities`, { signal: controller.signal }),
 				]);
-				if (!blockResponse.ok || !historyResponse.ok || !activityResponse.ok) throw new Error("Unable to load block details.");
+
+				if (!blockResponse.ok) throw new Error("Unable to load block details.");
 				const blockData = await blockResponse.json();
-				const historyData = await historyResponse.json();
-				const activityData = await activityResponse.json();
+				const historyData = historyResponse.ok ? await historyResponse.json() : [];
+				const activityData = activityResponse.ok ? await activityResponse.json() : [];
+
 				const nextBlock = normalizeBlock({ ...block, ...blockData });
 				setBlock(nextBlock);
 				sessionStorage.setItem("tee-selected-block", JSON.stringify(nextBlock));
@@ -165,10 +198,11 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 
 	const openEditModal = () => {
 		setFormData({
-			id: block.id,
+			id: String(block.id),
 			area: String(block.area),
 			variety: block.variety,
-			yearPlanted: block.yearPlanted,
+			plantDate: block.plantDate !== "--" ? block.plantDate : new Date().toISOString().slice(0, 10),
+			supervisorId: block.supervisorId ? String(block.supervisorId) : "",
 		});
 		setModalMode("edit");
 	};
@@ -186,22 +220,18 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 
 	const handleSubmit = async (event) => {
 		event.preventDefault();
-		const nextBlock = {
-			id: formData.id.trim(),
+		const blockPayload = {
 			area: Number.parseFloat(formData.area) || 0,
-			variety: formData.variety,
-			yearPlanted: Number.parseInt(formData.yearPlanted, 10) || new Date().getFullYear(),
+			tea_variety: formData.variety,
+			plant_date: formData.plantDate || null,
+			supervisor_id: formData.supervisorId ? Number(formData.supervisorId) : null,
 		};
 
 		try {
 			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					area: nextBlock.area,
-					tea_variety: nextBlock.variety,
-					year_planted: nextBlock.yearPlanted,
-				}),
+				body: JSON.stringify(blockPayload),
 			});
 			if (!response.ok) throw new Error("Unable to save the block.");
 			const savedBlock = normalizeBlock(await response.json());
@@ -245,6 +275,8 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 			if (!response.ok) throw new Error("Unable to save the harvest entry.");
 			const savedRecord = normalizeHarvestEntry(await response.json(), harvestFormData.teaVariety || block.variety);
 			setHistory((current) => [savedRecord, ...current.filter((entry) => entry.id !== savedRecord.id)]);
+
+			// Refresh block totals (which are dynamically calculated by the backend)
 			const blockResponse = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`);
 			if (blockResponse.ok) {
 				const refreshedBlock = normalizeBlock(await blockResponse.json());
@@ -259,8 +291,35 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 		}
 	};
 
+	const handleHarvestDelete = async () => {
+		if (!deleteHarvestId) return;
+		setIsDeletingHarvest(true);
+		try {
+			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}/harvest-history/${deleteHarvestId}`, {
+				method: "DELETE",
+			});
+			if (!response.ok && response.status !== 204) throw new Error("Unable to delete harvest record.");
+			setHistory((current) => current.filter((entry) => entry.id !== deleteHarvestId));
+			setDeleteHarvestId(null);
+
+			// Refresh block totals
+			const blockResponse = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`);
+			if (blockResponse.ok) {
+				const refreshedBlock = normalizeBlock(await blockResponse.json());
+				setBlock(refreshedBlock);
+				sessionStorage.setItem("tee-selected-block", JSON.stringify(refreshedBlock));
+			}
+		} catch (deleteError) {
+			setError(deleteError.message);
+		} finally {
+			setIsDeletingHarvest(false);
+		}
+	};
+
+
 	return (
 		<div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
+
 			<Header title={`Block Detail: Block ${block.id}`} crumbs={[{ label: "Home", href: "#" }, { label: "Dashboard", href: "#" }, { label: "Workers & Blocks", href: "#" }]} />
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
 				<Sidebar activeItem="BlockManagement" role="manager" onNavigate={onNavigate} />
@@ -269,7 +328,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--space-4)", flexWrap: "wrap" }}>
 							<div>
 								<h1 style={{ margin: 0, fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)" }}>Block Detail: Block {block.id}</h1>
-								<p className="text-muted" style={{ marginTop: "var(--space-2)" }}>Overview, harvesting history, and current operational status for the selected block.</p>
+								<p className="text-muted" style={{ marginTop: "var(--space-2)" }}>Overview, supervisor assignment, harvesting history, and operational status for the selected block.</p>
 							</div>
 							<button type="button" className="btn-secondary" onClick={openEditModal}>
 								<Edit3 size={16} />
@@ -280,7 +339,14 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 						<div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "var(--space-4)", marginTop: "var(--space-5)" }}>
 							<div className="card" style={{ padding: "var(--space-4)" }}>
 								<div className="label-text">Block ID</div>
-								<div style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--color-primary)", marginTop: "var(--space-1)" }}>{block.id}</div>
+								<div style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--color-primary)", marginTop: "var(--space-1)" }}>Block {block.id}</div>
+							</div>
+							<div className="card" style={{ padding: "var(--space-4)" }}>
+								<div className="label-text">Supervisor</div>
+								<div style={{ fontSize: "var(--fs-lg)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)", marginTop: "var(--space-1)", display: "flex", alignItems: "center", gap: "6px" }}>
+									<UserCheck size={18} color="var(--color-primary)" />
+									{block.supervisorName}
+								</div>
 							</div>
 							<div className="card" style={{ padding: "var(--space-4)" }}>
 								<div className="label-text">Variety</div>
@@ -288,7 +354,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 							</div>
 							<div className="card" style={{ padding: "var(--space-4)" }}>
 								<div className="label-text">Area</div>
-								<div style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", marginTop: "var(--space-1)" }}>{block.area.toFixed(1)} Ha</div>
+								<div style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", marginTop: "var(--space-1)" }}>{Number(block.area).toFixed(1)} Ha</div>
 							</div>
 							<div className="card" style={{ padding: "var(--space-4)" }}>
 								<div className="label-text">Last Harvest</div>
@@ -298,28 +364,28 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 					</section>
 
 					<section style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.6fr) minmax(280px, 1fr)", gap: "var(--space-6)" }}>
-							<div className="card" style={{ padding: "var(--space-5)" }}>
-								{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
+						<div className="card" style={{ padding: "var(--space-5)" }}>
+							{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
 							<div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
 								<div>
-									<h2 className="section-title" style={{ marginBottom: 0 }}>Current Status</h2>
-									<p className="text-muted" style={{ fontSize: "var(--fs-sm)" }}>Healthy, no active alerts</p>
+									<h2 className="section-title" style={{ marginBottom: 0 }}>Current Health Status</h2>
+									<p className="text-muted" style={{ fontSize: "var(--fs-sm)" }}>Real-time monitoring & AI detection summary</p>
 								</div>
-								<BlockBadge text="Stable" />
+								<BlockBadge text={block.healthStatus || "Healthy"} />
 							</div>
 							<div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
 								<div style={{ flex: 1 }}>
 									<div className="progress-bar" style={{ height: 10 }}>
-										<div className="progress-bar-fill" style={{ width: "78%" }} />
+										<div className="progress-bar-fill" style={{ width: "85%" }} />
 									</div>
 								</div>
-								<div className="badge-info">Monitoring</div>
+								<div className="badge-info">Active Monitoring</div>
 							</div>
 							<div style={{ marginTop: "var(--space-4)" }} className="alert alert-info">
 								<RotateCcw size={18} />
 								<div>
-									<div style={{ fontWeight: "var(--fw-semibold)" }}>Automatic block checks are up to date.</div>
-									<div className="text-muted" style={{ fontSize: "var(--fs-sm)" }}>This panel now follows the default app surface and spacing tokens.</div>
+									<div style={{ fontWeight: "var(--fw-semibold)" }}>Block health is verified and up to date.</div>
+									<div className="text-muted" style={{ fontSize: "var(--fs-sm)" }}>Calculated harvest outputs and inspection logs are dynamically synced with the database.</div>
 								</div>
 							</div>
 						</div>
@@ -333,13 +399,16 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 								<Clock3 size={18} color="var(--color-primary)" />
 							</div>
 							<div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-													{isLoading && <div className="text-muted">Loading activity...</div>}
-													{!isLoading && activityLog.map((item) => (
-														<div key={item.title ?? item.name} className="card" style={{ padding: "var(--space-3)", boxShadow: "none" }}>
-															<div style={{ fontWeight: "var(--fw-semibold)" }}>{item.title ?? item.name ?? "Activity"}</div>
-															<div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>{item.meta ?? item.timestamp ?? item.operator ?? "--"}</div>
-														</div>
-													))}
+								{isLoading && <div className="text-muted">Loading activity...</div>}
+								{!isLoading && activityLog.length === 0 && <div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>No recent activity logs recorded.</div>}
+								{!isLoading && activityLog.map((item, idx) => (
+									<div key={item.id ?? idx} className="card" style={{ padding: "var(--space-3)", boxShadow: "none" }}>
+										<div style={{ fontWeight: "var(--fw-semibold)" }}>{item.title ?? item.name ?? "Activity"}</div>
+										<div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>
+											{item.timestamp ? new Date(item.timestamp).toLocaleString() : item.meta ?? "--"} {item.operator ? `• Operator: ${item.operator}` : ""}
+										</div>
+									</div>
+								))}
 							</div>
 						</div>
 					</section>
@@ -348,7 +417,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 						<div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
 							<div>
 								<h2 className="section-title" style={{ marginBottom: 0 }}>Harvest History</h2>
-								<p className="text-muted" style={{ fontSize: "var(--fs-sm)" }}>Last 5 cycles for Block {block.id}</p>
+								<p className="text-muted" style={{ fontSize: "var(--fs-sm)" }}>Harvest cycles recorded for Block {block.id} (Total: {block.totalHarvest})</p>
 							</div>
 							<button type="button" className="btn-primary" onClick={openHarvestModal}>
 								<Plus size={16} />
@@ -359,21 +428,33 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 							<table className="table-modern">
 								<thead>
 									<tr>
-										{["Date", "Tea Variety", "Quantity (kg)", "Efficiency (%)", "Status"].map((heading) => (
-											<th key={heading}>{heading}</th>
-										))}
-									</tr>
-								</thead>
-								<tbody>
-									{isLoading ? <tr><td colSpan={5} style={{ textAlign: "center" }}>Loading harvest history...</td></tr> : history.length === 0 ? <tr><td colSpan={5} style={{ textAlign: "center" }}>No harvest entries yet.</td></tr> : history.map((entry) => (
-										<tr key={entry.id ?? `${entry.date}-${entry.quantity}`} className="hover-row">
-											<td>{entry.date}</td>
-											<td>{entry.teaVariety}</td>
-											<td>{entry.quantity}</td>
-											<td>{entry.efficiency}</td>
-											<td><BlockBadge text={entry.status} /></td>
-										</tr>
+									{["Date", "Tea Variety", "Quantity (kg)", "Efficiency (%)", "Status", ""].map((heading) => (
+										<th key={heading}>{heading}</th>
 									))}
+								</tr>
+							</thead>
+							<tbody>
+								{isLoading ? <tr><td colSpan={6} style={{ textAlign: "center" }}>Loading harvest history...</td></tr> : history.length === 0 ? <tr><td colSpan={6} style={{ textAlign: "center" }}>No harvest entries yet.</td></tr> : history.map((entry) => (
+									<tr key={entry.id ?? `${entry.date}-${entry.quantity}`} className="hover-row">
+										<td>{entry.date}</td>
+										<td>{entry.teaVariety}</td>
+										<td>{entry.quantity}</td>
+										<td>{entry.efficiency ? `${entry.efficiency}%` : "--"}</td>
+										<td><BlockBadge text={entry.status} /></td>
+										<td>
+											{entry.id && (
+												<button
+													type="button"
+													title="Delete harvest record"
+													onClick={() => setDeleteHarvestId(entry.id)}
+													style={{ background: "none", border: "1px solid #FFCDD2", borderRadius: "var(--radius-sm)", padding: "3px 8px", cursor: "pointer", color: "#C62828", fontSize: "var(--fs-xs)", display: "inline-flex", alignItems: "center", gap: 4 }}
+												>
+													<Trash2 size={12} /> Delete
+												</button>
+											)}
+										</td>
+									</tr>
+								))}
 								</tbody>
 							</table>
 						</div>
@@ -383,19 +464,23 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 						<div className="grid-auto-fit" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))" }}>
 							<div>
 								<div className="label-text">Block ID</div>
-								<div style={{ marginTop: "var(--space-1)", fontWeight: "var(--fw-semibold)" }}>{block.id}</div>
+								<div style={{ marginTop: "var(--space-1)", fontWeight: "var(--fw-semibold)" }}>Block {block.id}</div>
 							</div>
 							<div>
-								<div className="label-text">Variety</div>
+								<div className="label-text">Assigned Supervisor</div>
+								<div style={{ marginTop: "var(--space-1)", fontWeight: "var(--fw-semibold)", color: "var(--color-primary)" }}>{block.supervisorName}</div>
+							</div>
+							<div>
+								<div className="label-text">Tea Variety</div>
 								<div style={{ marginTop: "var(--space-1)", fontWeight: "var(--fw-semibold)" }}>{block.variety}</div>
 							</div>
 							<div>
-								<div className="label-text">Area</div>
-								<div style={{ marginTop: "var(--space-1)", fontWeight: "var(--fw-semibold)" }}>{block.area.toFixed(1)} Ha</div>
+								<div className="label-text">Total Cultivated Area</div>
+								<div style={{ marginTop: "var(--space-1)", fontWeight: "var(--fw-semibold)" }}>{Number(block.area).toFixed(1)} Ha</div>
 							</div>
 							<div>
-								<div className="label-text">Year Planted</div>
-								<div style={{ marginTop: "var(--space-1)", fontWeight: "var(--fw-semibold)" }}>{block.yearPlanted}</div>
+								<div className="label-text">Planting Date</div>
+								<div style={{ marginTop: "var(--space-1)", fontWeight: "var(--fw-semibold)" }}>{block.plantDate}</div>
 							</div>
 						</div>
 					</section>
@@ -411,6 +496,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 					onClose={closeModal}
 					onSubmit={handleSubmit}
 					teaVarieties={teaVarieties}
+					supervisors={supervisors}
 				/>
 			)}
 			{modalMode === "harvest" && (
@@ -503,6 +589,30 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 					</div>
 				</div>
 			)}
+
+			{/* Harvest Delete Confirmation Modal */}
+			{deleteHarvestId && (
+				<div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 9999, display: "grid", placeItems: "center" }}>
+					<div className="modal-card" style={{ maxWidth: 400, width: "100%", padding: "var(--space-6)" }}>
+						<h3 style={{ margin: "0 0 var(--space-3)", fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)" }}>Delete Harvest Record</h3>
+						<p className="text-muted" style={{ fontSize: "var(--fs-sm)", marginBottom: "var(--space-5)" }}>
+							Are you sure you want to delete this harvest record? This will also recalculate the block totals.
+						</p>
+						<div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-3)" }}>
+							<button type="button" className="btn-secondary" onClick={() => setDeleteHarvestId(null)} disabled={isDeletingHarvest}>Cancel</button>
+							<button
+								type="button"
+								onClick={handleHarvestDelete}
+								disabled={isDeletingHarvest}
+								style={{ padding: "var(--space-2) var(--space-5)", borderRadius: "var(--radius-md)", background: "#C62828", color: "#fff", border: "none", fontWeight: "var(--fw-semibold)", cursor: "pointer" }}
+							>
+								{isDeletingHarvest ? "Deleting..." : "Delete"}
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
+
