@@ -20,10 +20,11 @@ import TrackAttendance from "./worker_block/track_attendence.jsx";
 import WorkerLogin from "./worker_block/workerlogin.jsx";
 import InventoryManagement from "./inventory/inventory_management.jsx";
 import SupplierManagement from "./inventory/supplier_management.jsx";
+import ActivityLogs from "./auth/ActivityLogs.jsx";
 
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("welcomePage");
+  const [currentPage, setCurrentPage] = useState("activityLogs");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -124,6 +125,11 @@ function App() {
   if (currentPage === "suppliers") {
     return <SupplierManagement onNavigate={handleNavigate} />;
   }
+
+  if (currentPage === "activityLogs" || currentPage === "activity-logs" || currentPage === "logs") {
+    return <ActivityLogs onNavigate={handleNavigate} />;
+  }
+
   return <StateAnalytics onNavigate={handleNavigate} />;
 }
 
