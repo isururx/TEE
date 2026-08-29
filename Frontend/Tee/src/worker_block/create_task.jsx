@@ -1,20 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { X, Play } from "lucide-react";
+import { X, Play, Save } from "lucide-react";
 
 const fallbackBlocks = [];
 const fallbackWorkers = [];
 
-export default function CreateTaskModal({ onClose, onSubmit }) {
-	const [description, setDescription] = useState("");
+export default function CreateTaskModal({ onClose, onSubmit, taskToEdit = null }) {
+	const isEdit = Boolean(taskToEdit);
+
+	const [description, setDescription] = useState(taskToEdit?.description ?? "");
 	const [blocks, setBlocks] = useState(fallbackBlocks);
-	const [blockId, setBlockId] = useState("");
-	const [priority, setPriority] = useState("MED");
+	const [blockId, setBlockId] = useState(taskToEdit?.plantation_block_id ? String(taskToEdit.plantation_block_id) : "");
+	const [priority, setPriority] = useState(taskToEdit?.priority ?? "MEDIUM");
 	const [workers, setWorkers] = useState(fallbackWorkers);
-	const [assignedWorkers, setAssignedWorkers] = useState([]);
+	const [assignedWorkers, setAssignedWorkers] = useState(taskToEdit?.worker_ids ?? []);
 	const [workerInput, setWorkerInput] = useState("");
-	const [deadline, setDeadline] = useState(new Date().toISOString().slice(0, 10));
+	const [deadline, setDeadline] = useState(() => {
+		if (taskToEdit?.deadline && taskToEdit.deadline !== "--") {
+			// deadline from backend is "Sep 14, 2023", try to parse it
+			const parsed = new Date(taskToEdit.deadline);
+			return isNaN(parsed.getTime()) ? new Date().toISOString().slice(0, 10) : parsed.toISOString().slice(0, 10);
+		}
+		return new Date().toISOString().slice(0, 10);
+	});
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState("");
+
 
 	useEffect(() => {
 		const controller = new AbortController();
@@ -67,18 +77,22 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
 		setError("");
 		try {
 			const numericBlockId = Number(blockId);
-			const response = await fetch("http://localhost:8000/api/tasks", {
-				method: "POST",
+			const url = isEdit
+				? `http://localhost:8000/api/tasks/${taskToEdit.id}`
+				: "http://localhost:8000/api/tasks";
+			const method = isEdit ? "PUT" : "POST";
+			const response = await fetch(url, {
+				method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					description: description.trim(),
 					block_id: numericBlockId || null,
 					worker_ids: assignedWorkers,
-					priority: priority === "HIGH" ? "CRITICAL" : priority === "MED" ? "MEDIUM" : "LOW",
+					priority: priority,
 					deadline: deadline ? `${deadline}T23:59:00` : null,
 				}),
 			});
-			if (!response.ok) throw new Error("Unable to create the task.");
+			if (!response.ok) throw new Error(`Unable to ${isEdit ? "update" : "create"} the task.`);
 			onSubmit(await response.json());
 			onClose();
 		} catch (submitError) {
@@ -93,11 +107,14 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
 			<div className="modal-card" style={{ background: "var(--color-card)", color: "var(--color-text-primary)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-xl)", width: "100%", maxWidth: "550px", padding: "var(--space-6)", boxShadow: "var(--shadow-modal)" }}>
 				{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
 				<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-5)" }}>
-					<h3 style={{ margin: 0, fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)", letterSpacing: "-0.01em" }}>Create New Field Task</h3>
+					<h3 style={{ margin: 0, fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)", letterSpacing: "-0.01em" }}>
+						{isEdit ? "Edit Task" : "Create New Field Task"}
+					</h3>
 					<button type="button" className="btn-icon" onClick={onClose} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}>
 						<X size={20} />
 					</button>
 				</div>
+
 
 				<form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
 					<div>
@@ -138,7 +155,7 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
 								PRIORITY
 							</label>
 							<div style={{ display: "flex", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
-								{["HIGH", "MED", "LOW"].map((p) => (
+								{["CRITICAL", "MEDIUM", "LOW"].map((p) => (
 									<button
 										key={p}
 										type="button"
@@ -149,7 +166,7 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
 											fontSize: "11px",
 											fontWeight: "var(--fw-bold)",
 											border: "none",
-											background: priority === p ? (p === "HIGH" ? "#E53935" : p === "MED" ? "#F9A825" : "var(--color-success)") : "transparent",
+											background: priority === p ? (p === "CRITICAL" ? "#E53935" : p === "MEDIUM" ? "#F9A825" : "var(--color-success)") : "transparent",
 											color: priority === p ? "#FFFFFF" : "var(--color-text-secondary)",
 											cursor: "pointer",
 											transition: "background var(--transition-fast)",
@@ -231,29 +248,32 @@ export default function CreateTaskModal({ onClose, onSubmit }) {
 					</div>
 
 					{/* Submit Button */}
-					<button
-						type="submit"
-						style={{
-							marginTop: "var(--space-3)",
-							width: "100%",
-							padding: "var(--space-3)",
-							borderRadius: "var(--radius-md)",
-							background: "#000000",
-							color: "#FFFFFF",
-							border: "none",
-							fontWeight: "var(--fw-bold)",
-							fontSize: "var(--fs-sm)",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							gap: "var(--space-2)",
-							cursor: "pointer",
-							letterSpacing: "0.05em",
-						}}
-					>
-										<Play size={14} fill="#FFFFFF" />
-										{isSubmitting ? "ASSIGNING..." : "ASSIGN TASK"}
-					</button>
+					<div style={{ display: "flex", gap: "var(--space-3)", marginTop: "var(--space-3)" }}>
+						<button type="button" className="btn-secondary" onClick={onClose} style={{ flex: 1, padding: "var(--space-3)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)", background: "transparent", color: "var(--color-text-primary)", cursor: "pointer" }}>Cancel</button>
+						<button
+							type="submit"
+							disabled={isSubmitting}
+							style={{
+								flex: 2,
+								padding: "var(--space-3)",
+								borderRadius: "var(--radius-md)",
+								background: "#000000",
+								color: "#FFFFFF",
+								border: "none",
+								fontWeight: "var(--fw-bold)",
+								fontSize: "var(--fs-sm)",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								gap: "var(--space-2)",
+								cursor: "pointer",
+								letterSpacing: "0.05em",
+							}}
+						>
+							{isEdit ? <Save size={14} /> : <Play size={14} fill="#FFFFFF" />}
+							{isSubmitting ? (isEdit ? "SAVING..." : "ASSIGNING...") : (isEdit ? "SAVE CHANGES" : "ASSIGN TASK")}
+						</button>
+					</div>
 				</form>
 			</div>
 		</div>

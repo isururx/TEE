@@ -47,13 +47,15 @@ export default function Sidebar({
         { key: "users", label: "User Management", icon: Users },
         { key: "suppliers", label: "Supplier Management", icon: Truck },
         { key: "BlockManagement", label: "Block Management", icon: Map },
+        { key: "WorkerManagement", label: "Worker Management", icon: Users },
         { key: "TaskManagement", label: "Task Management", icon: CheckSquare },
+        { key: "attendance", label: "Attendance Tracking", icon: Clock },
+
       ],
     },
     {
       label: "System",
       items: [
-        { key: "attendance", label: "Attendance Tracking", icon: Clock },
         { key: "inventory", label: "Inventory", icon: Package },
         { key: "settings", label: "Settings", icon: Settings },
       ],

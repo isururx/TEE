@@ -21,10 +21,10 @@ import WorkerLogin from "./worker_block/workerlogin.jsx";
 import InventoryManagement from "./inventory/inventory_management.jsx";
 import SupplierManagement from "./inventory/supplier_management.jsx";
 import ActivityLogs from "./auth/ActivityLogs.jsx";
-
+import WorkerManagement from "./worker_block/worker_management.jsx";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("activityLogs");
+  const [currentPage, setCurrentPage] = useState("welcome");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -86,6 +86,10 @@ function App() {
       return <ManagerDashboardMobile onNavigate={handleNavigate} />;
     }
     return <ManagerDashboard onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "WorkerManagement" || currentPage === "workers") {
+    return <WorkerManagement onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "mobile-dashboard") {

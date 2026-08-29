@@ -8,12 +8,13 @@ export default function BlockFormModal({
 	onClose,
 	onSubmit,
 	teaVarieties,
+	supervisors = [],
 	isSubmitting,
 	error,
 }) {
 	return (
 		<div className="modal-backdrop">
-			<div className="modal-card">
+			<div className="modal-card" style={{ maxWidth: 500 }}>
 				{error && <div role="alert" style={{ marginBottom: "var(--space-4)", color: "var(--color-danger, #b42318)" }}>{error}</div>}
 				<div className="modal-header">
 					<h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", margin: 0 }}>
@@ -26,9 +27,10 @@ export default function BlockFormModal({
 
 				<form onSubmit={onSubmit}>
 					<div className="form-group">
-						<label className="form-label">Block ID</label>
+						<label className="form-label">Block ID / Code</label>
 						<input
 							className="input-primary"
+							placeholder="e.g. 1 or B-01"
 							value={formData.id}
 							onChange={(e) => setFormData((current) => ({ ...current, id: e.target.value }))}
 							required
@@ -36,7 +38,7 @@ export default function BlockFormModal({
 					</div>
 
 					<div className="form-group">
-						<label className="form-label">Tea variety</label>
+						<label className="form-label">Tea Variety</label>
 						<select
 							className="input-primary"
 							value={formData.variety}
@@ -57,7 +59,7 @@ export default function BlockFormModal({
 								className="input-primary"
 								type="number"
 								step="0.1"
-								min="0"
+								min="0.1"
 								value={formData.area}
 								onChange={(e) => setFormData((current) => ({ ...current, area: e.target.value }))}
 								required
@@ -65,17 +67,30 @@ export default function BlockFormModal({
 						</div>
 
 						<div className="form-group">
-							<label className="form-label">Year Planted</label>
+							<label className="form-label">Planting Date</label>
 							<input
 								className="input-primary"
-								type="number"
-								min="1900"
-								max={new Date().getFullYear()}
-								value={formData.yearPlanted}
-								onChange={(e) => setFormData((current) => ({ ...current, yearPlanted: e.target.value }))}
-								required
+								type="date"
+								value={formData.plantDate || ""}
+								onChange={(e) => setFormData((current) => ({ ...current, plantDate: e.target.value }))}
 							/>
 						</div>
+					</div>
+
+					<div className="form-group">
+						<label className="form-label">Assigned Supervisor</label>
+						<select
+							className="input-primary"
+							value={formData.supervisorId || ""}
+							onChange={(e) => setFormData((current) => ({ ...current, supervisorId: e.target.value }))}
+						>
+							<option value="">-- Select Field Supervisor (Optional) --</option>
+							{supervisors.map((sup) => (
+								<option key={sup.id} value={sup.id}>
+									{sup.name} ({sup.role || "Supervisor"})
+								</option>
+							))}
+						</select>
 					</div>
 
 					<div className="modal-footer">
