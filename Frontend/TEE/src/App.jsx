@@ -20,7 +20,7 @@ import TrackAttendance from "./worker_block/track_attendence.jsx";
 import WorkerLogin from "./worker_block/workerlogin.jsx";
 import InventoryManagement from "./inventory/inventory_management.jsx";
 import SupplierManagement from "./inventory/supplier_management.jsx";
-
+import WorkerManagement from "./worker_block/worker_management.jsx";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("welcomePage");
@@ -85,6 +85,10 @@ function App() {
       return <ManagerDashboardMobile onNavigate={handleNavigate} />;
     }
     return <ManagerDashboard onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "WorkerManagement" || currentPage === "workers") {
+    return <WorkerManagement onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "mobile-dashboard") {
