@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import WelcomePage from "./auth/WelcomePage.jsx";
 import Login from "./auth/Login.jsx";
 import CreateAccountUser from "./auth/CreateAccountUser.jsx";
 import CreateAccountStaff from "./auth/CreateAccountStaff.jsx";
@@ -9,6 +10,8 @@ import OtpResent from "./auth/OtpResent.jsx";
 import DiseaseDetection from "./disease/DiseaseDetection.jsx";
 import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
+import SupervisorDashboard from "./dashboards/supervisor_dashboard.jsx";
+import SupervisorDashboardMobile from "./dashboards/supervisor_dashboard_mobile.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
@@ -17,10 +20,11 @@ import TrackAttendance from "./worker_block/track_attendence.jsx";
 import WorkerLogin from "./worker_block/workerlogin.jsx";
 import InventoryManagement from "./inventory/inventory_management.jsx";
 import SupplierManagement from "./inventory/supplier_management.jsx";
-
+import ActivityLogs from "./auth/ActivityLogs.jsx";
+import WorkerManagement from "./worker_block/worker_management.jsx";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("profile");
+  const [currentPage, setCurrentPage] = useState("welcome");
 
 
   const [isMobile, setIsMobile] = useState(
@@ -41,6 +45,10 @@ function App() {
     return <DiseaseDetection onNavigate={handleNavigate} />;
   }
 
+  if (currentPage === "welcomePage" || currentPage === "welcome") {
+    return <WelcomePage onNavigate={handleNavigate} />;
+  }
+
   if (currentPage === "login") {
     return <Login onNavigate={handleNavigate} />;
   }
@@ -57,11 +65,11 @@ function App() {
     return <OtpResent onNavigate={handleNavigate} onReturn={() => handleNavigate("twoStepVerification")} />;
   }
 
-  if (currentPage === "createAccount" ) {
+  if (currentPage === "createAccount") {
     return <CreateAccountUser onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "createAccountStaff" ) {
+  if (currentPage === "createAccountStaff") {
     return <CreateAccountStaff onNavigate={handleNavigate} />;
   }
 
@@ -73,15 +81,30 @@ function App() {
     return <UserProfileForAdmin onNavigate={handleNavigate} />;
   }
 
-  if (currentPage === "dashboard") {
+  if (currentPage === "dashboard" || currentPage === "managerDashboard") {
     if (isMobile) {
       return <ManagerDashboardMobile onNavigate={handleNavigate} />;
     }
     return <ManagerDashboard onNavigate={handleNavigate} />;
   }
 
+  if (currentPage === "WorkerManagement" || currentPage === "workers") {
+    return <WorkerManagement onNavigate={handleNavigate} />;
+  }
+
   if (currentPage === "mobile-dashboard") {
     return <ManagerDashboardMobile onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "supervisorDashboard" || currentPage === "supervisor-dashboard" || currentPage === "supervisor") {
+    if (isMobile) {
+      return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
+    }
+    return <SupervisorDashboard onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "mobile-supervisor-dashboard") {
+    return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "BlockManagement") {
@@ -99,13 +122,18 @@ function App() {
   if (currentPage === "attendance") {
     return <TrackAttendance onNavigate={handleNavigate} />;
   }
- if (currentPage === "inventory") {
+  if (currentPage === "inventory") {
     return <InventoryManagement onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "suppliers") {
     return <SupplierManagement onNavigate={handleNavigate} />;
   }
+
+  if (currentPage === "activityLogs" || currentPage === "activity-logs" || currentPage === "logs") {
+    return <ActivityLogs onNavigate={handleNavigate} />;
+  }
+
   return <StateAnalytics onNavigate={handleNavigate} />;
 }
 

@@ -117,7 +117,7 @@ const SupplierManagement = ({ onNavigate = () => {} }) => {
                 {/* Left Area (Catalogue & Table) */}
                 <div style={{ flex: "1 1 60%" }}>
                   
-                  <button style={{ marginBottom: "10px" }} type="button" className="btn-primary"onClick={() => setActiveModal('add')}> <Plus size={16} /><span>Add new supplier</span></button>
+                  <button style={{ marginBottom: "10px" }} type="button" className="btn-primary"onClick={() => setActiveModal('add')}> <Plus size={16} /><span>Add new Block</span></button>
 
                   {/* Main Catalogue Card */}
                   <div className="card" style={{ position: "relative", paddingBottom: "var(--space-10)" }}>

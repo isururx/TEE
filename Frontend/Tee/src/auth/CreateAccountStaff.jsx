@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Header from "../common components/header.jsx";
+import { ArrowLeft } from "lucide-react";
 import Footer from "../common components/footer.jsx";
 
 const initialForm = {
@@ -80,11 +80,11 @@ export default function CreateAccountStaff({ onNavigate = () => { } }) {
 
   return (
     <div className="flex-col" style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
-      {/* ---- Header ---- */}
-      <Header title="Create Account" onLogout={() => onNavigate("login")} />
+
 
       {/* ---- Main Form Content ---- */}
       <main style={{ flex: 1, padding: "var(--space-8) var(--space-6)", maxWidth: 860, width: "100%", margin: "0 auto" }}>
+        
         <h1
           className="page-title text-center"
           style={{
@@ -214,11 +214,14 @@ export default function CreateAccountStaff({ onNavigate = () => { } }) {
 
           {/* Action Buttons */}
           <div className="flex-center gap-md" style={{ marginTop: "var(--space-4)" }}>
-            <button type="submit" className="btn-primary" style={{ minWidth: 280, justifyContent: "center" }}>
+            <button type="submit" className="btn-primary" style={{ minWidth: 200, justifyContent: "center" }}>
               Submit
             </button>
-            <button type="button" className="btn-secondary" style={{ minWidth: 280, justifyContent: "center" }} onClick={handleClear}>
+            <button type="button" className="btn-secondary" style={{ minWidth: 200, justifyContent: "center" }} onClick={handleClear}>
               Clear
+            </button>
+            <button type="button" className="btn-danger" style={{ minWidth: 200, justifyContent: "center" }} onClick={() => onNavigate("login")}>
+              Cancel
             </button>
           </div>
         </form>

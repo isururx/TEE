@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ClipboardList, RefreshCw, Plus, Filter, Users, ShieldAlert, CheckCircle2, Clock } from "lucide-react";
+import { ClipboardList, RefreshCw, Plus, Filter, Users, ShieldAlert, CheckCircle2, Clock, Pencil, Trash2 } from "lucide-react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import Sidebar from "../common components/sidebar.jsx";
@@ -35,9 +35,13 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 	const [search, setSearch] = useState("");
 	const [filterStatus, setFilterStatus] = useState("ALL");
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [taskToEdit, setTaskToEdit] = useState(null);
+	const [deleteConfirm, setDeleteConfirm] = useState(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 	const [metrics, setMetrics] = useState({ pending: 0, critical: 0, inProgress: 0, workforce: 0, allocation: [] });
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState("");
+
 
 	useEffect(() => {
 		const controller = new AbortController();
@@ -79,6 +83,36 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 
 	const handleCreateTask = (newTask) => {
 		setTasks((current) => [normalizeTask(newTask), ...current]);
+	};
+
+	const handleEditTask = (updatedTask) => {
+		setTasks((current) => current.map((t) => (t.id === updatedTask.id ? normalizeTask(updatedTask) : t)));
+	};
+
+	const handleStatusChange = async (taskId, newStatus) => {
+		try {
+			const response = await fetch(`${TASKS_API_URL}/${taskId}/status?status=${encodeURIComponent(newStatus)}`, { method: "PUT" });
+			if (!response.ok) throw new Error("Status update failed.");
+			const updated = await response.json();
+			setTasks((current) => current.map((t) => (t.id === taskId ? normalizeTask(updated) : t)));
+		} catch (err) {
+			setError(err.message);
+		}
+	};
+
+	const handleDeleteConfirmed = async () => {
+		if (!deleteConfirm) return;
+		setIsDeleting(true);
+		try {
+			const response = await fetch(`${TASKS_API_URL}/${deleteConfirm}`, { method: "DELETE" });
+			if (!response.ok && response.status !== 204) throw new Error("Unable to delete task.");
+			setTasks((current) => current.filter((t) => t.id !== deleteConfirm));
+			setDeleteConfirm(null);
+		} catch (err) {
+			setError(err.message);
+		} finally {
+			setIsDeleting(false);
+		}
 	};
 
 	const filteredTasks = useMemo(() => {
@@ -218,7 +252,7 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 								<table className="table-modern" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, minWidth: 700 }}>
 									<thead>
 										<tr>
-											{["TASK ID", "DESCRIPTION", "ASSIGNED WORKER", "PLANTATION BLOCK", "DEADLINE", "PRIORITY", "STATUS"].map((h) => (
+											{["TASK ID", "DESCRIPTION", "ASSIGNED WORKER", "PLANTATION BLOCK", "DEADLINE", "PRIORITY", "STATUS", "ACTIONS"].map((h) => (
 												<th key={h} style={{ padding: "var(--space-3) var(--space-4)", fontSize: "11px", fontWeight: "var(--fw-bold)", color: "var(--color-text-secondary)", background: "var(--color-hover-green)", borderBottom: "1px solid var(--color-border)" }}>
 													{h}
 												</th>
@@ -227,10 +261,10 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 									</thead>
 									<tbody>
 										{isLoading ? (
-											<tr><td colSpan={7} style={{ textAlign: "center", padding: "var(--space-8)", color: "var(--color-text-muted)" }}>Loading operational tasks...</td></tr>
+											<tr><td colSpan={8} style={{ textAlign: "center", padding: "var(--space-8)", color: "var(--color-text-muted)" }}>Loading operational tasks...</td></tr>
 										) : filteredTasks.length === 0 ? (
 											<tr>
-												<td colSpan={7} style={{ textAlign: "center", padding: "var(--space-8)", color: "var(--color-text-muted)" }}>
+												<td colSpan={8} style={{ textAlign: "center", padding: "var(--space-8)", color: "var(--color-text-muted)" }}>
 													No operational tasks in queue.
 												</td>
 											</tr>
@@ -288,9 +322,38 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 															</span>
 														</td>
 														<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>
-															<span style={{ padding: "3px 8px", borderRadius: "var(--radius-full)", background: statusBg, color: statusColor, fontSize: "10px", fontWeight: "var(--fw-bold)", letterSpacing: "0.03em" }}>
-																{t.status}
-															</span>
+															<select
+																value={t.status}
+																onChange={(e) => handleStatusChange(t.id, e.target.value)}
+																style={{ padding: "3px 6px", borderRadius: "var(--radius-sm)", background: statusBg, color: statusColor, border: "none", fontSize: "10px", fontWeight: "var(--fw-bold)", cursor: "pointer", outline: "none" }}
+															>
+																<option value="QUEUED">QUEUED</option>
+																<option value="IN PROGRESS">IN PROGRESS</option>
+																<option value="PENDING">PENDING</option>
+																<option value="FINISHED">FINISHED</option>
+																<option value="FAILED">FAILED</option>
+																<option value="ARCHIVED">ARCHIVED</option>
+															</select>
+														</td>
+														<td style={{ padding: "var(--space-4)", borderBottom: "1px solid var(--color-border)" }}>
+															<div style={{ display: "flex", gap: "var(--space-2)" }}>
+																<button
+																	type="button"
+																	title="Edit task"
+																	onClick={() => { setTaskToEdit(t); setIsModalOpen(true); }}
+																	style={{ background: "none", border: "1px solid var(--color-border)", borderRadius: "var(--radius-sm)", padding: "3px 7px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 3, fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}
+																>
+																	<Pencil size={12} /> Edit
+																</button>
+																<button
+																	type="button"
+																	title="Delete task"
+																	onClick={() => setDeleteConfirm(t.id)}
+																	style={{ background: "none", border: "1px solid #FFCDD2", borderRadius: "var(--radius-sm)", padding: "3px 7px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 3, fontSize: "var(--fs-xs)", color: "#C62828" }}
+																>
+																	<Trash2 size={12} /> Del
+																</button>
+															</div>
 														</td>
 													</tr>
 												);
@@ -351,12 +414,36 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 
 			<Footer />
 
-			{/* Popup Modal */}
+			{/* Create / Edit Task Modal */}
 			{isModalOpen && (
 				<CreateTaskModal
-					onClose={() => setIsModalOpen(false)}
-					onSubmit={handleCreateTask}
+					onClose={() => { setIsModalOpen(false); setTaskToEdit(null); }}
+					onSubmit={taskToEdit ? handleEditTask : handleCreateTask}
+					taskToEdit={taskToEdit}
 				/>
+			)}
+
+			{/* Delete Confirmation Modal */}
+			{deleteConfirm && (
+				<div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", zIndex: 9999, display: "grid", placeItems: "center" }}>
+					<div className="modal-card" style={{ maxWidth: 400, width: "100%", padding: "var(--space-6)" }}>
+						<h3 style={{ margin: "0 0 var(--space-3)", fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)" }}>Delete Task</h3>
+						<p className="text-muted" style={{ fontSize: "var(--fs-sm)", marginBottom: "var(--space-5)" }}>
+							Are you sure you want to delete task #{deleteConfirm}? This cannot be undone.
+						</p>
+						<div style={{ display: "flex", justifyContent: "flex-end", gap: "var(--space-3)" }}>
+							<button type="button" className="btn-secondary" onClick={() => setDeleteConfirm(null)} disabled={isDeleting}>Cancel</button>
+							<button
+								type="button"
+								onClick={handleDeleteConfirmed}
+								disabled={isDeleting}
+								style={{ padding: "var(--space-2) var(--space-5)", borderRadius: "var(--radius-md)", background: "#C62828", color: "#fff", border: "none", fontWeight: "var(--fw-semibold)", cursor: "pointer" }}
+							>
+								{isDeleting ? "Deleting..." : "Delete"}
+							</button>
+						</div>
+					</div>
+				</div>
 			)}
 		</div>
 	);
