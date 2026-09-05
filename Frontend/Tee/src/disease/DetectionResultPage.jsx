@@ -34,6 +34,7 @@ export default function DetectionResultPage({
   result,
   onScanAnother,
   onDownloadReport,
+  onNavigate = () => {},
 }) {
   if (!result) return null;
 
@@ -47,7 +48,7 @@ export default function DetectionResultPage({
       <Header title="Detection Result" crumbs={[{ label: "Home", href: "#" }, { label: "Disease Detection", href: "#" }]} />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - 65px)" }}>
-        <Sidebar activeItem="detection" />
+        <Sidebar activeItem="detection" role="manager" onNavigate={onNavigate} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <main style={{ flex: 1, padding: "var(--space-8)" }}>

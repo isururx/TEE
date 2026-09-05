@@ -11,7 +11,7 @@ import {
   Shield,
 } from "lucide-react";
 import Header from "../common components/header.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import AdminSidebar from "../common components/sidebars/admin_sidebar.jsx";
 import Footer from "../common components/footer.jsx";
 import EditProfileModal from "./EditProfileModal.jsx";
 
@@ -103,7 +103,7 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
 
       {/* ---- Main Layout (Sidebar + Main Content) ---- */}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        <Sidebar activeItem="BlockManagement" role="admin" onNavigate={onNavigate} />
+        <AdminSidebar activeItem="users" onNavigate={onNavigate} />
 
         {/* ---- Profile Content ---- */}
         <main style={{ flex: 1, minWidth: 0, paddingBottom: "var(--space-12)", overflowX: "hidden" }}>

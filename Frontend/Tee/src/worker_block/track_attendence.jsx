@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Filter, Calendar, Search, Clock, Users, UserCheck, AlertTriangle, Plus } from "lucide-react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import AddAttendanceModal from "./add_attendance.jsx";
 import WorkerProfileForm from "./worker_profile_form.jsx";
 
@@ -121,7 +121,7 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 				]}
 			/>
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-				<Sidebar activeItem="attendance" role="manager" onNavigate={onNavigate} />
+				<RoleSidebar activeItem="attendance" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
 					{error && <div role="alert" style={{ color: "var(--color-danger, #b42318)" }}>{error}</div>}
 					{successMessage && <div role="status" style={{ color: "var(--color-success, #1b5e20)" }}>{successMessage}</div>}

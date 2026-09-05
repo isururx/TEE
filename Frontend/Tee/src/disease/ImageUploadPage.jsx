@@ -29,13 +29,14 @@ export default function ImageUploadPage({
   onFileInputChange,
   onRemove,
   onAnalyze,
+  onNavigate = () => {},
 }) {
   return (
     <div>
       <Header title="Disease Detection" crumbs={[{ label: "Home", href: "#" }]} />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - 65px)" }}>
-        <Sidebar activeItem="detection" />
+        <Sidebar activeItem="detection" role="manager" onNavigate={onNavigate} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <main style={{ flex: 1, padding: "var(--space-8)" }}>

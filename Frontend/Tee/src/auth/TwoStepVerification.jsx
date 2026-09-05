@@ -30,13 +30,16 @@ const METHODS = [
  */
 export default function TwoStepVerification({
   email = "user***@gmail.com",
+  userId = null,
+  role: propRole = null,
+  user: propUser = null,
   onNavigate = () => { },
   onVerifySuccess = () => { },
 }) {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [resendTimer, setResendTimer] = useState(60);
+  const [resendTimer, setResendTimer] = useState(300);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationMethod, setVerificationMethod] = useState("email"); // "email" | "sms" | "app"
   const [showMethodModal, setShowMethodModal] = useState(false);
@@ -118,7 +121,7 @@ export default function TwoStepVerification({
   };
 
   // Handle Submit / Login verification
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e?.preventDefault();
     const code = otp.join("");
 
@@ -135,15 +138,85 @@ export default function TwoStepVerification({
     setIsVerifying(true);
     setError("");
 
-    // Simulate verification
-    setTimeout(() => {
+    const storedUserId = localStorage.getItem("user_id");
+    const activeUserId = userId || storedUserId || 1;
+
+    const payload = {
+      user_id: Number(activeUserId),
+      otp: code,
+    };
+
+    try {
+      let response;
+      try {
+        response = await fetch("http://127.0.0.1:8000/api/auth/verify-2fa", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      } catch (err127) {
+        console.warn("Primary fetch to 127.0.0.1 failed, attempting localhost:", err127);
+        response = await fetch("http://localhost:8000/api/auth/verify-2fa", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && (data.success || data.access_token)) {
+        // Store access_token and user info in localStorage
+        if (data.access_token) {
+          localStorage.setItem("access_token", data.access_token);
+        }
+
+        const storedUserStr = localStorage.getItem("user");
+        let storedUser = {};
+        try {
+          if (storedUserStr) storedUser = JSON.parse(storedUserStr);
+        } catch (e) { }
+
+        const userObj = data.user || propUser || (Object.keys(storedUser).length ? storedUser : null);
+        const resolvedRole = (
+          data.role ||
+          data.user?.role ||
+          data.user_role ||
+          propRole ||
+          storedUser?.role ||
+          localStorage.getItem("user_role") ||
+          ""
+        ).toString().trim();
+
+        if (userObj) {
+          localStorage.setItem("user", JSON.stringify(userObj));
+        }
+        if (resolvedRole) {
+          localStorage.setItem("user_role", resolvedRole);
+        }
+
+        setSuccess(data.message || "2FA verification successful!");
+
+        const isManager = resolvedRole.toLowerCase() === "manager";
+        const targetPage = isManager ? "dashboard" : "underDevelopment";
+
+        setTimeout(() => {
+          onVerifySuccess();
+          onNavigate(targetPage, { role: resolvedRole, user: userObj });
+        }, 1000);
+      } else {
+        setError(data.detail || data.message || "Invalid verification code. Please try again.");
+      }
+    } catch (err) {
+      console.error("2FA Verification Error:", err);
+      setError("Unable to connect to verification server. Please ensure backend is running.");
+    } finally {
       setIsVerifying(false);
-      setSuccess("Verification successful! Redirecting to Dashboard...");
-      setTimeout(() => {
-        onVerifySuccess();
-        onNavigate("dashboard");
-      }, 1000);
-    }, 700);
+    }
   };
 
   // Handle Resend Code -> switches to OtpResent view
@@ -152,7 +225,7 @@ export default function TwoStepVerification({
 
     setOtp(["", "", "", "", "", ""]);
     setError("");
-    setResendTimer(60);
+    setResendTimer(300);
     setIsResentView(true);
   };
 
@@ -162,7 +235,7 @@ export default function TwoStepVerification({
       <OtpResent
         onReturn={() => {
           setIsResentView(false);
-          setResendTimer(60);
+          setResendTimer(300);
         }}
         onNavigate={onNavigate}
       />
