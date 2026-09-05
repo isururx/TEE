@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "../common components/header.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
 import {
   Search, Filter, Download, Calendar, User, Shield, Zap,
@@ -328,7 +328,7 @@ export default function ActivityLogs({ onNavigate = () => {} }) {
       <div style={{ display: "flex", minHeight: "calc(100vh - var(--topbar-height))" }}>
 
         {/* ── Shared Sidebar ── */}
-        <Sidebar role="admin" activeItem="activityLogs" onNavigate={onNavigate} />
+        <RoleSidebar activeItem="activityLogs" onNavigate={onNavigate} />
 
         {/* ── Main column ── */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>

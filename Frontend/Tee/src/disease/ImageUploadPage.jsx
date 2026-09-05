@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "../common components/header.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
 import UploadZone from "./components/UploadZone.jsx";
 import { ScanLine, Info } from "lucide-react";
@@ -29,13 +29,14 @@ export default function ImageUploadPage({
   onFileInputChange,
   onRemove,
   onAnalyze,
+  onNavigate = () => {},
 }) {
   return (
     <div>
       <Header title="Disease Detection" crumbs={[{ label: "Home", href: "#" }]} />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - 65px)" }}>
-        <Sidebar activeItem="detection" />
+        <RoleSidebar activeItem="detection" onNavigate={onNavigate} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <main style={{ flex: 1, padding: "var(--space-8)" }}>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Pencil, Phone, MapPin, Mail } from "lucide-react";
 import Header from "../common components/header.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
 import EditProfileModal from "./EditProfileModal.jsx";
 
@@ -55,7 +55,7 @@ export default function UserProfile({ onNavigate = () => { } }) {
 
       {/* ---- Layout with Sidebar and Main Content Area ---- */}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        <Sidebar activeItem="settings" role="manager" onNavigate={onNavigate} />
+        <RoleSidebar activeItem="settings" onNavigate={onNavigate} />
 
         {/* ---- Main Profile Content ---- */}
         <main style={{ flex: 1, minWidth: 0, paddingBottom: "var(--space-12)", overflowX: "hidden" }}>

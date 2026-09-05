@@ -36,7 +36,7 @@ export default function TwoStepVerification({
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [resendTimer, setResendTimer] = useState(60);
+  const [resendTimer, setResendTimer] = useState(300);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationMethod, setVerificationMethod] = useState("email"); // "email" | "sms" | "app"
   const [showMethodModal, setShowMethodModal] = useState(false);
@@ -118,7 +118,7 @@ export default function TwoStepVerification({
   };
 
   // Handle Submit / Login verification
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e?.preventDefault();
     const code = otp.join("");
 
@@ -135,24 +135,96 @@ export default function TwoStepVerification({
     setIsVerifying(true);
     setError("");
 
-    // Simulate verification
-    setTimeout(() => {
+    try {
+      let storedUserId = localStorage.getItem("user_id");
+      if (!storedUserId) {
+        const savedUser = localStorage.getItem("user");
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            storedUserId = parsedUser.id || parsedUser.user_id;
+          } catch (e) {
+            console.error("Error parsing stored user:", e);
+          }
+        }
+      }
+
+      const userId = storedUserId ? (isNaN(storedUserId) ? storedUserId : Number(storedUserId)) : null;
+
+      const response = await fetch("http://127.0.0.1:8000/api/auth/verify-2fa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          otp: code,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Save user info & role to localStorage
+        const userObj = data.user || data;
+        localStorage.setItem("user", JSON.stringify(userObj));
+
+        const role = data.role || data.user?.role;
+        if (role) {
+          localStorage.setItem("user_role", role);
+        }
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+        if (data.user_id) {
+          localStorage.setItem("user_id", data.user_id);
+        }
+
+        // Determine corresponding dashboard based on role
+        const roleLower = (role || "").toLowerCase();
+        let targetDashboard = "dashboard";
+        if (roleLower.includes("admin")) {
+          targetDashboard = "adminDashboard";
+        } else if (roleLower.includes("supervisor")) {
+          targetDashboard = "supervisorDashboard";
+        } else if (roleLower.includes("manager")) {
+          targetDashboard = "managerDashboard";
+        }
+
+        setSuccess("Verification successful! Redirecting to Dashboard...");
+        setTimeout(() => {
+          onVerifySuccess();
+          onNavigate(targetDashboard);
+        }, 800);
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        const errorMsg = errData.detail || "Invalid verification code";
+        setError(errorMsg);
+        alert(`Wrong OTP: ${errorMsg}`);
+      }
+    } catch (err) {
+      console.warn("Backend 2-step verification request warning:", err.message);
+      setError("Unable to connect to the server. Please try again.");
+    } finally {
       setIsVerifying(false);
-      setSuccess("Verification successful! Redirecting to Dashboard...");
-      setTimeout(() => {
-        onVerifySuccess();
-        onNavigate("dashboard");
-      }, 1000);
-    }, 700);
+    }
   };
 
   // Handle Resend Code -> switches to OtpResent view
-  const handleResend = () => {
+  const handleResend = async () => {
     if (resendTimer > 0) return;
 
     setOtp(["", "", "", "", "", ""]);
     setError("");
-    setResendTimer(60);
+
+    try {
+      await fetch("http://localhost:8000/api/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (err) {
+      console.warn("Backend resend OTP request warning:", err.message);
+    }
+
+    setResendTimer(300);
     setIsResentView(true);
   };
 
@@ -162,7 +234,7 @@ export default function TwoStepVerification({
       <OtpResent
         onReturn={() => {
           setIsResentView(false);
-          setResendTimer(60);
+          setResendTimer(300);
         }}
         onNavigate={onNavigate}
       />

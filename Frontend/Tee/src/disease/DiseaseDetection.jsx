@@ -21,7 +21,7 @@ function formatBytes(bytes) {
  * screens — ImageUploadPage (select from local storage / drag & drop)
  * and DetectionResultPage (model output).
  */
-export default function DiseaseDetection() {
+export default function DiseaseDetection({ onNavigate = () => {} }) {
   const fileInputRef = useRef(null);
 
   const [stage, setStage] = useState("upload"); // "upload" | "result"
@@ -138,6 +138,7 @@ export default function DiseaseDetection() {
         result={result}
         onScanAnother={handleScanAnother}
         onDownloadReport={handleDownloadReport}
+        onNavigate={onNavigate}
       />
     );
   }
@@ -158,6 +159,7 @@ export default function DiseaseDetection() {
       onFileInputChange={handleFileInputChange}
       onRemove={handleRemove}
       onAnalyze={handleAnalyze}
+      onNavigate={onNavigate}
     />
   );
 }

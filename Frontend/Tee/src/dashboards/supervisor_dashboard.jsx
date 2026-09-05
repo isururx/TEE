@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import {
   Camera,
   Package,
@@ -147,8 +148,9 @@ export default function SupervisorDashboard({ onNavigate = () => {} }) {
       />
 
       {/* Main Layout Body */}
-      <div style={{ minHeight: "calc(100vh - var(--topbar-height))", display: "flex", flexDirection: "column" }}>
-        <main style={{ flex: 1, padding: "var(--space-6) var(--space-8)" }}>
+      <div style={{ minHeight: "calc(100vh - var(--topbar-height))", display: "flex" }}>
+        <RoleSidebar activeItem="dashboard" role="supervisor" onNavigate={onNavigate} />
+        <main style={{ flex: 1, minWidth: 0, padding: "var(--space-6) var(--space-8)" }}>
           <div style={{ maxWidth: "var(--content-max-width)", margin: "0 auto" }}>
             
             {/* Toast Notification Feedback */}

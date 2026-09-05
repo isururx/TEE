@@ -14,8 +14,9 @@ export default function Login({ onNavigate = () => { } }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     if (!username.trim()) {
@@ -29,10 +30,39 @@ export default function Login({ onNavigate = () => { } }) {
     }
 
     setError("");
-    console.log("Logging in:", { username, password });
+    setIsLoading(true);
 
-    // Navigate to 2-Step Verification
-    onNavigate("twoStepVerification");
+    try {
+      const response = await fetch("http://localhost:8000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const userId = data.user_id || data.user?.id || data.user?.user_id || data.id;
+        if (userId) {
+          localStorage.setItem("user_id", userId);
+        }
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+          if (data.user.role) localStorage.setItem("user_role", data.user.role);
+        }
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+        onNavigate("twoStepVerification");
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        setError(errData.detail || "Invalid username or password");
+      }
+    } catch (err) {
+      console.warn("Backend login request warning:", err.message);
+      setError("Unable to connect to the server. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -88,7 +118,7 @@ export default function Login({ onNavigate = () => { } }) {
           </div>
 
           <h1 className="page-title" style={{ marginBottom: "var(--space-1)" }}>
-            Staff Login
+            Login
           </h1>
           <p className="subtitle" style={{ marginBottom: "var(--space-6)" }}>
             TEE AI-Based Tea Disease detection and
@@ -142,17 +172,9 @@ export default function Login({ onNavigate = () => { } }) {
               type="button"
               className="btn-outline"
               style={{ width: "100%", justifyContent: "center" }}
-              onClick={() => onNavigate("createAccountStaff")}
+              onClick={() => onNavigate("createAccount")}
             >
               Create account <UserPlus size={16} />
-            </button>
-            <button
-              type="button"
-              className="btn-link"
-              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)", color: "var(--color-text-secondary)" }}
-              onClick={() => onNavigate("welcomePage")}
-            >
-              Back to Home
             </button>
 
           </form>

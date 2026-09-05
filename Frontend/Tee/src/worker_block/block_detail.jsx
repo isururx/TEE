@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import { Clock3, Edit3, Plus, RotateCcw, Trash2, UserCheck, Calendar, MapPin, X } from "lucide-react";
 import BlockFormModal from "./block_form_modal.jsx";
 
@@ -322,7 +322,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 
 			<Header title={`Block Detail: Block ${block.id}`} crumbs={[{ label: "Home", href: "#" }, { label: "Dashboard", href: "#" }, { label: "Workers & Blocks", href: "#" }]} />
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-				<Sidebar activeItem="BlockManagement" role="manager" onNavigate={onNavigate} />
+				<RoleSidebar activeItem="BlockManagement" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
 					<section className="card" style={{ padding: "var(--space-6)" }}>
 						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--space-4)", flexWrap: "wrap" }}>

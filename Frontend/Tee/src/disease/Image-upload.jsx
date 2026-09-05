@@ -1,10 +1,10 @@
 import React from "react";
 import Header from "../common components/header.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
 import { Upload } from "lucide-react";
 
-const Image = () => {
+const Image = ({ onNavigate = () => {} }) => {
   return (
     <div>
 
@@ -16,7 +16,7 @@ const Image = () => {
           minHeight: "calc(100vh - 65px)",
         }}
       >
-        <Sidebar />
+        <RoleSidebar onNavigate={onNavigate} />
 
         <div
           style={{

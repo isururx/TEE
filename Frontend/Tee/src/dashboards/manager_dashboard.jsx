@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import {
   Camera,
   Package,
@@ -144,7 +145,7 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
   ];
 
   return (
-    <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
+    <div style={{ background: "var(--color-bg)", minHeight: "100vh", width: "100%" }}>
       {/* Header */}
       <Header
         title="Manager Dashboard"
@@ -153,9 +154,10 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
       />
 
       {/* Main Layout Body */}
-      <div style={{ minHeight: "calc(100vh - var(--topbar-height))", display: "flex", flexDirection: "column" }}>
-        <main style={{ flex: 1, padding: "var(--space-6) var(--space-8)" }}>
-            <div style={{ maxWidth: "var(--content-max-width)", margin: "0 auto" }}>
+      <div style={{ minHeight: "calc(100vh - var(--topbar-height))", display: "flex", width: "100%" }}>
+        <RoleSidebar activeItem="dashboard" role="manager" onNavigate={onNavigate} />
+        <main style={{ flex: 1, width: "100%", minWidth: 0, padding: "var(--space-6) var(--space-8)" }}>
+            <div style={{ width: "100%", maxWidth: "var(--content-max-width)", margin: "0 auto" }}>
               
               {/* Toast Notification Feedback */}
               {toastMessage && (
@@ -330,7 +332,7 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
                   gap: "var(--space-6)",
                   alignItems: "start",
                 }}

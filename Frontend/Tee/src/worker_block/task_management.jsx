@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ClipboardList, RefreshCw, Plus, Filter, Users, ShieldAlert, CheckCircle2, Clock, Pencil, Trash2 } from "lucide-react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import CreateTaskModal from "./create_task.jsx";
 
 const TASKS_API_URL = "http://localhost:8000/api/tasks";
@@ -143,7 +143,7 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 				]}
 			/>
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-				<Sidebar activeItem="tasks" role="manager" onNavigate={onNavigate} />
+				<RoleSidebar activeItem="tasks" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
 					{error && <div role="alert" style={{ color: "var(--color-danger, #b42318)" }}>{error}</div>}
 					{/* Top Header Row */}

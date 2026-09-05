@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Edit3, Leaf, MapPinned, Plus, Search, SquareActivity, Trash2, UserCheck } from "lucide-react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import BlockFormModal from "./block_form_modal.jsx";
 
 const teaVarieties = [
@@ -209,7 +209,7 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 		<div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--color-bg)" }}>
 			<Header title="Block Management" crumbs={[{ label: "Home", href: "#" }, { label: "Dashboard", href: "#" }, { label: "Workers & Blocks", href: "#" }]} />
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-				<Sidebar activeItem="BlockManagement" role="manager" onNavigate={onNavigate} />
+				<RoleSidebar activeItem="BlockManagement" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
 					<section className="card" style={{ padding: "var(--space-6)",  border: "1px solid var(--color-border)" }}>
 						<div style={{ display: "flex", justifyContent: "space-between", gap: "var(--space-4)", flexWrap: "wrap", alignItems: "flex-start" }}>
