@@ -21,7 +21,7 @@ function formatBytes(bytes) {
  * screens — ImageUploadPage (select from local storage / drag & drop)
  * and DetectionResultPage (model output).
  */
-export default function DiseaseDetection() {
+export default function DiseaseDetection({ onNavigate = () => {} }) {
   const fileInputRef = useRef(null);
 
   const [stage, setStage] = useState("upload"); // "upload" | "result"
@@ -84,15 +84,19 @@ export default function DiseaseDetection() {
   // ---- Submit for analysis ----
   const handleAnalyze = async () => {
     if (!file) return;
+
     setIsAnalyzing(true);
     setError("");
 
     try {
-      const detection = await runDetection(file);
-      setResult(detection);
+      const res = await runDetection(file);
+      setResult(res);
       setStage("result");
     } catch (err) {
-      setError("Analysis failed. Please try again.");
+      console.error("Detection failed:", err);
+      setError(
+        err.message || "Failed to analyze the leaf image. Please try again."
+      );
     } finally {
       setIsAnalyzing(false);
     }
@@ -100,37 +104,39 @@ export default function DiseaseDetection() {
 
   // ---- Result page handlers ----
   const handleScanAnother = () => {
+    setResult(null);
     setFile(null);
     setPreview(null);
-    setResult(null);
     setError("");
     setStage("upload");
   };
 
   const handleDownloadReport = () => {
     if (!result) return;
-    const report = [
-      "TEE — Disease Detection Report",
-      `File: ${file?.name ?? "n/a"}`,
-      `Status: ${result.isHealthy ? "Healthy" : "Infected"}`,
-      `Diagnosis: ${result.diseaseName}`,
-      `Confidence: ${result.confidence}%`,
-      `Severity: ${result.severity}`,
-      "",
-      "Recommended actions:",
-      ...result.recommendations.map((r) => `- ${r}`),
-    ].join("\n");
+    const reportText = `TEE AI Disease Detection Report
+----------------------------------------
+Diagnosis   : ${result.diseaseName} (${result.isHealthy ? "Healthy" : "Infected"})
+Confidence  : ${result.confidence}%
+Severity    : ${result.severity}
+File Name   : ${file?.name ?? "N/A"}
 
-    const blob = new Blob([report], { type: "text/plain" });
+Description :
+${result.description}
+
+Recommendations :
+${result.recommendations.map((r, i) => `${i + 1}. ${r}`).join("\n")}
+`;
+
+    const blob = new Blob([reportText], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "detection-report.txt";
+    a.download = `TEE-disease-report-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  if (stage === "result") {
+  if (stage === "result" && result) {
     return (
       <DetectionResultPage
         preview={preview}
@@ -138,6 +144,7 @@ export default function DiseaseDetection() {
         result={result}
         onScanAnother={handleScanAnother}
         onDownloadReport={handleDownloadReport}
+        onNavigate={onNavigate}
       />
     );
   }
@@ -158,6 +165,7 @@ export default function DiseaseDetection() {
       onFileInputChange={handleFileInputChange}
       onRemove={handleRemove}
       onAnalyze={handleAnalyze}
+      onNavigate={onNavigate}
     />
   );
 }

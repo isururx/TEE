@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import {
+<<<<<<< Updated upstream
   Camera,
   Package,
   BarChart3,
@@ -69,12 +70,49 @@ export default function SupervisorDashboard({ onNavigate = () => {} }) {
   const [newWorkerData, setNewWorkerData] = useState({ name: "", role: "Field Worker", block: "Block A01" });
   const [newSupplierData, setNewSupplierData] = useState({ name: "", category: "", contact: "" });
   const [taskData, setTaskData] = useState({ title: "", assignee: "", priority: "Medium" });
+=======
+  Users,
+  CheckSquare,
+  Clock,
+  Package,
+  Camera,
+  Layers,
+  Plus,
+  CheckCircle2,
+  X,
+  ShieldCheck
+} from "lucide-react";
+
+/**
+ * SupervisorDashboard Component (Standalone Dashboard Content)
+ * Sidebars are rendered alongside in the parent layout/App wrapper.
+ */
+export default function SupervisorDashboard({ onNavigate = () => {} }) {
+  const [activeModal, setActiveModal] = useState(null);
+  const [toastMessage, setToastMessage] = useState("");
+
+  const [shiftWorkers] = useState([
+    { id: "W001", name: "Sunil Shantha", block: "Block A01", attendance: "Present", task: "Blister Blight Spraying" },
+    { id: "W003", name: "Nimal Siripala", block: "Block B02", attendance: "Present", task: "Quality Harvesting" },
+    { id: "W004", name: "Saman Kumara", block: "Block C01", attendance: "On Leave", task: "N/A" },
+  ]);
+
+  const [assignedTasks] = useState([
+    { id: "TSK-201", title: "Apply Fungicide on Block A01", worker: "Sunil Shantha", status: "In Progress", priority: "High" },
+    { id: "TSK-202", title: "Morning Plucking Inspection", worker: "Nimal Siripala", status: "In Progress", priority: "Medium" },
+  ]);
+
+  const [stockItemToUpdate, setStockItemToUpdate] = useState("Copper Fungicide 50WP");
+  const [stockQuantity, setStockQuantity] = useState("");
+  const [stockActionType, setStockActionType] = useState("In");
+>>>>>>> Stashed changes
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3500);
   };
 
+<<<<<<< Updated upstream
   // Handlers
   const handleAddWorker = (e) => {
     e.preventDefault();
@@ -862,11 +900,137 @@ export default function SupervisorDashboard({ onNavigate = () => {} }) {
                     >
                       <Trash2 size={16} />
                     </button>
+=======
+  const handleStockAction = (e) => {
+    e.preventDefault();
+    if (!stockQuantity) return;
+    showToast(`Stock ${stockActionType} logged: ${stockQuantity} units of ${stockItemToUpdate}`);
+    setActiveModal(null);
+    setStockQuantity("");
+  };
+
+  return (
+    <div style={{ background: "var(--color-bg)", minHeight: "100vh", flex: 1, width: "100%" }}>
+      <Header
+        title="Supervisor Field Operations"
+        crumbs={[{ label: "Home", href: "#" }, { label: "Supervisor Dashboard", href: "#" }]}
+        user={{ name: "Kamal Perera", role: "Supervisor", initials: "KP" }}
+        onLogout={() => onNavigate("login")}
+      />
+
+      <main style={{ padding: "var(--space-6) var(--space-8)" }}>
+        <div style={{ maxWidth: "var(--content-max-width)", margin: "0 auto" }}>
+          
+          {toastMessage && (
+            <div className="alert alert-success" style={{ position: "fixed", top: 80, right: 24, zIndex: "var(--z-toast)", boxShadow: "var(--shadow-modal)", display: "flex", alignItems: "center", gap: 8 }}>
+              <CheckCircle2 size={18} />
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          {/* Banner */}
+          <div
+            className="card"
+            style={{
+              marginBottom: "var(--space-6)",
+              background: "linear-gradient(135deg, var(--color-card) 0%, var(--color-hover-green) 100%)",
+              padding: "var(--space-5) var(--space-6)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "var(--space-4)",
+            }}
+          >
+            <div>
+              <h1 style={{ fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", margin: 0, color: "var(--color-text-primary)" }}>
+                Supervisor Operations Portal
+              </h1>
+              <p style={{ fontSize: "var(--fs-sm)", color: "var(--color-text-secondary)", margin: "4px 0 0 0" }}>
+                Field worker shifts, task assignments, block condition monitoring & stock controls
+              </p>
+            </div>
+
+            <div className="flex-center gap-md">
+              <span className="status-chip" style={{ background: "var(--color-card)", padding: "6px 12px" }}>
+                <ShieldCheck size={14} color="var(--color-primary)" /> Shift Status: <strong>Active</strong>
+              </span>
+            </div>
+          </div>
+
+          {/* Quick Action Shortcuts */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "var(--space-4)", marginBottom: "var(--space-6)" }}>
+            <div className="card hover-lift" onClick={() => onNavigate("attendance")} style={{ cursor: "pointer", padding: "var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "rgba(5, 150, 105, 0.12)", color: "#059669", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Clock size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Shift Roster</div>
+                <div style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>Track Attendance</div>
+              </div>
+            </div>
+
+            <div className="card hover-lift" onClick={() => onNavigate("detection")} style={{ cursor: "pointer", padding: "var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "rgba(46, 125, 50, 0.12)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Camera size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>AI Diagnosis</div>
+                <div style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>Disease Detection</div>
+              </div>
+            </div>
+
+            <div className="card hover-lift" onClick={() => onNavigate("blocks")} style={{ cursor: "pointer", padding: "var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "rgba(37, 99, 235, 0.12)", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Layers size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Field Sectors</div>
+                <div style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>Block Details</div>
+              </div>
+            </div>
+
+            <div className="card hover-lift" onClick={() => setActiveModal("stockInOut")} style={{ cursor: "pointer", padding: "var(--space-4)", display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "rgba(217, 119, 6, 0.12)", color: "#D97706", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Package size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Inventory</div>
+                <div style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>Stock In / Out</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "var(--space-6)" }}>
+            <div className="card">
+              <div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
+                <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                  <Users size={18} color="var(--color-primary)" />
+                  Shift Field Workers
+                </h3>
+                <button type="button" className="btn-outline" onClick={() => onNavigate("attendance")} style={{ padding: "4px 10px", fontSize: "11px" }}>
+                  Attendance Logs
+                </button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+                {shiftWorkers.map((w) => (
+                  <div key={w.id} style={{ padding: "var(--space-3)", background: "var(--color-bg)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
+                    <div className="flex-between" style={{ marginBottom: 2 }}>
+                      <strong style={{ fontSize: "var(--fs-sm)", color: "var(--color-text-primary)" }}>{w.name}</strong>
+                      <span className={w.attendance === "Present" ? "badge-success" : "badge-warning"} style={{ fontSize: "10px" }}>{w.attendance}</span>
+                    </div>
+                    <div className="text-muted" style={{ fontSize: "11px" }}>
+                      Assigned: {w.block} • Task: {w.task}
+                    </div>
+>>>>>>> Stashed changes
                   </div>
                 ))}
               </div>
             </div>
 
+<<<<<<< Updated upstream
             {/* Form to add supplier */}
             <form onSubmit={handleAddSupplier} style={{ borderTop: "1px solid var(--color-border)", paddingTop: "var(--space-3)" }}>
               <h4 style={{ fontSize: "var(--fs-sm)", marginBottom: "var(--space-3)" }}>Add New Supplier</h4>
@@ -905,6 +1069,36 @@ export default function SupervisorDashboard({ onNavigate = () => {} }) {
           </div>
         </div>
       )}
+=======
+            <div className="card">
+              <div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
+                <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                  <CheckSquare size={18} color="var(--color-primary)" />
+                  Assigned Field Tasks
+                </h3>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                {assignedTasks.map((t) => (
+                  <div key={t.id} style={{ padding: "var(--space-3)", background: "var(--color-bg)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
+                    <div className="flex-between" style={{ marginBottom: 4 }}>
+                      <strong style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-primary)" }}>{t.title}</strong>
+                      <span className={t.priority === "High" ? "badge-danger" : "badge-info"} style={{ fontSize: "10px" }}>{t.priority}</span>
+                    </div>
+                    <div className="text-muted" style={{ fontSize: "11px" }}>
+                      Worker: {t.worker} • Status: {t.status}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <Footer />
+>>>>>>> Stashed changes
     </div>
   );
 }

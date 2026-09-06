@@ -14,8 +14,33 @@ export default function Login({ onNavigate = () => { } }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+<<<<<<< Updated upstream
+=======
+  const [theme, setTheme] = useState("light");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
-  const handleLogin = (e) => {
+  // Force / set light mode when Login page mounts
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("dark");
+    root.setAttribute("data-theme", "light");
+    localStorage.setItem(THEME_KEY, "light");
+    setTheme("light");
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    const root = document.documentElement;
+    root.classList.toggle("dark", nextTheme === "dark");
+    root.setAttribute("data-theme", nextTheme);
+    localStorage.setItem(THEME_KEY, nextTheme);
+  };
+>>>>>>> Stashed changes
+
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     if (!username.trim()) {
@@ -29,10 +54,52 @@ export default function Login({ onNavigate = () => { } }) {
     }
 
     setError("");
-    console.log("Logging in:", { username, password });
+    setIsLoading(true);
 
-    // Navigate to 2-Step Verification
-    onNavigate("twoStepVerification");
+    try {
+      const response = await fetch("http://localhost:8000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok) {
+        if (data.user_id) {
+          localStorage.setItem("user_id", data.user_id);
+        }
+        if (data.role) {
+          localStorage.setItem("user_role", data.role);
+        }
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+          if (data.user.role) {
+            localStorage.setItem("user_role", data.user.role);
+          }
+        }
+        onNavigate("twoStepVerification", {
+          user_id: data.user_id,
+          role: data.role || data.user?.role,
+          user: data.user,
+        });
+      } else {
+        const message = data.detail || "Invalid username or password";
+        setModalMessage(message);
+        setShowErrorModal(true);
+      }
+    } catch (err) {
+      console.error("Login request failed:", err);
+      setModalMessage("Unable to connect to the server. Please check your backend connection.");
+      setShowErrorModal(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -133,9 +200,10 @@ export default function Login({ onNavigate = () => { } }) {
             <button
               type="submit"
               className="btn-primary"
+              disabled={isLoading}
               style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)" }}
             >
-              Login <ArrowRight size={16} />
+              {isLoading ? "Logging in..." : <>Login <ArrowRight size={16} /></>}
             </button>
 
             <button
@@ -146,6 +214,7 @@ export default function Login({ onNavigate = () => { } }) {
             >
               Create account <UserPlus size={16} />
             </button>
+<<<<<<< Updated upstream
             <button
               type="button"
               className="btn-link"
@@ -154,6 +223,8 @@ export default function Login({ onNavigate = () => { } }) {
             >
               Back to Home
             </button>
+=======
+>>>>>>> Stashed changes
 
           </form>
         </div>
@@ -161,6 +232,48 @@ export default function Login({ onNavigate = () => { } }) {
 
       {/* ---- Footer ---- */}
       <Footer />
+
+      {/* ---- Incorrect Username / Password Modal ---- */}
+      {showErrorModal && (
+        <div className="modal-backdrop" onClick={() => setShowErrorModal(false)}>
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 420, textAlign: "center", padding: "var(--space-6)" }}
+          >
+            <div
+              className="flex-center"
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: "var(--radius-full)",
+                background: "#FFEBEE",
+                border: "2px solid #FFCDD2",
+                margin: "0 auto var(--space-4)",
+              }}
+            >
+              <AlertCircle size={28} color="var(--color-danger)" />
+            </div>
+
+            <h2 className="section-title" style={{ marginBottom: "var(--space-2)", fontSize: "var(--fs-xl)" }}>
+              Authentication Failed
+            </h2>
+
+            <p style={{ color: "var(--color-text-secondary)", fontSize: "var(--fs-sm)", marginBottom: "var(--space-6)", lineHeight: 1.5 }}>
+              {modalMessage}
+            </p>
+
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ width: "100%", justifyContent: "center" }}
+              onClick={() => setShowErrorModal(false)}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

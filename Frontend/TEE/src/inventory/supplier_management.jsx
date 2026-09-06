@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Header from "../common components/header.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
 import { 
   Plus,
@@ -104,7 +104,7 @@ const SupplierManagement = ({ onNavigate = () => {} }) => {
       />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - var(--topbar-height))" }}>
-        <Sidebar activeItem="suppliers" onNavigate={onNavigate} />
+        <RoleSidebar activeItem="suppliers" onNavigate={onNavigate} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <main style={{ flex: 1, padding: "var(--space-6) var(--space-8)" }}>

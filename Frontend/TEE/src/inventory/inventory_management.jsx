@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Header from "../common components/header.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
 import { 
   ChevronDown,
@@ -31,7 +31,7 @@ const InventoryManagement = ({ onNavigate = () => {} }) => {
       />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - var(--topbar-height))" }}>
-        <Sidebar activeItem="inventory" onNavigate={onNavigate} />
+        <RoleSidebar activeItem="inventory" onNavigate={onNavigate} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <main style={{ flex: 1, padding: "var(--space-6) var(--space-8)" }}>
@@ -138,13 +138,13 @@ const InventoryManagement = ({ onNavigate = () => {} }) => {
                     </div>
 
                     {/* Add Items Floating Button */}
-                    <div style={{ position: "absolute", bottom: "-20px", right: "var(--space-6)" }}>
+                    <div style={{ position: "absolute", bottom: "10px", right: "var(--space-6)" }}>
                       <button 
                         className="btn-primary" 
                         onClick={() => setActiveModal('addItems')}
                         style={{ padding: "var(--space-3) var(--space-5)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-hover)" }}>
                         <Plus size={20} />
-                        <span style={{ textAlign: "left" }}>Add<br/>items</span>
+                        <span style={{ textAlign: "left" }}>Add items</span>
                       </button>
                     </div>
                   </div>

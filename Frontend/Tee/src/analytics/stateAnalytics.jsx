@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 
 import Header from "../common components/header.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
 
 import SectorCard from "./sectorCard";
@@ -48,7 +48,7 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
       <Header />
 
       <div style={{ display: "flex", flex: 1 }}>
-        <Sidebar activeItem="analytics" onNavigate={onNavigate} />
+        <RoleSidebar activeItem="analytics" onNavigate={onNavigate} />
 
         <main className="p-card" style={{ flex: 1 }}>
           <h1 className="page-title" style={{ fontSize: "var(--fs-3xl)", marginBottom: "var(--space-6)" }}>

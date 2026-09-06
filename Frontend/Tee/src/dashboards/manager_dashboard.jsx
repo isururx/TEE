@@ -21,25 +21,19 @@ import {
   RotateCcw,
   Download,
   Calendar,
-  ChevronRight,
-  TrendingUp,
   ShieldCheck,
+  Activity,
+  Leaf
 } from "lucide-react";
 
 /**
- * ManagerDashboard Component
- * 
- * Implements the Manager Dashboard layout following the provided wireframe,
- * design system rules, and light theme guidelines.
+ * Recreated ManagerDashboard Component (Standalone Dashboard Content)
+ * Sidebars are rendered alongside in the parent layout/App wrapper.
  */
 export default function ManagerDashboard({ onNavigate = () => {} }) {
-  // Modal state management for interactive action buttons
-  const [activeModal, setActiveModal] = useState(null); // null | 'newWorker' | 'assignSupervisor' | 'assignWorker' | 'clearHistory' | 'manageSuppliers'
-
-  // Toast / notification feedback state
+  const [activeModal, setActiveModal] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
 
-  // Sample State Data
   const [workers, setWorkers] = useState([
     { id: "W001", name: "Sunil Shantha", role: "Field Worker", block: "Block A01", status: "Active" },
     { id: "W002", name: "Kamal Perera", role: "Supervisor", block: "Block A03", status: "Active" },
@@ -65,7 +59,6 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
     { id: "TSK-103", title: "Soil Moisture & Drainage Inspection", assignee: "Saman Kumara", role: "Worker", progress: 90, priority: "Low" },
   ]);
 
-  // Form states for modals
   const [newWorkerData, setNewWorkerData] = useState({ name: "", role: "Field Worker", block: "Block A01" });
   const [newSupplierData, setNewSupplierData] = useState({ name: "", category: "", contact: "" });
   const [taskData, setTaskData] = useState({ title: "", assignee: "", priority: "Medium" });
@@ -76,7 +69,6 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
     setTimeout(() => setToastMessage(""), 3500);
   };
 
-  // Handlers
   const handleAddWorker = (e) => {
     e.preventDefault();
     if (!newWorkerData.name) return;
@@ -90,7 +82,7 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
     setWorkers([...workers, newW]);
     setNewWorkerData({ name: "", role: "Field Worker", block: "Block A01" });
     setActiveModal(null);
-    showToast(`Successfully registered new worker: ${newW.name}`);
+    showToast(`Successfully registered worker: ${newW.name}`);
   };
 
   const handleAddSupplier = (e) => {
@@ -131,872 +123,266 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
 
   const handleClearDiseaseHistory = () => {
     setActiveModal(null);
-    showToast(`Disease history cleared for ${selectedBlockToClear}`);
+    showToast(`Disease history successfully cleared for ${selectedBlockToClear}`);
   };
 
-  // Shortcuts items configuration matching wireframe
   const shortcuts = [
     { id: "detection", label: "Disease Detection", icon: Camera, color: "var(--color-primary)", badge: "AI Ready" },
-    { id: "inventory", label: "Inventory", icon: Package, color: "#2563EB", badge: `${lowStockItems.length} Low` },
-    { id: "analytics", label: "State Analytics", icon: BarChart3, color: "#7C3AED", badge: "Live" },
+    { id: "inventory", label: "Inventory Catalogue", icon: Package, color: "#2563EB", badge: `${lowStockItems.length} Alerts` },
+    { id: "analytics", label: "Estate Analytics", icon: BarChart3, color: "#7C3AED", badge: "Live Metrics" },
     { id: "tasks", label: "Task Management", icon: CheckSquare, color: "#D97706", badge: `${assignedTasks.length} Active` },
     { id: "attendance", label: "Attendance Tracking", icon: Clock, color: "#059669", badge: "94% Today" },
   ];
 
   return (
-    <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
+    <div style={{ background: "var(--color-bg)", minHeight: "100vh", flex: 1, width: "100%" }}>
       {/* Header */}
       <Header
-        title="Manager Dashboard"
+        title="Estate Manager Dashboard"
         crumbs={[{ label: "Home", href: "#" }, { label: "Dashboard", href: "#" }]}
-        user={{ name: "Hasanth J", role: "Estate Manager", initials: "HJ" }}
+        user={{ name: "Estate Manager", role: "Manager", initials: "EM" }}
+        onLogout={() => onNavigate("login")}
       />
 
-      {/* Main Layout Body */}
-      <div style={{ minHeight: "calc(100vh - var(--topbar-height))", display: "flex", flexDirection: "column" }}>
-        <main style={{ flex: 1, padding: "var(--space-6) var(--space-8)" }}>
-            <div style={{ maxWidth: "var(--content-max-width)", margin: "0 auto" }}>
-              
-              {/* Toast Notification Feedback */}
-              {toastMessage && (
-                <div
-                  className="alert alert-success"
-                  style={{
-                    position: "fixed",
-                    top: 80,
-                    right: 24,
-                    zIndex: "var(--z-toast)",
-                    boxShadow: "var(--shadow-modal)",
-                  }}
-                >
-                  <CheckCircle2 size={18} />
-                  <span>{toastMessage}</span>
-                </div>
-              )}
-
-              {/* Top Banner / Title Header */}
-              <div
-                className="card"
-                style={{
-                  marginBottom: "var(--space-6)",
-                  background: "linear-gradient(135deg, #FFFFFF 0%, var(--color-hover-green) 100%)",
-                  border: "1px solid var(--color-border)",
-                  padding: "var(--space-5) var(--space-6)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: "var(--space-4)",
-                }}
-              >
-                <div>
-                  <h1
-                    style={{
-                      fontSize: "var(--fs-2xl)",
-                      fontWeight: "var(--fw-bold)",
-                      color: "var(--color-text-primary)",
-                      letterSpacing: "-0.02em",
-                      margin: 0,
-                    }}
-                  >
-                    Manager Dashboard
-                  </h1>
-                  <p
-                    style={{
-                      fontSize: "var(--fs-sm)",
-                      color: "var(--color-text-secondary)",
-                      margin: "4px 0 0 0",
-                    }}
-                  >
-                    Estate Operations, Resource Allocation & AI Health Monitoring Overview
-                  </p>
-                </div>
-                <div className="flex-center gap-md" style={{ flexWrap: "wrap" }}>
-                  <div className="status-chip" style={{ background: "#FFFFFF", padding: "6px 12px" }}>
-                    <ShieldCheck size={14} color="var(--color-primary)" />
-                    <span>System Status: <strong>Optimal</strong></span>
-                  </div>
-                  <div className="status-chip" style={{ background: "#FFFFFF", padding: "6px 12px" }}>
-                    <Calendar size={14} color="var(--color-text-secondary)" />
-                    <span>{new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* --------------------------------------------------------------------
-                 1. SHORTCUTS AT GLANCE SECTION
-                 -------------------------------------------------------------------- */}
-              <div style={{ marginBottom: "var(--space-8)" }}>
-                <div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
-                  <h2
-                    style={{
-                      fontSize: "var(--fs-lg)",
-                      fontWeight: "var(--fw-semibold)",
-                      color: "var(--color-text-primary)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "var(--space-2)",
-                    }}
-                  >
-                    <span>Shortcuts At Glance</span>
-                  </h2>
-                  <span className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>
-                    Quick Navigation & Controls
-                  </span>
-                </div>
-
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                    gap: "var(--space-4)",
-                  }}
-                >
-                  {shortcuts.map((sc) => {
-                    const IconComp = sc.icon;
-                    return (
-                      <div
-                        key={sc.id}
-                        onClick={() => onNavigate(sc.id)}
-                        className="card"
-                        style={{
-                          padding: "var(--space-5) var(--space-4)",
-                          textAlign: "center",
-                          cursor: "pointer",
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "var(--space-3)",
-                          position: "relative",
-                          transition: "all var(--transition-fast)",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = "translateY(-4px)";
-                          e.currentTarget.style.borderColor = "var(--color-primary)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.borderColor = "var(--color-border)";
-                        }}
-                      >
-                        {sc.badge && (
-                          <span
-                            className="badge-info"
-                            style={{
-                              position: "absolute",
-                              top: 10,
-                              right: 10,
-                              fontSize: "10px",
-                              padding: "2px 6px",
-                            }}
-                          >
-                            {sc.badge}
-                          </span>
-                        )}
-                        <div
-                          style={{
-                            width: 52,
-                            height: 52,
-                            borderRadius: "var(--radius-md)",
-                            background: "var(--color-hover-green)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: sc.color,
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
-                          }}
-                        >
-                          <IconComp size={26} />
-                        </div>
-                        <span
-                          style={{
-                            fontSize: "var(--fs-sm)",
-                            fontWeight: "var(--fw-semibold)",
-                            color: "var(--color-text-primary)",
-                          }}
-                        >
-                          {sc.label}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* --------------------------------------------------------------------
-                 2. MAIN DASHBOARD GRID (3 COLUMNS matching the wireframe)
-                 -------------------------------------------------------------------- */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                  gap: "var(--space-6)",
-                  alignItems: "start",
-                }}
-              >
-                {/* ================= COLUMN 1: User Controlling ================= */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-                  <div className="card" style={{ height: "100%" }}>
-                    <div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
-                      <h3
-                        style={{
-                          fontSize: "var(--fs-md)",
-                          fontWeight: "var(--fw-semibold)",
-                          color: "var(--color-text-primary)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--space-2)",
-                        }}
-                      >
-                        <Users size={18} color="var(--color-primary)" />
-                        User Controlling
-                      </h3>
-                      <span className="badge-info">{workers.length} Registered</span>
-                    </div>
-
-                    <p className="text-muted" style={{ fontSize: "var(--fs-xs)", marginBottom: "var(--space-4)" }}>
-                      Manage field workers, supervisors, attendance logs, and sector assignments.
-                    </p>
-
-                    {/* Action Pill Buttons */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginBottom: "var(--space-6)" }}>
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => setActiveModal("newWorker")}
-                        style={{
-                          justifyContent: "flex-start",
-                          width: "100%",
-                          padding: "var(--space-3) var(--space-4)",
-                          borderRadius: "var(--radius-full)",
-                          fontWeight: "var(--fw-medium)",
-                          background: "#F3F4F6",
-                          border: "1px solid var(--color-border)",
-                          color: "var(--color-text-primary)",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-hover-green)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "#F3F4F6")}
-                      >
-                        <UserPlus size={16} color="var(--color-primary)" />
-                        <span>New Worker registration</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => onNavigate("attendance")}
-                        style={{
-                          justifyContent: "flex-start",
-                          width: "100%",
-                          padding: "var(--space-3) var(--space-4)",
-                          borderRadius: "var(--radius-full)",
-                          fontWeight: "var(--fw-medium)",
-                          background: "#F3F4F6",
-                          border: "1px solid var(--color-border)",
-                          color: "var(--color-text-primary)",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-hover-green)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "#F3F4F6")}
-                      >
-                        <Clock size={16} color="var(--color-primary)" />
-                        <span>Attendance Tracking</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => setActiveModal("clearHistory")}
-                        style={{
-                          justifyContent: "flex-start",
-                          width: "100%",
-                          padding: "var(--space-3) var(--space-4)",
-                          borderRadius: "var(--radius-full)",
-                          fontWeight: "var(--fw-medium)",
-                          background: "#F3F4F6",
-                          border: "1px solid var(--color-border)",
-                          color: "var(--color-text-primary)",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-hover-green)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "#F3F4F6")}
-                      >
-                        <RotateCcw size={16} color="var(--color-danger)" />
-                        <span>Clear Disease history of a block</span>
-                      </button>
-                    </div>
-
-                    {/* Active Personnel Preview */}
-                    <div>
-                      <div className="section-title" style={{ fontSize: "var(--fs-xs)", textTransform: "uppercase", marginBottom: "var(--space-2)" }}>
-                        Active Personnel Preview
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                        {workers.slice(0, 3).map((w) => (
-                          <div
-                            key={w.id}
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              padding: "var(--space-2) var(--space-3)",
-                              background: "var(--color-bg)",
-                              borderRadius: "var(--radius-sm)",
-                              fontSize: "var(--fs-xs)",
-                            }}
-                          >
-                            <div>
-                              <div style={{ fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)" }}>{w.name}</div>
-                              <div className="text-muted">{w.role} • {w.block}</div>
-                            </div>
-                            <span className={w.status === "Active" ? "badge-success" : "badge-warning"} style={{ fontSize: "10px" }}>
-                              {w.status}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ================= COLUMN 2: Manage Suppliers, Tasks & Reports ================= */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-                  
-                  {/* Card: Manage Suppliers */}
-                  <div className="card">
-                    <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
-                      <h3
-                        style={{
-                          fontSize: "var(--fs-md)",
-                          fontWeight: "var(--fw-semibold)",
-                          color: "var(--color-text-primary)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--space-2)",
-                        }}
-                      >
-                        <Truck size={18} color="var(--color-primary)" />
-                        Manage Suppliers
-                      </h3>
-                      <span className="badge-info">{suppliers.length} Partners</span>
-                    </div>
-
-                    <div style={{ marginBottom: "var(--space-3)" }}>
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => setActiveModal("manageSuppliers")}
-                        style={{
-                          justifyContent: "flex-start",
-                          width: "100%",
-                          padding: "var(--space-3) var(--space-4)",
-                          borderRadius: "var(--radius-full)",
-                          fontWeight: "var(--fw-medium)",
-                          background: "#F3F4F6",
-                          border: "1px solid var(--color-border)",
-                          color: "var(--color-text-primary)",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-hover-green)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "#F3F4F6")}
-                      >
-                        <Plus size={16} color="var(--color-primary)" />
-                        <span>Add / Remove Suppliers</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Card: Manage Tasks */}
-                  <div className="card">
-                    <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
-                      <h3
-                        style={{
-                          fontSize: "var(--fs-md)",
-                          fontWeight: "var(--fw-semibold)",
-                          color: "var(--color-text-primary)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--space-2)",
-                        }}
-                      >
-                        <CheckSquare size={18} color="var(--color-primary)" />
-                        Manage Tasks
-                      </h3>
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => setActiveModal("assignSupervisor")}
-                        style={{
-                          justifyContent: "flex-start",
-                          width: "100%",
-                          padding: "var(--space-3) var(--space-4)",
-                          borderRadius: "var(--radius-full)",
-                          fontWeight: "var(--fw-medium)",
-                          background: "#F3F4F6",
-                          border: "1px solid var(--color-border)",
-                          color: "var(--color-text-primary)",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-hover-green)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "#F3F4F6")}
-                      >
-                        <Send size={16} color="var(--color-primary)" />
-                        <span>Assign Tasks To Supervisor</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => setActiveModal("assignWorker")}
-                        style={{
-                          justifyContent: "flex-start",
-                          width: "100%",
-                          padding: "var(--space-3) var(--space-4)",
-                          borderRadius: "var(--radius-full)",
-                          fontWeight: "var(--fw-medium)",
-                          background: "#F3F4F6",
-                          border: "1px solid var(--color-border)",
-                          color: "var(--color-text-primary)",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-hover-green)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "#F3F4F6")}
-                      >
-                        <Send size={16} color="var(--color-primary)" />
-                        <span>Assign Tasks To workers</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Card: Reports */}
-                  <div className="card">
-                    <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
-                      <h3
-                        style={{
-                          fontSize: "var(--fs-md)",
-                          fontWeight: "var(--fw-semibold)",
-                          color: "var(--color-text-primary)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--space-2)",
-                        }}
-                      >
-                        <FileText size={18} color="var(--color-primary)" />
-                        Reports
-                      </h3>
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                      <div
-                        onClick={() => showToast("Exporting Estate Performance Report PDF...")}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          padding: "var(--space-3)",
-                          background: "var(--color-bg)",
-                          borderRadius: "var(--radius-md)",
-                          cursor: "pointer",
-                          fontSize: "var(--fs-xs)",
-                        }}
-                      >
-                        <span style={{ fontWeight: "var(--fw-medium)" }}>Weekly Estate Health & Yield Audit</span>
-                        <Download size={14} color="var(--color-primary)" />
-                      </div>
-
-                      <div
-                        onClick={() => showToast("Exporting Disease Detection Logs...")}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          padding: "var(--space-3)",
-                          background: "var(--color-bg)",
-                          borderRadius: "var(--radius-md)",
-                          cursor: "pointer",
-                          fontSize: "var(--fs-xs)",
-                        }}
-                      >
-                        <span style={{ fontWeight: "var(--fw-medium)" }}>AI Disease Diagnosis Monthly Log</span>
-                        <Download size={14} color="var(--color-primary)" />
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* ================= COLUMN 3: Low Stocks & Assigned Tasks ================= */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-                  
-                  {/* Card: Low Stocks */}
-                  <div className="card">
-                    <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
-                      <h3
-                        style={{
-                          fontSize: "var(--fs-md)",
-                          fontWeight: "var(--fw-semibold)",
-                          color: "var(--color-text-primary)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--space-2)",
-                        }}
-                      >
-                        <AlertTriangle size={18} color="#D97706" />
-                        Low Stocks
-                      </h3>
-                      <span className="badge-warning">{lowStockItems.length} Alerts</span>
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                      {lowStockItems.map((item) => (
-                        <div
-                          key={item.id}
-                          style={{
-                            padding: "var(--space-3)",
-                            border: "1px solid var(--color-border)",
-                            borderRadius: "var(--radius-md)",
-                            background: "#FFFDF9",
-                          }}
-                        >
-                          <div className="flex-between" style={{ marginBottom: 4 }}>
-                            <span style={{ fontWeight: "var(--fw-semibold)", fontSize: "var(--fs-xs)", color: "var(--color-text-primary)" }}>
-                              {item.item}
-                            </span>
-                            <span className={item.statusClass} style={{ fontSize: "10px" }}>
-                              {item.level}
-                            </span>
-                          </div>
-                          <div className="flex-between" style={{ fontSize: "11px" }}>
-                            <span className="text-muted">Current: <strong style={{ color: "var(--color-danger)" }}>{item.quantity}</strong> (Min: {item.threshold})</span>
-                            <button
-                              type="button"
-                              className="btn-outline"
-                              onClick={() => showToast(`Restock request sent for ${item.item}`)}
-                              style={{ padding: "2px 8px", fontSize: "10px" }}
-                            >
-                              Restock
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Card: Assigned Tasks */}
-                  <div className="card">
-                    <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
-                      <h3
-                        style={{
-                          fontSize: "var(--fs-md)",
-                          fontWeight: "var(--fw-semibold)",
-                          color: "var(--color-text-primary)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "var(--space-2)",
-                        }}
-                      >
-                        <ClipboardList size={18} color="var(--color-primary)" />
-                        Assigned Tasks
-                      </h3>
-                      <span className="badge-info">{assignedTasks.length} In Progress</span>
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                      {assignedTasks.map((t) => (
-                        <div
-                          key={t.id}
-                          style={{
-                            padding: "var(--space-3)",
-                            borderRadius: "var(--radius-md)",
-                            background: "var(--color-bg)",
-                            border: "1px solid var(--color-border)",
-                          }}
-                        >
-                          <div className="flex-between" style={{ marginBottom: 4 }}>
-                            <span style={{ fontWeight: "var(--fw-semibold)", fontSize: "var(--fs-xs)", color: "var(--color-text-primary)" }}>
-                              {t.title}
-                            </span>
-                            <span className={t.priority === "High" ? "badge-danger" : "badge-info"} style={{ fontSize: "10px" }}>
-                              {t.priority}
-                            </span>
-                          </div>
-                          <div className="text-muted" style={{ fontSize: "11px", marginBottom: 6 }}>
-                            Assigned to: {t.assignee} ({t.role})
-                          </div>
-                          {/* Progress bar */}
-                          <div className="progress-bar" style={{ height: 6 }}>
-                            <div className="progress-bar-fill" style={{ width: `${t.progress}%` }} />
-                          </div>
-                          <div style={{ textAlign: "right", fontSize: "10px", color: "var(--color-text-muted)", marginTop: 2 }}>
-                            {t.progress}% Completed
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
+      <main style={{ padding: "var(--space-6) var(--space-8)" }}>
+        <div style={{ maxWidth: "var(--content-max-width)", margin: "0 auto" }}>
+          
+          {toastMessage && (
+            <div className="alert alert-success" style={{ position: "fixed", top: 80, right: 24, zIndex: "var(--z-toast)", boxShadow: "var(--shadow-modal)", display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+              <CheckCircle2 size={18} />
+              <span>{toastMessage}</span>
             </div>
-          </main>
+          )}
 
-          {/* Footer */}
-          <Footer />
-      </div>
-
-      {/* --------------------------------------------------------------------
-         MODALS / DIALOGS
-         -------------------------------------------------------------------- */}
-
-      {/* 1. Modal: New Worker Registration */}
-      {activeModal === "newWorker" && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <div className="modal-header">
-              <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)" }}>New Worker Registration</h3>
-              <button className="btn-icon" onClick={() => setActiveModal(null)}>
-                <X size={18} />
-              </button>
-            </div>
-            <form onSubmit={handleAddWorker}>
-              <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <input
-                  type="text"
-                  className="input-primary"
-                  placeholder="e.g. Ruwan Jayasuriya"
-                  required
-                  value={newWorkerData.name}
-                  onChange={(e) => setNewWorkerData({ ...newWorkerData, name: e.target.value })}
-                />
+          {/* Manager Welcome Banner */}
+          <div
+            className="card"
+            style={{
+              marginBottom: "var(--space-6)",
+              background: "linear-gradient(135deg, var(--color-card) 0%, var(--color-hover-green) 100%)",
+              border: "1px solid var(--color-border)",
+              padding: "var(--space-5) var(--space-6)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "var(--space-4)",
+            }}
+          >
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-1)" }}>
+                <Leaf size={22} color="var(--color-primary)" />
+                <h1 style={{ fontSize: "var(--fs-2xl)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)", letterSpacing: "-0.02em", margin: 0 }}>
+                  Estate Operations Command
+                </h1>
               </div>
-              <div className="form-group">
-                <label className="form-label">Role</label>
-                <select
-                  className="input-primary"
-                  value={newWorkerData.role}
-                  onChange={(e) => setNewWorkerData({ ...newWorkerData, role: e.target.value })}
-                >
-                  <option value="Field Worker">Field Worker</option>
-                  <option value="Supervisor">Supervisor</option>
-                  <option value="Machine Operator">Machine Operator</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Assigned Block</label>
-                <select
-                  className="input-primary"
-                  value={newWorkerData.block}
-                  onChange={(e) => setNewWorkerData({ ...newWorkerData, block: e.target.value })}
-                >
-                  <option value="Block A01">Block A01</option>
-                  <option value="Block A03">Block A03</option>
-                  <option value="Block B02">Block B02</option>
-                  <option value="Block C01">Block C01</option>
-                </select>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setActiveModal(null)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary">
-                  Register Worker
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 2. Modal: Assign Tasks (Supervisor or Worker) */}
-      {(activeModal === "assignSupervisor" || activeModal === "assignWorker") && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <div className="modal-header">
-              <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)" }}>
-                Assign Task To {activeModal === "assignSupervisor" ? "Supervisor" : "Workers"}
-              </h3>
-              <button className="btn-icon" onClick={() => setActiveModal(null)}>
-                <X size={18} />
-              </button>
-            </div>
-            <form onSubmit={handleAssignTask}>
-              <div className="form-group">
-                <label className="form-label">Task Description</label>
-                <input
-                  type="text"
-                  className="input-primary"
-                  placeholder="e.g. Sector B Fungicide Spraying"
-                  required
-                  value={taskData.title}
-                  onChange={(e) => setTaskData({ ...taskData, title: e.target.value })}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Assign To</label>
-                <select
-                  className="input-primary"
-                  required
-                  value={taskData.assignee}
-                  onChange={(e) => setTaskData({ ...taskData, assignee: e.target.value })}
-                >
-                  <option value="">Select Personnel</option>
-                  {workers
-                    .filter((w) => (activeModal === "assignSupervisor" ? w.role === "Supervisor" : w.role !== "Supervisor"))
-                    .map((w) => (
-                      <option key={w.id} value={w.name}>
-                        {w.name} ({w.block})
-                      </option>
-                    ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Priority</label>
-                <select
-                  className="input-primary"
-                  value={taskData.priority}
-                  onChange={(e) => setTaskData({ ...taskData, priority: e.target.value })}
-                >
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
-                </select>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setActiveModal(null)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn-primary">
-                  Assign Task
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* 3. Modal: Clear Disease History */}
-      {activeModal === "clearHistory" && (
-        <div className="modal-backdrop">
-          <div className="modal-card">
-            <div className="modal-header">
-              <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)", color: "var(--color-danger)" }}>
-                Clear Block Disease History
-              </h3>
-              <button className="btn-icon" onClick={() => setActiveModal(null)}>
-                <X size={18} />
-              </button>
-            </div>
-            <div style={{ marginBottom: "var(--space-4)" }}>
-              <p style={{ fontSize: "var(--fs-sm)", color: "var(--color-text-secondary)" }}>
-                Select a tea estate block to reset its archived AI disease log records.
+              <p style={{ fontSize: "var(--fs-sm)", color: "var(--color-text-secondary)", margin: 0 }}>
+                Real-time tea plantation monitoring, field worker assignment & inventory management
               </p>
-              <div className="form-group" style={{ marginTop: "var(--space-3)" }}>
-                <label className="form-label">Target Block</label>
-                <select
-                  className="input-primary"
-                  value={selectedBlockToClear}
-                  onChange={(e) => setSelectedBlockToClear(e.target.value)}
-                >
-                  <option value="Block A01">Block A01 (Healthy)</option>
-                  <option value="Block A03">Block A03 (Blister Blight Resolved)</option>
-                  <option value="Block B02">Block B02 (Algal Leaf Spot)</option>
-                  <option value="Block C01">Block C01 (Healthy)</option>
-                </select>
+            </div>
+
+            <div className="flex-center gap-md" style={{ flexWrap: "wrap" }}>
+              <div className="status-chip" style={{ background: "var(--color-card)", padding: "6px 12px" }}>
+                <ShieldCheck size={14} color="var(--color-primary)" />
+                <span>System: <strong>Operational</strong></span>
+              </div>
+              <div className="status-chip" style={{ background: "var(--color-card)", padding: "6px 12px" }}>
+                <Calendar size={14} color="var(--color-text-secondary)" />
+                <span>{new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}</span>
               </div>
             </div>
-            <div className="modal-footer">
-              <button type="button" className="btn-secondary" onClick={() => setActiveModal(null)}>
-                Cancel
-              </button>
-              <button type="button" className="btn-danger" onClick={handleClearDiseaseHistory}>
-                Clear History Log
-              </button>
+          </div>
+
+          {/* Quick Metrics Summary Cards */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--space-4)", marginBottom: "var(--space-6)" }}>
+            <div className="card" style={{ padding: "var(--space-4) var(--space-5)", display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "rgba(46, 125, 50, 0.12)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Users size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Active Field Force</div>
+                <div style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>{workers.length} Members</div>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: "var(--space-4) var(--space-5)", display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "rgba(217, 119, 6, 0.12)", color: "#D97706", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <AlertTriangle size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Low Stock Warnings</div>
+                <div style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>{lowStockItems.length} Items</div>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: "var(--space-4) var(--space-5)", display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "rgba(37, 99, 235, 0.12)", color: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <ClipboardList size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Active Tasks</div>
+                <div style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--color-text-primary)" }}>{assignedTasks.length} Dispatched</div>
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: "var(--space-4) var(--space-5)", display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: "rgba(124, 58, 237, 0.12)", color: "#7C3AED", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Activity size={22} />
+              </div>
+              <div>
+                <div style={{ fontSize: "var(--fs-xs)", color: "var(--color-text-secondary)" }}>Estate Health Index</div>
+                <div style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--color-primary)" }}>98.4% Optimal</div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* 4. Modal: Manage Suppliers */}
-      {activeModal === "manageSuppliers" && (
-        <div className="modal-backdrop">
-          <div className="modal-card" style={{ maxWidth: 600 }}>
-            <div className="modal-header">
-              <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-bold)" }}>Manage Suppliers List</h3>
-              <button className="btn-icon" onClick={() => setActiveModal(null)}>
-                <X size={18} />
-              </button>
+          {/* Shortcuts */}
+          <div style={{ marginBottom: "var(--space-8)" }}>
+            <div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
+              <h2 style={{ fontSize: "var(--fs-lg)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)", margin: 0 }}>
+                Shortcuts At Glance
+              </h2>
+              <span className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>Module Quick Navigation</span>
             </div>
 
-            {/* List existing suppliers */}
-            <div style={{ maxHeight: 220, overflowY: "auto", marginBottom: "var(--space-4)" }}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                {suppliers.map((s) => (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "var(--space-4)" }}>
+              {shortcuts.map((sc) => {
+                const IconComp = sc.icon;
+                return (
                   <div
-                    key={s.id}
-                    className="flex-between"
+                    key={sc.id}
+                    onClick={() => onNavigate(sc.id)}
+                    className="card hover-lift"
                     style={{
-                      padding: "var(--space-3)",
-                      background: "var(--color-bg)",
-                      borderRadius: "var(--radius-sm)",
-                      fontSize: "var(--fs-xs)",
+                      padding: "var(--space-5) var(--space-4)",
+                      textAlign: "center",
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "var(--space-3)",
+                      position: "relative",
                     }}
                   >
-                    <div>
-                      <div style={{ fontWeight: "var(--fw-semibold)" }}>{s.name}</div>
-                      <div className="text-muted">{s.category} • {s.contact}</div>
+                    {sc.badge && (
+                      <span className="badge-info" style={{ position: "absolute", top: 10, right: 10, fontSize: "10px", padding: "2px 6px" }}>
+                        {sc.badge}
+                      </span>
+                    )}
+                    <div style={{ width: 52, height: 52, borderRadius: "var(--radius-md)", background: "var(--color-hover-green)", display: "flex", alignItems: "center", justifyContent: "center", color: sc.color }}>
+                      <IconComp size={26} />
                     </div>
-                    <button
-                      type="button"
-                      className="btn-icon"
-                      style={{ color: "var(--color-danger)" }}
-                      onClick={() => handleRemoveSupplier(s.id)}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <span style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)" }}>
+                      {sc.label}
+                    </span>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3-Column Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "var(--space-6)", alignItems: "start" }}>
+            {/* User Controlling */}
+            <div className="card">
+              <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
+                <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)", display: "flex", alignItems: "center", gap: "var(--space-2)", margin: 0 }}>
+                  <Users size={18} color="var(--color-primary)" />
+                  User Controlling
+                </h3>
+                <span className="badge-info">{workers.length} Registered</span>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", marginBottom: "var(--space-6)" }}>
+                <button type="button" className="btn-secondary hover-lift" onClick={() => setActiveModal("newWorker")} style={{ justifyContent: "flex-start", width: "100%", padding: "var(--space-3) var(--space-4)", borderRadius: "var(--radius-full)" }}>
+                  <UserPlus size={16} color="var(--color-primary)" />
+                  <span>New Worker registration</span>
+                </button>
+
+                <button type="button" className="btn-secondary hover-lift" onClick={() => onNavigate("attendance")} style={{ justifyContent: "flex-start", width: "100%", padding: "var(--space-3) var(--space-4)", borderRadius: "var(--radius-full)" }}>
+                  <Clock size={16} color="var(--color-primary)" />
+                  <span>Attendance Tracking</span>
+                </button>
+
+                <button type="button" className="btn-secondary hover-lift" onClick={() => setActiveModal("clearHistory")} style={{ justifyContent: "flex-start", width: "100%", padding: "var(--space-3) var(--space-4)", borderRadius: "var(--radius-full)" }}>
+                  <RotateCcw size={16} color="var(--color-danger)" />
+                  <span>Clear Disease history of a block</span>
+                </button>
               </div>
             </div>
 
-            {/* Form to add supplier */}
-            <form onSubmit={handleAddSupplier} style={{ borderTop: "1px solid var(--color-border)", paddingTop: "var(--space-3)" }}>
-              <h4 style={{ fontSize: "var(--fs-sm)", marginBottom: "var(--space-3)" }}>Add New Supplier</h4>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3)" }}>
-                <div className="form-group">
-                  <label className="form-label">Supplier Name</label>
-                  <input
-                    type="text"
-                    className="input-primary"
-                    placeholder="Company Name"
-                    required
-                    value={newSupplierData.name}
-                    onChange={(e) => setNewSupplierData({ ...newSupplierData, name: e.target.value })}
-                  />
+            {/* Manage Suppliers & Tasks */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+              <div className="card">
+                <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
+                  <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)", display: "flex", alignItems: "center", gap: "var(--space-2)", margin: 0 }}>
+                    <Truck size={18} color="var(--color-primary)" />
+                    Manage Suppliers
+                  </h3>
+                  <span className="badge-info">{suppliers.length} Partners</span>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Category</label>
-                  <input
-                    type="text"
-                    className="input-primary"
-                    placeholder="e.g. Fertilizer"
-                    value={newSupplierData.category}
-                    onChange={(e) => setNewSupplierData({ ...newSupplierData, category: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setActiveModal(null)}>
-                  Close
-                </button>
-                <button type="submit" className="btn-primary">
-                  Add Supplier
+
+                <button type="button" className="btn-secondary hover-lift" onClick={() => setActiveModal("manageSuppliers")} style={{ justifyContent: "flex-start", width: "100%", padding: "var(--space-3) var(--space-4)", borderRadius: "var(--radius-full)" }}>
+                  <Plus size={16} color="var(--color-primary)" />
+                  <span>Add / Remove Suppliers</span>
                 </button>
               </div>
-            </form>
+
+              <div className="card">
+                <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
+                  <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)", display: "flex", alignItems: "center", gap: "var(--space-2)", margin: 0 }}>
+                    <CheckSquare size={18} color="var(--color-primary)" />
+                    Manage Tasks
+                  </h3>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                  <button type="button" className="btn-secondary hover-lift" onClick={() => setActiveModal("assignSupervisor")} style={{ justifyContent: "flex-start", width: "100%", padding: "var(--space-3) var(--space-4)", borderRadius: "var(--radius-full)" }}>
+                    <Send size={16} color="var(--color-primary)" />
+                    <span>Assign Tasks To Supervisor</span>
+                  </button>
+                  <button type="button" className="btn-secondary hover-lift" onClick={() => setActiveModal("assignWorker")} style={{ justifyContent: "flex-start", width: "100%", padding: "var(--space-3) var(--space-4)", borderRadius: "var(--radius-full)" }}>
+                    <Send size={16} color="var(--color-primary)" />
+                    <span>Assign Tasks To workers</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Low Stocks */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
+              <div className="card">
+                <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
+                  <h3 style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)", display: "flex", alignItems: "center", gap: "var(--space-2)", margin: 0 }}>
+                    <AlertTriangle size={18} color="#D97706" />
+                    Low Stock Alerts
+                  </h3>
+                  <span className="badge-warning">{lowStockItems.length} Alerts</span>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                  {lowStockItems.map((item) => (
+                    <div key={item.id} style={{ padding: "var(--space-3)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-md)", background: "rgba(249, 168, 37, 0.08)" }}>
+                      <div className="flex-between" style={{ marginBottom: 4 }}>
+                        <span style={{ fontWeight: "var(--fw-semibold)", fontSize: "var(--fs-xs)", color: "var(--color-text-primary)" }}>{item.item}</span>
+                        <span className={item.statusClass} style={{ fontSize: "10px" }}>{item.level}</span>
+                      </div>
+                      <div className="flex-between" style={{ fontSize: "11px" }}>
+                        <span className="text-muted">Stock: <strong style={{ color: "var(--color-danger)" }}>{item.quantity}</strong></span>
+                        <button type="button" className="btn-outline" onClick={() => showToast(`Restock requested for ${item.item}`)} style={{ padding: "2px 8px", fontSize: "10px" }}>Restock</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
+
         </div>
-      )}
+      </main>
+
+      <Footer />
     </div>
   );
 }
