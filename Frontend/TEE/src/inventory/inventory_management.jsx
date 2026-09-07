@@ -17,7 +17,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 
-const InventoryManagement = ({ onNavigate = () => {} }) => {
+const InventoryManagement = ({ role = null, onNavigate = () => {} }) => {
   const [activeTab, setActiveTab] = useState('All');
   const [activeModal, setActiveModal] = useState(null); // 'addItems' | 'recentMovements' | null
   const [stockActionType, setStockActionType] = useState('Stock In'); // 'Stock In' | 'Stock Out'
@@ -31,7 +31,7 @@ const InventoryManagement = ({ onNavigate = () => {} }) => {
       />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - var(--topbar-height))" }}>
-        <RoleSidebar activeItem="inventory" onNavigate={onNavigate} />
+        <RoleSidebar role={role} activeItem="inventory" onNavigate={onNavigate} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <main style={{ flex: 1, padding: "var(--space-6) var(--space-8)" }}>

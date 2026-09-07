@@ -1,11 +1,7 @@
-<<<<<<< Updated upstream
-import React, { useState, useEffect } from "react";
-import WelcomePage from "./auth/WelcomePage.jsx";
-=======
 import React, { useState } from "react";
 
 // Auth & General Pages
->>>>>>> Stashed changes
+import WelcomePage from "./auth/WelcomePage.jsx";
 import Login from "./auth/Login.jsx";
 import CreateAccountUser from "./auth/CreateAccountUser.jsx";
 import CreateAccountStaff from "./auth/CreateAccountStaff.jsx";
@@ -13,31 +9,17 @@ import UserProfile from "./auth/UserProfile.jsx";
 import UserProfileForAdmin from "./auth/UserProfileForAdmin.jsx";
 import TwoStepVerification from "./auth/TwoStepVerification.jsx";
 import OtpResent from "./auth/OtpResent.jsx";
+import ActivityLogs from "./auth/ActivityLogs.jsx";
 
 // Developed Feature Components
 import DiseaseDetection from "./disease/DiseaseDetection.jsx";
-<<<<<<< Updated upstream
-import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
-import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
-import SupervisorDashboard from "./dashboards/supervisor_dashboard.jsx";
-import SupervisorDashboardMobile from "./dashboards/supervisor_dashboard_mobile.jsx";
-=======
->>>>>>> Stashed changes
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
 import TaskManagement from "./worker_block/task_management.jsx";
 import TrackAttendance from "./worker_block/track_attendence.jsx";
-<<<<<<< Updated upstream
 import WorkerLogin from "./worker_block/workerlogin.jsx";
-import InventoryManagement from "./inventory/inventory_management.jsx";
-import SupplierManagement from "./inventory/supplier_management.jsx";
-import ActivityLogs from "./auth/ActivityLogs.jsx";
 import WorkerManagement from "./worker_block/worker_management.jsx";
-
-function App() {
-  const [currentPage, setCurrentPage] = useState("welcome");
-=======
 import InventoryManagement from "./Inventory/inventory_management.jsx";
 import SupplierManagement from "./Inventory/supplier_management.jsx";
 
@@ -48,69 +30,35 @@ import SupervisorDashboard from "./dashboards/supervisor_dashboard.jsx";
 import WorkerDashboardMobile from "./dashboards/worker_dashboard_mobile.jsx";
 import UnderDevelopment from "./dashboards/under_development.jsx";
 
-// Role-Based Sidebars (in src/common components/sidebars/)
+// Role-Based Sidebars
 import AdminSidebar from "./common components/sidebars/admin_sidebar.jsx";
 import ManagerSidebar from "./common components/sidebars/manager_sidebar.jsx";
 import SupervisorSidebar from "./common components/sidebars/supervisor_sidebar.jsx";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [currentPage, setCurrentPage] = useState("login");
   const [authData, setAuthData] = useState({});
-  const [testRole, setTestRole] = useState("manager"); // 'admin' | 'manager' | 'supervisor' | 'worker'
->>>>>>> Stashed changes
+  const [testRole, setTestRole] = useState(() => {
+    return localStorage.getItem("user_role") || "manager";
+  });
+
+  const handleRoleChange = (newRole) => {
+    setTestRole(newRole);
+    localStorage.setItem("user_role", newRole);
+    setCurrentPage("dashboard");
+  };
 
   const handleNavigate = (pageKey, data) => {
     if (data) {
       setAuthData((prev) => ({ ...prev, ...data }));
+      if (data.role) {
+        localStorage.setItem("user_role", data.role);
+        setTestRole(data.role.toLowerCase());
+      }
     }
     setCurrentPage(pageKey);
   };
 
-<<<<<<< Updated upstream
-  if (currentPage === "detection") {
-    return <DiseaseDetection onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "welcomePage" || currentPage === "welcome") {
-    return <WelcomePage onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "login") {
-    return <Login onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "workerLogin") {
-    return <WorkerLogin onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "twoStepVerification" || currentPage === "verification" || currentPage === "otp") {
-    return <TwoStepVerification onNavigate={handleNavigate} email="user***@gmail.com" />;
-  }
-
-  if (currentPage === "otpResent") {
-    return <OtpResent onNavigate={handleNavigate} onReturn={() => handleNavigate("twoStepVerification")} />;
-  }
-
-  if (currentPage === "createAccount") {
-    return <CreateAccountUser onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "createAccountStaff") {
-    return <CreateAccountStaff onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "profile") {
-    return <UserProfile onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "userProfileForAdmin" || currentPage === "adminProfile") {
-    return <UserProfileForAdmin onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "dashboard" || currentPage === "managerDashboard") {
-    if (isMobile) {
-      return <ManagerDashboardMobile onNavigate={handleNavigate} />;
-=======
   const renderDashboardLayout = () => {
     switch (testRole) {
       case "admin":
@@ -137,39 +85,19 @@ function App() {
             <ManagerDashboard onNavigate={handleNavigate} />
           </div>
         );
->>>>>>> Stashed changes
     }
   };
 
-<<<<<<< Updated upstream
-  if (currentPage === "WorkerManagement" || currentPage === "workers") {
-    return <WorkerManagement onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "mobile-dashboard") {
-    return <ManagerDashboardMobile onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "supervisorDashboard" || currentPage === "supervisor-dashboard" || currentPage === "supervisor") {
-    if (isMobile) {
-      return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
-    }
-    return <SupervisorDashboard onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "mobile-supervisor-dashboard") {
-    return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "BlockManagement") {
-    return <BlockManagement onNavigate={handleNavigate} />;
-  }
-=======
-  // Main Page Router with Sidebar Wrap for Developed Pages
   const renderCurrentPage = () => {
     // 1. Auth & Account Pages
     if (currentPage === "login") {
       return <Login onNavigate={handleNavigate} />;
+    }
+    if (currentPage === "welcomePage" || currentPage === "welcome") {
+      return <WelcomePage onNavigate={handleNavigate} />;
+    }
+    if (currentPage === "workerLogin") {
+      return <WorkerLogin onNavigate={handleNavigate} />;
     }
     if (currentPage === "twoStepVerification" || currentPage === "verification" || currentPage === "otp") {
       return (
@@ -192,40 +120,45 @@ function App() {
       return <CreateAccountStaff onNavigate={handleNavigate} />;
     }
 
-    // 2. Developed Feature Pages (Rendered with Role Sidebar)
+    // 2. Developed Feature Pages
     if (currentPage === "detection") {
-      return <DiseaseDetection onNavigate={handleNavigate} />;
+      return <DiseaseDetection role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "analytics") {
-      return <StateAnalytics onNavigate={handleNavigate} />;
+      return <StateAnalytics role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "users" || currentPage === "userProfileForAdmin" || currentPage === "adminProfile") {
-      return <UserProfileForAdmin onNavigate={handleNavigate} />;
+      return <UserProfileForAdmin role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "suppliers" || currentPage === "supplierManagement") {
-      return <SupplierManagement onNavigate={handleNavigate} />;
+      return <SupplierManagement role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "inventory" || currentPage === "inventoryManagement") {
-      return <InventoryManagement onNavigate={handleNavigate} />;
+      return <InventoryManagement role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "BlockManagement" || currentPage === "blockManagement" || currentPage === "blocks") {
-      return <BlockManagement onNavigate={handleNavigate} />;
+      return <BlockManagement role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "BlockDetail") {
-      return <BlockDetail onNavigate={handleNavigate} />;
+      return <BlockDetail role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "TaskManagement" || currentPage === "taskManagement" || currentPage === "tasks") {
-      return <TaskManagement onNavigate={handleNavigate} />;
+      return <TaskManagement role={testRole} onNavigate={handleNavigate} />;
+    }
+    if (currentPage === "WorkerManagement" || currentPage === "workerManagement" || currentPage === "workers") {
+      return <WorkerManagement role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "attendance") {
-      return <TrackAttendance onNavigate={handleNavigate} />;
+      return <TrackAttendance role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "profile") {
-      return <UserProfile onNavigate={handleNavigate} />;
+      return <UserProfile role={testRole} onNavigate={handleNavigate} />;
     }
->>>>>>> Stashed changes
+    if (currentPage === "activityLogs" || currentPage === "activity-logs" || currentPage === "logs") {
+      return <ActivityLogs role={testRole} onNavigate={handleNavigate} />;
+    }
 
-    // 3. Features Under Development (Unimplemented Feature Pages)
+    // 3. Features Under Development
     if (currentPage === "accountApprovals") {
       return <UnderDevelopment featureName="Account Approvals" role={testRole} onNavigate={handleNavigate} />;
     }
@@ -240,9 +173,6 @@ function App() {
     }
     if (currentPage === "blockHistory") {
       return <UnderDevelopment featureName="Block Activity History" role={testRole} onNavigate={handleNavigate} />;
-    }
-    if (currentPage === "workerManagement") {
-      return <UnderDevelopment featureName="Worker Management" role={testRole} onNavigate={handleNavigate} />;
     }
     if (currentPage === "workerAssignment") {
       return <UnderDevelopment featureName="Worker-Block Assignment" role={testRole} onNavigate={handleNavigate} />;
@@ -259,9 +189,6 @@ function App() {
     if (currentPage === "reports" || currentPage === "exportReports") {
       return <UnderDevelopment featureName="Reports & Audits" role={testRole} onNavigate={handleNavigate} />;
     }
-    if (currentPage === "activityLogs") {
-      return <UnderDevelopment featureName="Activity Audit Logs" role={testRole} onNavigate={handleNavigate} />;
-    }
     if (currentPage === "settings" || currentPage === "system" || currentPage === "systemSettings") {
       return <UnderDevelopment featureName="System Settings" role={testRole} onNavigate={handleNavigate} />;
     }
@@ -270,29 +197,9 @@ function App() {
     return renderDashboardLayout();
   };
 
-<<<<<<< Updated upstream
-  if (currentPage === "attendance") {
-    return <TrackAttendance onNavigate={handleNavigate} />;
-  }
-  if (currentPage === "inventory") {
-    return <InventoryManagement onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "suppliers") {
-    return <SupplierManagement onNavigate={handleNavigate} />;
-  }
-
-  if (currentPage === "activityLogs" || currentPage === "activity-logs" || currentPage === "logs") {
-    return <ActivityLogs onNavigate={handleNavigate} />;
-  }
-
-  return <StateAnalytics onNavigate={handleNavigate} />;
-=======
   return (
     <div>
-      {/* ================================================================== */}
-      {/* TEST TOOLBAR FOR TESTING ROLE SIDEBARS & FEATURES                  */}
-      {/* ================================================================== */}
+      {/* TEST TOOLBAR FOR TESTING ROLE SIDEBARS & FEATURES */}
       <div
         style={{
           position: "sticky",
@@ -324,10 +231,7 @@ function App() {
               <button
                 key={role.id}
                 type="button"
-                onClick={() => {
-                  setTestRole(role.id);
-                  setCurrentPage("dashboard");
-                }}
+                onClick={() => handleRoleChange(role.id)}
                 style={{
                   padding: "6px 14px",
                   borderRadius: "6px",
@@ -348,8 +252,32 @@ function App() {
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <button
             type="button"
+            onClick={() => setCurrentPage("login")}
+            style={{
+              padding: "6px 12px",
+              borderRadius: "6px",
+              border: "1px solid #334155",
+              background: currentPage === "login" ? "#10B981" : "#1E293B",
+              color: "#FFF",
+              fontSize: "12px",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            Login Page
+          </button>
+          <button
+            type="button"
             onClick={() => setCurrentPage("dashboard")}
-            style={{ padding: "6px 12px", borderRadius: "6px", border: "1px solid #334155", background: "#1E293B", color: "#FFF", fontSize: "12px" }}
+            style={{
+              padding: "6px 12px",
+              borderRadius: "6px",
+              border: "1px solid #334155",
+              background: currentPage === "dashboard" ? "#10B981" : "#1E293B",
+              color: "#FFF",
+              fontSize: "12px",
+              cursor: "pointer",
+            }}
           >
             Dashboard
           </button>
@@ -360,7 +288,6 @@ function App() {
       {renderCurrentPage()}
     </div>
   );
->>>>>>> Stashed changes
 }
 
 export default App;

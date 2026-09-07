@@ -21,7 +21,7 @@ function formatBytes(bytes) {
  * screens — ImageUploadPage (select from local storage / drag & drop)
  * and DetectionResultPage (model output).
  */
-export default function DiseaseDetection({ onNavigate = () => {} }) {
+export default function DiseaseDetection({ role = null, onNavigate = () => {} }) {
   const fileInputRef = useRef(null);
 
   const [stage, setStage] = useState("upload"); // "upload" | "result"
@@ -139,6 +139,7 @@ ${result.recommendations.map((r, i) => `${i + 1}. ${r}`).join("\n")}
   if (stage === "result" && result) {
     return (
       <DetectionResultPage
+        role={role}
         preview={preview}
         fileName={file?.name}
         result={result}
@@ -151,6 +152,7 @@ ${result.recommendations.map((r, i) => `${i + 1}. ${r}`).join("\n")}
 
   return (
     <ImageUploadPage
+      role={role}
       preview={preview}
       fileName={file?.name}
       fileSize={file ? formatBytes(file.size) : ""}

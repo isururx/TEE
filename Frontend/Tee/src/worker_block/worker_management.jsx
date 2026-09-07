@@ -1,8 +1,8 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Users, Plus, Search, Pencil, Trash2, RefreshCw } from "lucide-react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import WorkerProfileForm from "./worker_profile_form.jsx";
 
 const WORKERS_API_URL = "http://localhost:8000/api/workers";
@@ -22,7 +22,7 @@ function normalizeWorker(w) {
 	};
 }
 
-export default function WorkerManagement({ onNavigate = () => {} }) {
+export default function WorkerManagement({ role = null, onNavigate = () => {} }) {
 	const [workers, setWorkers] = useState([]);
 	const [search, setSearch] = useState("");
 	const [isLoading, setIsLoading] = useState(true);
@@ -96,7 +96,7 @@ export default function WorkerManagement({ onNavigate = () => {} }) {
 				]}
 			/>
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-				<Sidebar activeItem="workers" role="manager" onNavigate={onNavigate} />
+				<RoleSidebar role={role} activeItem="WorkerManagement" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
 					{error && <div role="alert" style={{ color: "var(--color-danger, #b42318)" }}>{error}</div>}
 

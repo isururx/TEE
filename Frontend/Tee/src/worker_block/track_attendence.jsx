@@ -32,7 +32,7 @@ function normalizeAttendanceRecord(record) {
 	};
 }
 
-export default function TrackAttendance({ onNavigate = () => {} }) {
+export default function TrackAttendance({ role = null, onNavigate = () => {} }) {
 	const [attendance, setAttendance] = useState([]);
 	const [search, setSearch] = useState("");
 	const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -121,7 +121,7 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 				]}
 			/>
 			<div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-				<RoleSidebar activeItem="attendance" onNavigate={onNavigate} />
+				<RoleSidebar role={role} activeItem="attendance" onNavigate={onNavigate} />
 				<main style={{ flex: 1, minWidth: 0, padding: "var(--space-6)", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
 					{error && <div role="alert" style={{ color: "var(--color-danger, #b42318)" }}>{error}</div>}
 					{successMessage && <div role="status" style={{ color: "var(--color-success, #1b5e20)" }}>{successMessage}</div>}

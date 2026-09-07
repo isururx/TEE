@@ -16,7 +16,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 
-const SupplierManagement = ({ onNavigate = () => {} }) => {
+const SupplierManagement = ({ role = null, onNavigate = () => {} }) => {
   const [activeModal, setActiveModal] = useState(null); // 'add' | 'edit' | null
   const [selectedSupplierId, setSelectedSupplierId] = useState(1);
   const [activeTab, setActiveTab] = useState('All');
@@ -104,7 +104,7 @@ const SupplierManagement = ({ onNavigate = () => {} }) => {
       />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - var(--topbar-height))" }}>
-        <RoleSidebar activeItem="suppliers" onNavigate={onNavigate} />
+        <RoleSidebar role={role} activeItem="suppliers" onNavigate={onNavigate} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <main style={{ flex: 1, padding: "var(--space-6) var(--space-8)" }}>

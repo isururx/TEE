@@ -23,7 +23,7 @@ const initialProfile = {
  * and an editable profile modal with standard Sidebar navigation.
  * Fully styled with index.css classes and design tokens.
  */
-export default function UserProfile({ onNavigate = () => { } }) {
+export default function UserProfile({ role = null, onNavigate = () => { } }) {
   const [user, setUser] = useState(initialProfile);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -55,7 +55,7 @@ export default function UserProfile({ onNavigate = () => { } }) {
 
       {/* ---- Layout with Sidebar and Main Content Area ---- */}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        <RoleSidebar activeItem="profile" onNavigate={onNavigate} />
+        <RoleSidebar role={role} activeItem="profile" onNavigate={onNavigate} />
 
         {/* ---- Main Profile Content ---- */}
         <main style={{ flex: 1, minWidth: 0, paddingBottom: "var(--space-12)", overflowX: "hidden" }}>

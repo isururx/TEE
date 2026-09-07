@@ -32,7 +32,7 @@ function generateSectors(count) {
 const ITEMS_PER_PAGE = 20;
 const ALL_SECTORS = generateSectors(93);
 
-export default function StateAnalytics({ onNavigate = () => {} }) {
+export default function StateAnalytics({ role = null, onNavigate = () => {} }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedSector, setSelectedSector] = useState(ALL_SECTORS[0]);
 
@@ -48,7 +48,7 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
       <Header />
 
       <div style={{ display: "flex", flex: 1 }}>
-        <RoleSidebar activeItem="analytics" onNavigate={onNavigate} />
+        <RoleSidebar role={role} activeItem="analytics" onNavigate={onNavigate} />
 
         <main className="p-card" style={{ flex: 1 }}>
           <h1 className="page-title" style={{ fontSize: "var(--fs-3xl)", marginBottom: "var(--space-6)" }}>

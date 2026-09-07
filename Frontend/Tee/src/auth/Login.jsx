@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Leaf, User, Lock, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
 import Footer from "../common components/footer.jsx";
+
+const THEME_KEY = "tee-theme";
 
 /**
  * Login Page
@@ -14,8 +16,6 @@ export default function Login({ onNavigate = () => { } }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-<<<<<<< Updated upstream
-=======
   const [theme, setTheme] = useState("light");
   const [isLoading, setIsLoading] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -38,7 +38,6 @@ export default function Login({ onNavigate = () => { } }) {
     root.setAttribute("data-theme", nextTheme);
     localStorage.setItem(THEME_KEY, nextTheme);
   };
->>>>>>> Stashed changes
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -214,7 +213,6 @@ export default function Login({ onNavigate = () => { } }) {
             >
               Create account <UserPlus size={16} />
             </button>
-<<<<<<< Updated upstream
             <button
               type="button"
               className="btn-link"
@@ -223,8 +221,6 @@ export default function Login({ onNavigate = () => { } }) {
             >
               Back to Home
             </button>
-=======
->>>>>>> Stashed changes
 
           </form>
         </div>

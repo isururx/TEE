@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "../common components/header.jsx";
-import Sidebar from "../common components/sidebar.jsx";
+import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
 import {
   CheckCircle2,
@@ -29,6 +29,7 @@ import {
  * }
  */
 export default function DetectionResultPage({
+  role = null,
   preview,
   fileName,
   result,
@@ -48,7 +49,7 @@ export default function DetectionResultPage({
       <Header title="Detection Result" crumbs={[{ label: "Home", href: "#" }, { label: "Disease Detection", href: "#" }]} />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - 65px)" }}>
-        <Sidebar activeItem="detection" role="manager" onNavigate={onNavigate} />
+        <RoleSidebar role={role} activeItem="detection" onNavigate={onNavigate} />
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
           <main style={{ flex: 1, padding: "var(--space-8)" }}>
