@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { UserPlus, Save, X } from "lucide-react";
 
 const BLOCKS_API_URL = "http://localhost:8000/api/blocks";
@@ -167,7 +167,7 @@ export default function WorkerProfileForm({ onClose, onCreated, onUpdated, worke
 				<form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
 					<div>
 						<label className="form-label">Worker ID</label>
-						<input className="input-primary" value={isEdit ? `#${workerToEdit.id}` : "Auto-generated (Identity BigInt)"} disabled />
+						<input className="input-primary" value={isEdit ? `#${workerToEdit.id}` : "Auto-assigned from User account"} disabled />
 					</div>
 
 					<div>
