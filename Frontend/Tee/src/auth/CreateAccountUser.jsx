@@ -215,7 +215,7 @@ export default function CreateAccountUser({ onNavigate = () => { } }) {
             <button type="button" className="btn-secondary" style={{ minWidth: 200, justifyContent: "center" }} onClick={handleClear}>
               Clear
             </button>
-            <button type="button" className="btn-danger" style={{ minWidth: 200, justifyContent: "center" }} onClick={() => onNavigate("workerLogin")}>
+            <button type="button" className="btn-danger" style={{ minWidth: 200, justifyContent: "center" }} onClick={() => onNavigate("login")}>
               Cancel
             </button>
           </div>

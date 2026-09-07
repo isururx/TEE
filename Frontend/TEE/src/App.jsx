@@ -18,7 +18,6 @@ import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
 import TaskManagement from "./worker_block/task_management.jsx";
 import TrackAttendance from "./worker_block/track_attendence.jsx";
-import WorkerLogin from "./worker_block/workerlogin.jsx";
 import WorkerManagement from "./worker_block/worker_management.jsx";
 import InventoryManagement from "./Inventory/inventory_management.jsx";
 import SupplierManagement from "./Inventory/supplier_management.jsx";
@@ -90,14 +89,11 @@ function App() {
 
   const renderCurrentPage = () => {
     // 1. Auth & Account Pages
-    if (currentPage === "login") {
+    if (currentPage === "login" || currentPage === "workerLogin") {
       return <Login onNavigate={handleNavigate} />;
     }
     if (currentPage === "welcomePage" || currentPage === "welcome") {
       return <WelcomePage onNavigate={handleNavigate} />;
-    }
-    if (currentPage === "workerLogin") {
-      return <WorkerLogin onNavigate={handleNavigate} />;
     }
     if (currentPage === "twoStepVerification" || currentPage === "verification" || currentPage === "otp") {
       return (

@@ -345,7 +345,7 @@ export default function WelcomePage({ onNavigate = () => {} }) {
                   borderRadius: "var(--radius-md)",
                   background: "var(--color-secondary)",
                 }}
-                onClick={() => onNavigate("workerLogin")}
+                onClick={() => onNavigate("login")}
               >
                 Login as Worker <ArrowRight size={16} />
               </button>
