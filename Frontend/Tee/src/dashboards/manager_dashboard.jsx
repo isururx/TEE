@@ -743,9 +743,9 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
           </main>
 
           {/* Footer */}
-          <Footer />
+          
       </div>
-
+                      <Footer />
       {/* --------------------------------------------------------------------
          MODALS / DIALOGS
          -------------------------------------------------------------------- */}
