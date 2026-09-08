@@ -58,6 +58,7 @@ const InventoryManagement = ({ onNavigate = () => {} }) => {
 
               <div style={{ display: "flex", gap: "var(--space-8)", flexWrap: "wrap", alignItems: "flex-start" }}>
                 {/* Left Content Area (Main) */}
+                
                 <div style={{ flex: "1 1 60%" }}>
                   
                   {/* Search */}
@@ -67,8 +68,11 @@ const InventoryManagement = ({ onNavigate = () => {} }) => {
                       <div style={{ background: "var(--color-text-muted)", borderRadius: "var(--radius-sm)", padding: "2px" }}>
                         <ChevronDown size={14} color="white" />
                       </div>
+                      
                     </div>
+                    
                   </div>
+                  
 
                   {/* Catalogue Card */}
                   <div className="card" style={{ position: "relative", paddingBottom: "var(--space-10)" }}>
@@ -137,18 +141,7 @@ const InventoryManagement = ({ onNavigate = () => {} }) => {
                       </table>
                     </div>
 
-                    {/* Add Items Floating Button */}
-                    <div style={{ position: "absolute", bottom: "-20px", right: "var(--space-6)" }}>
-                      <button 
-                        className="btn-primary" 
-                        onClick={() => setActiveModal('addItems')}
-                        style={{ padding: "var(--space-3) var(--space-5)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-hover)" }}>
-                        <Plus size={20} />
-                        <span style={{ textAlign: "left" }}>Add<br/>items</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                   
 
                 {/* Right Content Area (Sidebar-ish) */}
                 <div style={{ flex: "1 1 300px", display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
@@ -185,6 +178,18 @@ const InventoryManagement = ({ onNavigate = () => {} }) => {
                     <History size={18} style={{ marginRight: "var(--space-2)" }} />
                     Recent Movements
                   </button>
+
+                  <button 
+                        className="btn-primary" 
+                        onClick={() => setActiveModal('addItems')}
+                        style={{ padding: "var(--space-3) var(--space-5)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-hover)" }}>
+                        <Plus size={20} />
+                        <span style={{ textAlign: "left" }}>Add items</span>
+                      </button>
+
+                 
+                  </div>
+                </div>
 
                 </div>
               </div>
