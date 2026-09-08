@@ -83,31 +83,31 @@ const ALL_LOGS = [
 ];
 
 const TOTAL_ENTRIES = 1245;
-const TOTAL_PAGES   = Math.ceil(TOTAL_ENTRIES / 10);
+const TOTAL_PAGES = Math.ceil(TOTAL_ENTRIES / 10);
 
 /* ─── Badge colour maps ──────────────────────────────────────────────────── */
 const ACTION_BADGE = {
-  update:  { bg: "#DBEAFE", color: "#1D4ED8" },
-  create:  { bg: "#D1FAE5", color: "#065F46" },
+  update: { bg: "#DBEAFE", color: "#1D4ED8" },
+  create: { bg: "#D1FAE5", color: "#065F46" },
   approve: { bg: "#D1FAE5", color: "#065F46" },
-  login:   { bg: "#FEE2E2", color: "#DC2626" },
-  logout:  { bg: "#F3F4F6", color: "#6B7280" },
-  delete:  { bg: "#FEE2E2", color: "#DC2626" },
-  export:  { bg: "#EDE9FE", color: "#7C3AED" },
+  login: { bg: "#FEE2E2", color: "#DC2626" },
+  logout: { bg: "#F3F4F6", color: "#6B7280" },
+  delete: { bg: "#FEE2E2", color: "#DC2626" },
+  export: { bg: "#EDE9FE", color: "#7C3AED" },
 };
 const ROLE_BADGE = {
-  Admin:      { bg: "#D1FAE5", color: "#065F46" },
-  Manager:    { bg: "#DBEAFE", color: "#1D4ED8" },
+  Admin: { bg: "#D1FAE5", color: "#065F46" },
+  Manager: { bg: "#DBEAFE", color: "#1D4ED8" },
   Supervisor: { bg: "#EDE9FE", color: "#7C3AED" },
-  Worker:     { bg: "#FEF3C7", color: "#92400E" },
+  Worker: { bg: "#FEF3C7", color: "#92400E" },
 };
 
 /* ─── Stat card icons config ─────────────────────────────────────────────── */
 const STATS = [
-  { label: "Total Activities", value: "1,245", sub: "All time",          icon: Layers,   iconBg: "#F0F0FF", iconColor: "#6366F1" },
-  { label: "Today's Activities",value: "186",  sub: "Today",             icon: Calendar, iconBg: "#EFF6FF", iconColor: "#3B82F6" },
-  { label: "Active Users",      value: "24",   sub: "Currently online",  icon: Users,    iconBg: "var(--color-hover-green)", iconColor: "var(--color-primary)" },
-  { label: "Failed / Suspicious",value: "12",  sub: "Today",             icon: Shield,   iconBg: "#FEF2F2", iconColor: "var(--color-danger)" },
+  { label: "Total Activities", value: "1,245", sub: "All time", icon: Layers, iconBg: "#F0F0FF", iconColor: "#6366F1" },
+  { label: "Today's Activities", value: "186", sub: "Today", icon: Calendar, iconBg: "#EFF6FF", iconColor: "#3B82F6" },
+  { label: "Active Users", value: "24", sub: "Currently online", icon: Users, iconBg: "var(--color-hover-green)", iconColor: "var(--color-primary)" },
+  { label: "Failed / Suspicious", value: "12", sub: "Today", icon: Shield, iconBg: "#FEF2F2", iconColor: "var(--color-danger)" },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -234,11 +234,11 @@ function DetailModal({ log, onClose }) {
         {/* Detail rows */}
         <div style={{ padding: "0 var(--space-6)" }}>
           {[
-            ["Action",      log.action],
-            ["Module",      log.module],
+            ["Action", log.action],
+            ["Module", log.module],
             ["Description", log.description],
             ["Date & Time", log.timestamp],
-            ["Details",     log.extra],
+            ["Details", log.extra],
           ].map(([label, val]) => (
             <div key={label} className="flex-between" style={{ padding: "10px 0", borderBottom: "1px solid var(--color-border)", alignItems: "flex-start", gap: "var(--space-3)" }}>
               <span className="label-text" style={{ flexShrink: 0, width: 120 }}>{label}</span>
@@ -267,16 +267,16 @@ function DetailModal({ log, onClose }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    MAIN PAGE
 ═══════════════════════════════════════════════════════════════════════════ */
-export default function ActivityLogs({ onNavigate = () => {} }) {
-  const [search, setSearch]             = useState("");
-  const [dateRange, setDateRange]       = useState("This Month");
-  const [roleFilter, setRoleFilter]     = useState("All Roles");
+export default function ActivityLogs({ onNavigate = () => { } }) {
+  const [search, setSearch] = useState("");
+  const [dateRange, setDateRange] = useState("This Month");
+  const [roleFilter, setRoleFilter] = useState("All Roles");
   const [actionFilter, setActionFilter] = useState("All Actions");
   const [statusFilter, setStatusFilter] = useState("All Status");
-  const [currentPage, setCurrentPage]   = useState(1);
-  const [viewLog, setViewLog]           = useState(null);
-  const [isLoading, setIsLoading]       = useState(true);
-  const [exportMsg, setExportMsg]       = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [viewLog, setViewLog] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [exportMsg, setExportMsg] = useState("");
 
   /* Simulate loading when dropdown filters change */
   useEffect(() => {
@@ -290,8 +290,8 @@ export default function ActivityLogs({ onNavigate = () => {} }) {
     const q = search.toLowerCase();
     if (q && ![log.user, log.email, log.action, log.module, log.description]
       .some((v) => v.toLowerCase().includes(q))) return false;
-    if (roleFilter   !== "All Roles"   && log.role   !== roleFilter)   return false;
-    if (statusFilter !== "All Status"  && log.status !== statusFilter) return false;
+    if (roleFilter !== "All Roles" && log.role !== roleFilter) return false;
+    if (statusFilter !== "All Status" && log.status !== statusFilter) return false;
     if (actionFilter !== "All Actions" &&
       !log.action.toLowerCase().includes(actionFilter.toLowerCase())) return false;
     return true;
@@ -309,8 +309,8 @@ export default function ActivityLogs({ onNavigate = () => {} }) {
     setTimeout(() => setExportMsg(""), 3000);
   };
 
-  const paginate  = (p) => { if (p >= 1 && p <= TOTAL_PAGES) setCurrentPage(p); };
-  const pageNums  = () => TOTAL_PAGES <= 5
+  const paginate = (p) => { if (p >= 1 && p <= TOTAL_PAGES) setCurrentPage(p); };
+  const pageNums = () => TOTAL_PAGES <= 5
     ? Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1)
     : [1, 2, 3, "...", TOTAL_PAGES];
 
@@ -396,20 +396,20 @@ export default function ActivityLogs({ onNavigate = () => {} }) {
 
                 {/* Filters */}
                 <div style={{ display: "flex", gap: "var(--space-4)", flexWrap: "wrap", alignItems: "flex-end" }}>
-                  <FilterDropdown label="Date Range"  icon={<Calendar size={14} />} value={dateRange}
-                    options={["Today","Yesterday","This Week","This Month","Custom Range"]}
+                  <FilterDropdown label="Date Range" icon={<Calendar size={14} />} value={dateRange}
+                    options={["Today", "Yesterday", "This Week", "This Month", "Custom Range"]}
                     onChange={(v) => { setDateRange(v); setCurrentPage(1); }} />
 
-                  <FilterDropdown label="User Role"   icon={<User size={14} />}     value={roleFilter}
-                    options={["All Roles","Admin","Manager","Supervisor","Worker"]}
+                  <FilterDropdown label="User Role" icon={<User size={14} />} value={roleFilter}
+                    options={["All Roles", "Admin", "Manager", "Supervisor", "Worker"]}
                     onChange={(v) => { setRoleFilter(v); setCurrentPage(1); }} />
 
-                  <FilterDropdown label="Action Type" icon={<Zap size={14} />}      value={actionFilter}
-                    options={["All Actions","Login","Logout","Create","Update","Delete","Approve","Reject","Export"]}
+                  <FilterDropdown label="Action Type" icon={<Zap size={14} />} value={actionFilter}
+                    options={["All Actions", "Login", "Logout", "Create", "Update", "Delete", "Approve", "Reject", "Export"]}
                     onChange={(v) => { setActionFilter(v); setCurrentPage(1); }} />
 
-                  <FilterDropdown label="Status"      icon={<Shield size={14} />}   value={statusFilter}
-                    options={["All Status","Success","Failed"]}
+                  <FilterDropdown label="Status" icon={<Shield size={14} />} value={statusFilter}
+                    options={["All Status", "Success", "Failed"]}
                     onChange={(v) => { setStatusFilter(v); setCurrentPage(1); }} />
 
                   <div className="flex-center gap-xs" style={{ marginLeft: "auto", alignSelf: "flex-end" }}>
@@ -429,7 +429,7 @@ export default function ActivityLogs({ onNavigate = () => {} }) {
                   <table className="table-modern">
                     <thead>
                       <tr>
-                        {["Timestamp","User","Role","Action","Module","Description","Status","View"].map((h) => (
+                        {["Timestamp", "User", "Role", "Action", "Module", "Description", "Status", "View"].map((h) => (
                           <th key={h}>{h}</th>
                         ))}
                       </tr>
@@ -440,78 +440,78 @@ export default function ActivityLogs({ onNavigate = () => {} }) {
                         : filtered.length === 0
                           ? <EmptyState onReset={resetFilters} />
                           : filtered.map((log) => {
-                              const aStyle = ACTION_BADGE[log.actionType] || ACTION_BADGE.update;
-                              const rStyle = ROLE_BADGE[log.role]         || ROLE_BADGE.Worker;
-                              const ok     = log.status === "Success";
+                            const aStyle = ACTION_BADGE[log.actionType] || ACTION_BADGE.update;
+                            const rStyle = ROLE_BADGE[log.role] || ROLE_BADGE.Worker;
+                            const ok = log.status === "Success";
 
-                              return (
-                                <tr key={log.id}>
-                                  {/* Timestamp */}
-                                  <td className="text-muted" style={{ whiteSpace: "nowrap", fontSize: "var(--fs-xs)" }}>
-                                    {log.timestamp}
-                                  </td>
+                            return (
+                              <tr key={log.id}>
+                                {/* Timestamp */}
+                                <td className="text-muted" style={{ whiteSpace: "nowrap", fontSize: "var(--fs-xs)" }}>
+                                  {log.timestamp}
+                                </td>
 
-                                  {/* User */}
-                                  <td>
-                                    <div className="flex-center gap-xs" style={{ justifyContent: "flex-start" }}>
-                                      <div
-                                        className="avatar avatar-sm"
-                                        style={{ background: log.avatarBg, color: "#fff", fontWeight: "var(--fw-bold)", fontSize: "var(--fs-xs)", flexShrink: 0 }}
-                                      >
-                                        {log.initials}
-                                      </div>
-                                      <div>
-                                        <div style={{ fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)", whiteSpace: "nowrap", fontSize: "var(--fs-sm)" }}>
-                                          {log.user}
-                                        </div>
-                                        <div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>{log.email}</div>
-                                      </div>
-                                    </div>
-                                  </td>
-
-                                  {/* Role badge */}
-                                  <td>
-                                    <span className="badge-info" style={{ background: rStyle.bg, color: rStyle.color }}>
-                                      {log.role}
-                                    </span>
-                                  </td>
-
-                                  {/* Action badge */}
-                                  <td>
-                                    <span className="badge-info" style={{ background: aStyle.bg, color: aStyle.color }}>
-                                      {log.action}
-                                    </span>
-                                  </td>
-
-                                  {/* Module */}
-                                  <td style={{ whiteSpace: "nowrap", fontSize: "var(--fs-xs)" }}>{log.module}</td>
-
-                                  {/* Description */}
-                                  <td className="truncate text-muted" style={{ maxWidth: 220, fontSize: "var(--fs-xs)" }} title={log.description}>
-                                    {log.description}
-                                  </td>
-
-                                  {/* Status */}
-                                  <td>
-                                    <span className={ok ? "badge-success" : "badge-danger"}>
-                                      {ok ? <CheckCircle size={12} /> : <XCircle size={12} />}
-                                      {log.status}
-                                    </span>
-                                  </td>
-
-                                  {/* View */}
-                                  <td>
-                                    <button
-                                      className="btn-outline"
-                                      onClick={() => setViewLog(log)}
-                                      style={{ padding: "4px 14px", fontSize: "var(--fs-xs)" }}
+                                {/* User */}
+                                <td>
+                                  <div className="flex-center gap-xs" style={{ justifyContent: "flex-start" }}>
+                                    <div
+                                      className="avatar avatar-sm"
+                                      style={{ background: log.avatarBg, color: "#fff", fontWeight: "var(--fw-bold)", fontSize: "var(--fs-xs)", flexShrink: 0 }}
                                     >
-                                      <Eye size={13} /> View
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })
+                                      {log.initials}
+                                    </div>
+                                    <div>
+                                      <div style={{ fontWeight: "var(--fw-semibold)", color: "var(--color-text-primary)", whiteSpace: "nowrap", fontSize: "var(--fs-sm)" }}>
+                                        {log.user}
+                                      </div>
+                                      <div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>{log.email}</div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* Role badge */}
+                                <td>
+                                  <span className="badge-info" style={{ background: rStyle.bg, color: rStyle.color }}>
+                                    {log.role}
+                                  </span>
+                                </td>
+
+                                {/* Action badge */}
+                                <td>
+                                  <span className="badge-info" style={{ background: aStyle.bg, color: aStyle.color }}>
+                                    {log.action}
+                                  </span>
+                                </td>
+
+                                {/* Module */}
+                                <td style={{ whiteSpace: "nowrap", fontSize: "var(--fs-xs)" }}>{log.module}</td>
+
+                                {/* Description */}
+                                <td className="truncate text-muted" style={{ maxWidth: 220, fontSize: "var(--fs-xs)" }} title={log.description}>
+                                  {log.description}
+                                </td>
+
+                                {/* Status */}
+                                <td>
+                                  <span className={ok ? "badge-success" : "badge-danger"}>
+                                    {ok ? <CheckCircle size={12} /> : <XCircle size={12} />}
+                                    {log.status}
+                                  </span>
+                                </td>
+
+                                {/* View */}
+                                <td>
+                                  <button
+                                    className="btn-outline"
+                                    onClick={() => setViewLog(log)}
+                                    style={{ padding: "4px 14px", fontSize: "var(--fs-xs)" }}
+                                  >
+                                    <Eye size={13} /> View
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
                       }
                     </tbody>
                   </table>
