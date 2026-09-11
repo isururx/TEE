@@ -13,7 +13,9 @@ import {
   Leaf, 
   Camera, 
   LogOut,
-  X
+  X,
+  Flame,
+  FileText
 } from "lucide-react";
 
 const API_BASE = "http://localhost:8000/api";
@@ -47,7 +49,7 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
     }
   }, []);
 
-  // Fetch tasks for the current worker
+  // Fetch tasks for current worker
   const loadTasks = async () => {
     setIsLoading(true);
     setError("");
@@ -80,7 +82,7 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
       });
       if (!res.ok) throw new Error("Failed to start task.");
       const updated = await res.json();
-      setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: "IN PROGRESS" } : t)));
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, ...updated, status: "IN PROGRESS" } : t)));
     } catch (err) {
       alert(err.message);
     }
@@ -131,7 +133,7 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
   }, [tasks, activeTab]);
 
   return (
-    <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", background: "#F4F7F4", display: "flex", flexDirection: "column", position: "relative", paddingBottom: 80 }}>
+    <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", background: "#F4F7F4", display: "flex", flexDirection: "column", position: "relative", paddingBottom: 80, fontFamily: "inherit" }}>
       {/* ---- Mobile Header ---- */}
       <header style={{ background: "#1B5E20", color: "#FFFFFF", padding: "18px 20px 24px", borderBottomLeftRadius: 24, borderBottomRightRadius: 24, boxShadow: "0 4px 16px rgba(27,94,32,0.2)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -201,7 +203,7 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
         ))}
       </div>
 
-      {/* ---- Task List ---- */}
+      {/* ---- MT-09: Task Card List ---- */}
       <main style={{ flex: 1, padding: "8px 20px 20px" }}>
         {error && (
           <div style={{ padding: 12, background: "#FFEBEE", color: "#C62828", borderRadius: 12, fontSize: 13, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
@@ -224,8 +226,37 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {filteredTasks.map((t) => {
               const isCrit = t.priority === "CRITICAL";
+              const isHigh = t.priority === "HIGH";
               const isProg = t.status === "IN PROGRESS";
               const isDone = t.status === "FINISHED" || t.status === "COMPLETED";
+
+              // Priority style mapping
+              let pBg = "#E8F5E9";
+              let pColor = "#2E7D32";
+              if (isCrit) {
+                pBg = "#FFEBEE";
+                pColor = "#C62828";
+              } else if (isHigh) {
+                pBg = "#FFF3E0";
+                pColor = "#E65100";
+              } else if (t.priority === "MEDIUM") {
+                pBg = "#FFF8E1";
+                pColor = "#F57F17";
+              }
+
+              // Status style mapping
+              let sBg = "#F5F5F5";
+              let sColor = "#616161";
+              if (isDone) {
+                sBg = "#E8F5E9";
+                sColor = "#2E7D32";
+              } else if (isProg) {
+                sBg = "#E3F2FD";
+                sColor = "#1565C0";
+              } else if (t.status === "QUEUED" || t.status === "PENDING") {
+                sBg = "#E0F2F1";
+                sColor = "#00695C";
+              }
 
               return (
                 <div 
@@ -238,65 +269,84 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
                     boxShadow: "0 2px 10px rgba(0,0,0,0.03)",
                     display: "flex",
                     flexDirection: "column",
-                    gap: 10
+                    gap: 12,
+                    position: "relative",
+                    overflow: "hidden"
                   }}
                 >
-                  {/* Top row: Priority & Status Badge */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  {/* Left priority indicator strip */}
+                  <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 4, background: isCrit ? "#D32F2F" : isHigh ? "#F57C00" : "#388E3C" }} />
+
+                  {/* Top row: Priority Pill & Status Tag */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingLeft: 4 }}>
                     <span 
                       style={{
-                        padding: "3px 9px",
+                        padding: "3px 10px",
                         borderRadius: 12,
                         fontSize: 10,
                         fontWeight: 800,
                         letterSpacing: "0.04em",
-                        background: isCrit ? "#FFEBEE" : t.priority === "HIGH" ? "#FFF3E0" : "#E8F5E9",
-                        color: isCrit ? "#C62828" : t.priority === "HIGH" ? "#E65100" : "#2E7D32"
+                        background: pBg,
+                        color: pColor,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4
                       }}
                     >
+                      {isCrit && <Flame size={12} color="#C62828" />}
                       {t.priority}
                     </span>
 
                     <span 
                       style={{
-                        padding: "3px 9px",
+                        padding: "3px 10px",
                         borderRadius: 12,
                         fontSize: 10,
                         fontWeight: 700,
-                        background: isDone ? "#E8F5E9" : isProg ? "#E3F2FD" : "#F5F5F5",
-                        color: isDone ? "#2E7D32" : isProg ? "#1565C0" : "#616161"
+                        background: sBg,
+                        color: sColor,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4
                       }}
                     >
+                      {isProg && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#1565C0", display: "inline-block" }} />}
                       {t.status}
                     </span>
                   </div>
 
-                  {/* Task Description */}
-                  <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1F2937", lineHeight: 1.35 }}>
-                    {t.description}
-                  </h3>
+                  {/* Task Description & ID */}
+                  <div style={{ paddingLeft: 4 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#888", marginBottom: 2 }}>TASK #{t.id}</div>
+                    <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#1F2937", lineHeight: 1.4 }}>
+                      {t.description}
+                    </h3>
+                  </div>
 
-                  {/* Metadata Row: Block & Deadline */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 12, color: "#555" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  {/* Metadata: Block Name & Deadline */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 12, color: "#555", paddingLeft: 4, flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, background: "#F1F8F1", padding: "4px 8px", borderRadius: 8 }}>
                       <Leaf size={14} color="#2E7D32" />
-                      <span>{t.plantation_block || `Block ${t.plantation_block_id}`}</span>
+                      <span style={{ fontWeight: 600, color: "#2E7D32" }}>{t.plantation_block || `Block ${t.plantation_block_id}`}</span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, background: "#FFF8E1", padding: "4px 8px", borderRadius: 8 }}>
                       <Clock size={14} color="#E65100" />
-                      <span>Due: {t.deadline || "--"}</span>
+                      <span style={{ fontWeight: 600, color: "#E65100" }}>Due: {t.deadline || "--"}</span>
                     </div>
                   </div>
 
-                  {/* Completion notes if finished */}
+                  {/* Completion Notes display box */}
                   {isDone && t.completion_notes && (
-                    <div style={{ background: "#F1F8E9", padding: "8px 12px", borderRadius: 10, fontSize: 12, color: "#33691E", borderLeft: "3px solid #689F38" }}>
-                      <strong>Notes:</strong> {t.completion_notes}
+                    <div style={{ background: "#F1F8E9", padding: "10px 12px", borderRadius: 12, fontSize: 12, color: "#33691E", borderLeft: "3px solid #689F38", marginLeft: 4 }}>
+                      <div style={{ fontWeight: 700, display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                        <FileText size={12} /> Completion Notes:
+                      </div>
+                      <div>{t.completion_notes}</div>
                     </div>
                   )}
 
-                  {/* Action Buttons */}
-                  <div style={{ marginTop: 4, paddingTop: 10, borderTop: "1px solid #F0F0F0" }}>
+                  {/* Action Button Section */}
+                  <div style={{ marginTop: 2, paddingTop: 10, borderTop: "1px solid #F0F0F0", paddingLeft: 4 }}>
                     {t.status === "QUEUED" && (
                       <button
                         type="button"
@@ -348,7 +398,7 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
                     )}
 
                     {isDone && (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#2E7D32", fontWeight: 700, fontSize: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#2E7D32", fontWeight: 700, fontSize: 12, padding: "4px 0" }}>
                         <CheckCircle2 size={16} /> Completed {t.completed_at ? `(${t.completed_at})` : ""}
                       </div>
                     )}
@@ -360,10 +410,10 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
         )}
       </main>
 
-      {/* ---- Complete Task Mobile Modal ---- */}
+      {/* ---- Complete Task Modal ---- */}
       {completingTask && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", zIndex: 9999, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-          <div style={{ background: "#FFFFFF", width: "100%", maxWidth: 480, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: "24px 20px", boxShadow: "0 -6px 24px rgba(0,0,0,0.15)", animation: "slideUp 0.25s ease-out" }}>
+          <div style={{ background: "#FFFFFF", width: "100%", maxWidth: 480, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: "24px 20px", boxShadow: "0 -6px 24px rgba(0,0,0,0.15)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#111" }}>Complete Task</h3>
