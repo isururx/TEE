@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   ClipboardList, 
   CheckCircle2, 
@@ -347,7 +347,7 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
 
                   {/* Action Button Section */}
                   <div style={{ marginTop: 2, paddingTop: 10, borderTop: "1px solid #F0F0F0", paddingLeft: 4 }}>
-                    {t.status === "QUEUED" && (
+                    {(t.status === "QUEUED" || t.status === "PENDING") && (
                       <button
                         type="button"
                         onClick={() => handleStartTask(t.id)}
