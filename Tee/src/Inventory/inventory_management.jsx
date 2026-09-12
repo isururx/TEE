@@ -336,11 +336,12 @@ const InventoryManagement = ({ onNavigate = () => {} }) => {
         <span>Showing 4 of 128 logs</span>
         <div style={{ display: "flex", gap: "var(--space-3)" }}>
           <span style={{ cursor: "pointer" }}>&lt;</span>
-          <span style={{ cursor: "pointer" }}>&gt;</span>
+          <span style={{  cursor: "pointer" }}>&gt;</span>
         </div>
       </div>
 
     </div>
+    
   </div>
 )}
 
