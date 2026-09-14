@@ -45,7 +45,7 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
   const [workerInfo, setWorkerInfo] = useState({
     name: "Sunil Shantha",
     workerId: "W-104",
-    id: 1,
+    id: null,
     nic: "198912345678",
     dob: "1989-05-14",
     phone: "+94 71 234 5678",
@@ -104,7 +104,11 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
       const stored = sessionStorage.getItem("tee-worker") || sessionStorage.getItem("tee-user") || localStorage.getItem("user");
       if (stored) {
         const parsed = JSON.parse(stored);
-        const wId = parsed.id || parsed.user_id || 1;
+        const rawId = parsed.id ?? parsed.user_id ?? parsed.worker_id ?? parsed.workerId;
+        const wId = typeof rawId === "string" && rawId.startsWith("W-")
+          ? Number(rawId.replace("W-", ""))
+          : Number(rawId);
+        if (!Number.isFinite(wId) || wId <= 0) return;
         setWorkerInfo((prev) => ({
           ...prev,
           name: parsed.name || parsed.full_name || prev.name,
@@ -141,11 +145,12 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
     }
   }, []);
 
-  // Fetch real worker assigned tasks from backend API
+  // Fetch real worker assigned tasks from backend API — only after real id resolves
   useEffect(() => {
+    if (!workerInfo.id) return; // never fetch id 1 as fallback
     async function fetchWorkerTasks() {
       try {
-        const workerId = workerInfo.id || 1;
+        const workerId = workerInfo.id;
         const res = await fetch(`http://localhost:8000/api/workers/${workerId}/tasks`);
         if (res.ok) {
           const data = await res.json();
@@ -238,12 +243,13 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
     },
   ];
 
-  // When 'tasks' tab is active, render WorkerMyTasks directly
+  // When 'tasks' tab is active, render WorkerMyTasks directly — pass resolved id so it never re-guesses id 1
   if (activeMobileTab === "tasks") {
     return (
       <WorkerMyTasks
         onNavigate={onNavigate}
         onBack={() => setActiveMobileTab("dashboard")}
+        workerId={workerInfo.id}
       />
     );
   }
