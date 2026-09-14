@@ -20,6 +20,7 @@ import InventoryManagement from "./inventory/inventory_management.jsx";
 import SupplierManagement from "./inventory/supplier_management.jsx";
 import ActivityLogs from "./auth/ActivityLogs.jsx";
 import WorkerManagement from "./worker_block/worker_management.jsx";
+import WorkerMyTasks from "./worker_block/WorkerMyTasks.jsx";
 import { getStoredRole } from "./common components/sidebars/RoleSidebar.jsx";
 
 function App() {
@@ -70,6 +71,9 @@ function App() {
 
   if (currentPage === "dashboard") {
     const role = getStoredRole();
+    if (role.includes("worker") || role.includes("field")) {
+      return <WorkerMyTasks onNavigate={handleNavigate} />;
+    }
     if (role.includes("admin")) {
       return <AdminDashboard onNavigate={handleNavigate} />;
     }
@@ -115,6 +119,10 @@ function App() {
 
   if (currentPage === "BlockDetail") {
     return <BlockDetail onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "myTasks" || currentPage === "MyTasks" || currentPage === "workerTasks" || currentPage === "worker-tasks") {
+    return <WorkerMyTasks onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "TaskManagement" || currentPage === "tasks") {
