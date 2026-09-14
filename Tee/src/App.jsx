@@ -11,6 +11,7 @@ import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
 import SupervisorDashboard from "./dashboards/supervisor_dashboard.jsx";
 import SupervisorDashboardMobile from "./dashboards/supervisor_dashboard_mobile.jsx";
+import WorkerDashboard from "./dashboards/worker_dashboard.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
@@ -20,6 +21,7 @@ import InventoryManagement from "./inventory/inventory_management.jsx";
 import SupplierManagement from "./inventory/supplier_management.jsx";
 import ActivityLogs from "./auth/ActivityLogs.jsx";
 import WorkerManagement from "./worker_block/worker_management.jsx";
+import WorkerMyTasks from "./worker_block/WorkerMyTasks.jsx";
 import { getStoredRole } from "./common components/sidebars/RoleSidebar.jsx";
 
 function App() {
@@ -70,12 +72,18 @@ function App() {
 
   if (currentPage === "dashboard") {
     const role = getStoredRole();
+    if (role.includes("worker") || role.includes("field")) {
+      return <WorkerMyTasks onNavigate={handleNavigate} />;
+    }
     if (role.includes("admin")) {
       return <AdminDashboard onNavigate={handleNavigate} />;
     }
     if (role.includes("supervisor")) {
       if (isMobile) return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
       return <SupervisorDashboard onNavigate={handleNavigate} />;
+    }
+    if (role.includes("worker")) {
+      return <WorkerDashboard onNavigate={handleNavigate} />;
     }
     if (isMobile) return <ManagerDashboardMobile onNavigate={handleNavigate} />;
     return <ManagerDashboard onNavigate={handleNavigate} />;
@@ -88,6 +96,10 @@ function App() {
   if (currentPage === "managerDashboard") {
     if (isMobile) return <ManagerDashboardMobile onNavigate={handleNavigate} />;
     return <ManagerDashboard onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "workerDashboard" || currentPage === "worker-dashboard" || currentPage === "worker") {
+    return <WorkerDashboard onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "WorkerManagement" || currentPage === "workers") {
@@ -117,7 +129,15 @@ function App() {
     return <BlockDetail onNavigate={handleNavigate} />;
   }
 
+  if (currentPage === "myTasks" || currentPage === "MyTasks" || currentPage === "workerTasks" || currentPage === "worker-tasks") {
+    return <WorkerMyTasks onNavigate={handleNavigate} />;
+  }
+
   if (currentPage === "TaskManagement" || currentPage === "tasks") {
+    const role = getStoredRole();
+    if (role.includes("worker")) {
+      return <WorkerDashboard onNavigate={handleNavigate} initialTab="tasks" />;
+    }
     return <TaskManagement onNavigate={handleNavigate} />;
   }
 

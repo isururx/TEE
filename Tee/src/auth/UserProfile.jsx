@@ -1,20 +1,20 @@
-import React, { useState } from "react";
-import { Pencil, Phone, MapPin, Mail } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Pencil, Phone, MapPin, Mail, ArrowLeft } from "lucide-react";
 import Header from "../common components/header.jsx";
 import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
 import EditProfileModal from "./EditProfileModal.jsx";
 
 const initialProfile = {
-  name: "Hashanth J",
-  initials: "HJ",
-  role: "Manager",
-  employeeId: "EF00123",
-  joined: "Mar 2022",
-  tenure: "2 years",
-  phone: "070654164",
-  address: "Block 4, Staff Quarters",
-  email: "harshanth@example.com",
+  name: "Sunil Shantha",
+  initials: "SS",
+  role: "Field Worker",
+  employeeId: "W-104",
+  joined: "Jan 2021",
+  tenure: "3 years",
+  phone: "+94 71 234 5678",
+  address: "Block A Quarters #14, East Ridge Estate",
+  email: "sunil.estate@teafarm.lk",
 };
 
 /**
@@ -24,18 +24,64 @@ const initialProfile = {
  * Fully styled with index.css classes and design tokens.
  */
 export default function UserProfile({ onNavigate = () => { } }) {
-  const [user, setUser] = useState(initialProfile);
+  const [user, setUser] = useState(() => {
+    try {
+      const stored =
+        sessionStorage.getItem("tee-worker") ||
+        sessionStorage.getItem("tee-user") ||
+        localStorage.getItem("user");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const name = parsed.name || parsed.full_name || parsed.username || initialProfile.name;
+        const initials = name
+          .split(" ")
+          .filter(Boolean)
+          .map((n) => n[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase() || "W";
+        return {
+          ...initialProfile,
+          ...parsed,
+          name,
+          initials,
+          role: parsed.role || parsed.designation || initialProfile.role,
+          employeeId:
+            parsed.worker_id ||
+            parsed.employeeId ||
+            parsed.nic ||
+            (parsed.id ? `W-${parsed.id}` : initialProfile.employeeId),
+          phone: parsed.phone_num || parsed.phone || initialProfile.phone,
+          email: parsed.email || initialProfile.email,
+          address: parsed.address || initialProfile.address,
+        };
+      }
+    } catch (e) {
+      console.warn("Failed to load stored user", e);
+    }
+    return initialProfile;
+  });
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSave = (updatedData) => {
-    setUser((prev) => ({ ...prev, ...updatedData }));
+    setUser((prev) => {
+      const next = { ...prev, ...updatedData };
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          localStorage.setItem("user", JSON.stringify({ ...parsed, ...updatedData }));
+        }
+      } catch (e) {}
+      return next;
+    });
   };
 
   const statusItems = [
     { label: "Role", value: user.role },
     { label: "Employee ID", value: user.employeeId },
-    { label: "Joined", value: user.joined },
-    { label: "Tenure", value: user.tenure },
+    { label: "Joined", value: user.joined || "Jan 2021" },
+    { label: "Tenure", value: user.tenure || "3 years" },
   ];
 
   const contactItems = [
@@ -55,10 +101,43 @@ export default function UserProfile({ onNavigate = () => { } }) {
 
       {/* ---- Layout with Sidebar and Main Content Area ---- */}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        <RoleSidebar activeItem="settings" onNavigate={onNavigate} />
+        <RoleSidebar activeItem="profile" onNavigate={onNavigate} />
 
         {/* ---- Main Profile Content ---- */}
         <main style={{ flex: 1, minWidth: 0, paddingBottom: "var(--space-12)", overflowX: "hidden" }}>
+          {/* Back Navigation Bar */}
+          <div
+            style={{
+              padding: "var(--space-3) var(--space-6)",
+              background: "var(--color-card)",
+              borderBottom: "1px solid var(--color-border)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => onNavigate("dashboard")}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                background: "var(--color-hover-green)",
+                border: "1px solid var(--color-primary)",
+                padding: "6px 12px",
+                borderRadius: "var(--radius-md)",
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "var(--color-primary)",
+                cursor: "pointer",
+              }}
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Dashboard</span>
+            </button>
+          </div>
+
           {/* Cover Banner */}
           <div style={{ height: 200, background: "linear-gradient(135deg, var(--color-dark-green) 0%, var(--color-primary) 100%)", width: "100%" }} />
 
