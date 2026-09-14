@@ -11,6 +11,7 @@ import ManagerDashboard from "./dashboards/manager_dashboard.jsx";
 import ManagerDashboardMobile from "./dashboards/manager_Dashobard_mobile.jsx";
 import SupervisorDashboard from "./dashboards/supervisor_dashboard.jsx";
 import SupervisorDashboardMobile from "./dashboards/supervisor_dashboard_mobile.jsx";
+import WorkerDashboard from "./dashboards/worker_dashboard.jsx";
 import StateAnalytics from "./analytics/stateAnalytics.jsx";
 import BlockManagement from "./worker_block/block_management.jsx";
 import BlockDetail from "./worker_block/block_detail.jsx";
@@ -77,6 +78,9 @@ function App() {
       if (isMobile) return <SupervisorDashboardMobile onNavigate={handleNavigate} />;
       return <SupervisorDashboard onNavigate={handleNavigate} />;
     }
+    if (role.includes("worker")) {
+      return <WorkerDashboard onNavigate={handleNavigate} />;
+    }
     if (isMobile) return <ManagerDashboardMobile onNavigate={handleNavigate} />;
     return <ManagerDashboard onNavigate={handleNavigate} />;
   }
@@ -88,6 +92,10 @@ function App() {
   if (currentPage === "managerDashboard") {
     if (isMobile) return <ManagerDashboardMobile onNavigate={handleNavigate} />;
     return <ManagerDashboard onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "workerDashboard" || currentPage === "worker-dashboard" || currentPage === "worker") {
+    return <WorkerDashboard onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "WorkerManagement" || currentPage === "workers") {
@@ -118,6 +126,10 @@ function App() {
   }
 
   if (currentPage === "TaskManagement" || currentPage === "tasks") {
+    const role = getStoredRole();
+    if (role.includes("worker")) {
+      return <WorkerDashboard onNavigate={handleNavigate} initialTab="tasks" />;
+    }
     return <TaskManagement onNavigate={handleNavigate} />;
   }
 

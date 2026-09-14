@@ -2,6 +2,7 @@ import React from "react";
 import AdminSidebar from "./admin_sidebar.jsx";
 import ManagerSidebar from "./manager_sidebar.jsx";
 import SupervisorSidebar from "./supervisor_sidebar.jsx";
+import WorkerSidebar from "./worker_sidebar.jsx";
 
 /**
  * Reads user role from localStorage JSON ("user"), or direct keys ("user_role", "role").
@@ -38,5 +39,10 @@ export default function RoleSidebar({
     return <SupervisorSidebar activeItem={activeItem} onNavigate={onNavigate} isOpen={isOpen} />;
   }
 
+  if (effectiveRole.includes("worker")) {
+    return <WorkerSidebar activeItem={activeItem} onNavigate={onNavigate} isOpen={isOpen} />;
+  }
+
   return <ManagerSidebar activeItem={activeItem} onNavigate={onNavigate} isOpen={isOpen} />;
 }
+

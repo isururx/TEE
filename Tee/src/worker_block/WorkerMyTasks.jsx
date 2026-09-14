@@ -1,32 +1,34 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { 
-  ClipboardList, 
-  CheckCircle2, 
-  Clock, 
-  AlertTriangle, 
-  Play, 
-  Check, 
-  RefreshCw, 
-  MapPin, 
-  Calendar, 
-  User, 
-  Leaf, 
-  Camera, 
+import {
+  ClipboardList,
+  CheckCircle2,
+  Clock,
+  AlertTriangle,
+  Play,
+  Check,
+  RefreshCw,
+  MapPin,
+  Calendar,
+  User,
+  Leaf,
+  Camera,
   LogOut,
   X,
   Flame,
-  FileText
+  FileText,
+  Home,
+  ArrowLeft
 } from "lucide-react";
 
 const API_BASE = "http://localhost:8000/api";
 
-export default function WorkerMyTasks({ onNavigate = () => {} }) {
+export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null }) {
   const [worker, setWorker] = useState({ id: 1, name: "Field Worker", assigned_block: null });
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState("ALL"); // ALL, QUEUED, IN PROGRESS, FINISHED
-  
+
   // Complete modal state
   const [completingTask, setCompletingTask] = useState(null);
   const [completionNotes, setCompletionNotes] = useState("");
@@ -35,12 +37,12 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
   // Load worker session or default worker
   useEffect(() => {
     try {
-      const stored = sessionStorage.getItem("tee-worker") || sessionStorage.getItem("tee-user");
+      const stored = sessionStorage.getItem("tee-worker") || sessionStorage.getItem("tee-user") || localStorage.getItem("user");
       if (stored) {
         const parsed = JSON.parse(stored);
         setWorker({
           id: parsed.id || parsed.user_id || 1,
-          name: parsed.name || "Field Worker",
+          name: parsed.name || parsed.full_name || "Field Worker",
           assigned_block: parsed.assigned_block || parsed.block_id || null
         });
       }
@@ -138,6 +140,14 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
       <header style={{ background: "#1B5E20", color: "#FFFFFF", padding: "18px 20px 24px", borderBottomLeftRadius: 24, borderBottomRightRadius: 24, boxShadow: "0 4px 16px rgba(27,94,32,0.2)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              type="button"
+              onClick={() => (onBack ? onBack() : onNavigate("workerDashboard"))}
+              title="Back to Dashboard"
+              style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", marginRight: 2 }}
+            >
+              <ArrowLeft size={18} />
+            </button>
             <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#FFFFFF", color: "#1B5E20", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: 16 }}>
               {worker.name.charAt(0).toUpperCase()}
             </div>
@@ -146,9 +156,9 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
               <span style={{ fontSize: 12, opacity: 0.85 }}>Worker #{worker.id} {worker.assigned_block ? `• Block ${worker.assigned_block}` : ""}</span>
             </div>
           </div>
-          <button 
-            type="button" 
-            onClick={loadTasks} 
+          <button
+            type="button"
+            onClick={loadTasks}
             title="Refresh tasks"
             style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
           >
@@ -259,8 +269,8 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
               }
 
               return (
-                <div 
-                  key={t.id} 
+                <div
+                  key={t.id}
                   style={{
                     background: "#FFFFFF",
                     borderRadius: 18,
@@ -279,7 +289,7 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
 
                   {/* Top row: Priority Pill & Status Tag */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingLeft: 4 }}>
-                    <span 
+                    <span
                       style={{
                         padding: "3px 10px",
                         borderRadius: 12,
@@ -297,7 +307,7 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
                       {t.priority}
                     </span>
 
-                    <span 
+                    <span
                       style={{
                         padding: "3px 10px",
                         borderRadius: 12,
@@ -419,8 +429,8 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
                 <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#111" }}>Complete Task</h3>
                 <span style={{ fontSize: 12, color: "#666" }}>Task #{completingTask.id} • {completingTask.description}</span>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setCompletingTask(null)}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "#666" }}
               >
@@ -478,7 +488,16 @@ export default function WorkerMyTasks({ onNavigate = () => {} }) {
       <nav style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, height: 64, background: "#FFFFFF", borderTop: "1px solid #E0E0E0", display: "flex", justifyContent: "space-around", alignItems: "center", zIndex: 100, boxShadow: "0 -2px 10px rgba(0,0,0,0.05)" }}>
         <button
           type="button"
-          onClick={() => {}}
+          onClick={() => (onBack ? onBack() : onNavigate("workerDashboard"))}
+          style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, color: "#666", cursor: "pointer", fontWeight: 500, fontSize: 11 }}
+        >
+          <Home size={20} color="#666" />
+          <span>Dashboard</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { }}
           style={{ background: "none", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, color: "#1B5E20", cursor: "pointer", fontWeight: 700, fontSize: 11 }}
         >
           <ClipboardList size={20} color="#1B5E20" />
