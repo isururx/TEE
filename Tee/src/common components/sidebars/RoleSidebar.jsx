@@ -40,3 +40,4 @@ export default function RoleSidebar({
 
   return <ManagerSidebar activeItem={activeItem} onNavigate={onNavigate} isOpen={isOpen} />;
 }
+

@@ -185,6 +185,8 @@ export default function TwoStepVerification({
           targetDashboard = "adminDashboard";
         } else if (roleLower.includes("supervisor")) {
           targetDashboard = "supervisorDashboard";
+        } else if (roleLower.includes("worker")) {
+          targetDashboard = "workerDashboard";
         } else if (roleLower.includes("manager")) {
           targetDashboard = "managerDashboard";
         }
