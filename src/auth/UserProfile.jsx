@@ -128,6 +128,7 @@ export default function UserProfile({ onNavigate = () => { } }) {
         if (stored) {
           const parsed = JSON.parse(stored);
           localStorage.setItem("user", JSON.stringify({ ...parsed, ...next }));
+          window.dispatchEvent(new Event("tee-user-updated"));
         }
       } catch (e) {}
       return next;

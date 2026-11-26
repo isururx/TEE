@@ -60,7 +60,6 @@ export default function AdminDashboard({ onNavigate = () => {} }) {
       <Header
         title="Admin Dashboard"
         crumbs={[{ label: "Home", href: "#" }, { label: "Admin Dashboard", href: "#" }]}
-        user={{ name: "Admin", role: "Administrator", initials: "AD" }}
       />
 
       <div style={{ minHeight: "calc(100vh - var(--topbar-height))", display: "flex" }}>

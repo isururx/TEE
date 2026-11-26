@@ -193,7 +193,6 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
           { label: "Home", href: "#" },
           { label: "Dashboard", href: "#" },
         ]}
-        user={{ name: "Admin", role: "Administrator", initials: "AD" }}
         onLogout={() => onNavigate("login")}
       />
 

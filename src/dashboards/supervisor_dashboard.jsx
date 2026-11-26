@@ -125,7 +125,6 @@ export default function SupervisorDashboard({ onNavigate = () => {} }) {
       <Header
         title="Supervisor Dashboard"
         crumbs={[{ label: "Home", href: "#" }, { label: "Dashboard", href: "#" }]}
-        user={{ name: "Kamal Perera", role: "Field Supervisor", initials: "KP" }}
       />
 
       {/* Main Layout Body */}

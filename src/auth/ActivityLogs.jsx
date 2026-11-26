@@ -265,7 +265,6 @@ export default function ActivityLogs({ onNavigate = () => { } }) {
       <Header
         title="Activity Logs"
         crumbs={[{ label: "Home", href: "#" }, { label: "System", href: "#" }]}
-        user={{ name: "Admin User", role: "System Admin", initials: "AU" }}
         onLogout={() => onNavigate("login")}
       />
 

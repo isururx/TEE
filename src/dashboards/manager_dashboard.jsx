@@ -133,7 +133,6 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
       <Header
         title="Manager Dashboard"
         crumbs={[{ label: "Home", href: "#" }, { label: "Dashboard", href: "#" }]}
-        user={{ name: "Hasanth J", role: "Estate Manager", initials: "HJ" }}
       />
 
       {/* Main Layout Body */}
