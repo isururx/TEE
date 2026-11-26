@@ -25,7 +25,7 @@ import WorkerMyTasks from "./worker_block/WorkerMyTasks.jsx";
 import { getStoredRole } from "./common components/sidebars/RoleSidebar.jsx";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("login");
+  const [currentPage, setCurrentPage] = useState("StateAnalytics");
 
 
   const [isMobile, setIsMobile] = useState(
