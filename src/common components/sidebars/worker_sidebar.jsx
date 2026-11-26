@@ -1,36 +1,22 @@
 import React from "react";
 import {
-  LayoutDashboard,
+  ClipboardList,
   Camera,
-  CheckSquare,
-  Clock,
   User,
   Leaf,
 } from "lucide-react";
 
 export default function WorkerSidebar({
-  activeItem = "dashboard",
+  activeItem = "myTasks",
   onNavigate = () => {},
   isOpen = false,
 }) {
   const sections = [
     {
-      label: "Overview",
+      label: "Field Work",
       items: [
-        { key: "dashboard", label: "Worker Dashboard", icon: LayoutDashboard },
-      ],
-    },
-    {
-      label: "Quality & AI Tools",
-      items: [
-        { key: "detection", label: "Disease Detection", icon: Camera, highlight: true },
-      ],
-    },
-    {
-      label: "My Work",
-      items: [
-        { key: "tasks", label: "My Daily Tasks", icon: CheckSquare },
-        { key: "attendance", label: "My Attendance", icon: Clock },
+        { key: "myTasks", label: "My Tasks", icon: ClipboardList },
+        { key: "detection", label: "Scan Leaf", icon: Camera },
       ],
     },
     {
@@ -65,7 +51,7 @@ export default function WorkerSidebar({
         }}
       >
         <span
-          className="badge badge-success"
+          className="badge badge-info"
           style={{
             fontSize: "0.75rem",
             textTransform: "uppercase",
@@ -97,7 +83,7 @@ export default function WorkerSidebar({
             <div className="sidebar-section-label" style={{ padding: "var(--space-2) var(--space-6)", fontSize: "0.7rem" }}>
               {section.label}
             </div>
-            {section.items.map(({ key, label, icon: Icon, highlight }) => {
+            {section.items.map(({ key, label, icon: Icon }) => {
               const active = activeItem === key;
               return (
                 <div
@@ -114,27 +100,10 @@ export default function WorkerSidebar({
                     padding: "var(--space-2) var(--space-6)",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
-                    position: "relative",
-                    background: highlight && !active ? "rgba(46, 125, 50, 0.05)" : undefined,
                   }}
                 >
-                  <Icon className="icon" size={18} color={highlight && !active ? "var(--color-primary)" : undefined} />
-                  <span style={{ fontSize: "0.875rem", fontWeight: highlight ? 600 : 400 }}>{label}</span>
-                  {highlight && (
-                    <span
-                      style={{
-                        marginLeft: "auto",
-                        fontSize: "0.65rem",
-                        background: "var(--color-primary)",
-                        color: "#fff",
-                        padding: "2px 6px",
-                        borderRadius: "10px",
-                        fontWeight: 700,
-                      }}
-                    >
-                      AI
-                    </span>
-                  )}
+                  <Icon className="icon" size={18} />
+                  <span style={{ fontSize: "0.875rem" }}>{label}</span>
                 </div>
               );
             })}

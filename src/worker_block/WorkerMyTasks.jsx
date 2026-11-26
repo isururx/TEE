@@ -22,8 +22,8 @@ import {
 
 const API_BASE = "http://localhost:8000/api";
 
-export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null }) {
-  const [worker, setWorker] = useState({ id: 1, name: "Field Worker", assigned_block: null });
+export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null, workerId = null }) {
+  const [worker, setWorker] = useState({ id: workerId ?? null, name: "Field Worker", assigned_block: null });
   const [tasks, setTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -34,31 +34,56 @@ export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null })
   const [completionNotes, setCompletionNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load worker session or default worker
-  useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem("tee-worker") || sessionStorage.getItem("tee-user") || localStorage.getItem("user");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setWorker({
-          id: parsed.id || parsed.user_id || 1,
-          name: parsed.name || parsed.full_name || "Field Worker",
-          assigned_block: parsed.assigned_block || parsed.block_id || null
-        });
+  const resolveStoredWorkerId = () => {
+    // Priority: explicit prop > tee-worker > tee-user > user_id key > user object
+    if (workerId) return Number(workerId);
+    const candidates = [
+      sessionStorage.getItem("tee-worker"),
+      sessionStorage.getItem("tee-user"),
+      localStorage.getItem("user"),
+    ];
+    for (const raw of candidates) {
+      if (!raw) continue;
+      try {
+        const parsed = JSON.parse(raw);
+        const id = parsed.id ?? parsed.user_id ?? parsed.worker_id ?? parsed.workerId;
+        if (id) {
+          const numeric = typeof id === "string" && id.startsWith("W-")
+            ? Number(id.replace("W-", ""))
+            : Number(id);
+          if (Number.isFinite(numeric) && numeric > 0) {
+            setWorker({
+              id: numeric,
+              name: parsed.name || parsed.full_name || "Field Worker",
+              assigned_block: parsed.assigned_block ?? parsed.assignedBlock ?? parsed.block_id ?? null,
+            });
+            return numeric;
+          }
+        }
+      } catch (e) {
+        console.error("Error reading stored worker session", e);
       }
-    } catch (e) {
-      console.error("Error reading stored worker session", e);
     }
-  }, []);
+    const directId = localStorage.getItem("user_id");
+    if (directId && Number(directId) > 0) return Number(directId);
+    return null;
+  };
 
-  // Fetch tasks for current worker
-  const loadTasks = async () => {
+  const loadTasks = async (explicitId = null) => {
+    const id = explicitId ?? worker.id ?? workerId ?? resolveStoredWorkerId();
+    if (!id) {
+      setIsLoading(false);
+      setError("No worker session found. Please log in again.");
+      return;
+    }
     setIsLoading(true);
     setError("");
     try {
-      const workerId = worker.id || 1;
-      const res = await fetch(`${API_BASE}/workers/${workerId}/tasks`);
-      if (!res.ok) throw new Error("Could not load assigned tasks.");
+      const res = await fetch(`${API_BASE}/workers/${id}/tasks`);
+      if (!res.ok) {
+        if (res.status === 404) throw new Error("Worker not found or has no assigned tasks.");
+        throw new Error("Could not load assigned tasks.");
+      }
       const data = await res.json();
       setTasks(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -68,11 +93,19 @@ export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null })
     }
   };
 
+  // Resolve worker once on mount, then fetch exactly once — never fall back to id 1
+  // Also re-fetch if the parent passes a resolved workerId later (WorkerDashboard case)
   useEffect(() => {
-    if (worker.id) {
-      loadTasks();
+    const id = workerId ?? resolveStoredWorkerId();
+    if (id) {
+      setWorker((prev) => (prev.id === id ? prev : { ...prev, id }));
+      loadTasks(id);
+    } else {
+      setIsLoading(false);
+      setError("No worker session found. Please log in again.");
     }
-  }, [worker.id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workerId]);
 
   // Status transition handler: Start Task
   const handleStartTask = async (taskId) => {
@@ -136,6 +169,30 @@ export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null })
 
   return (
     <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", background: "#F4F7F4", display: "flex", flexDirection: "column", position: "relative", paddingBottom: 80, fontFamily: "inherit" }}>
+      {/* ---- Loading / error states (never blank) ---- */}
+      {isLoading && (
+        <div style={{ padding: "64px 24px", textAlign: "center", color: "#2E7D32" }}>
+          <RefreshCw size={28} style={{ animation: "spin 1s linear infinite" }} />
+          <p style={{ fontSize: 14, fontWeight: 600, marginTop: 12 }}>Loading your tasks…</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+      {!isLoading && error && (
+        <div style={{ padding: "64px 24px", textAlign: "center" }}>
+          <AlertTriangle size={36} color="#C62828" style={{ marginBottom: 12 }} />
+          <h3 style={{ margin: "0 0 8px", fontSize: 16, fontWeight: 700, color: "#333" }}>Could not load tasks</h3>
+          <p style={{ margin: "0 0 16px", fontSize: 13, color: "#666" }}>{error}</p>
+          <button
+            type="button"
+            onClick={() => loadTasks()}
+            style={{ padding: "10px 24px", borderRadius: 12, border: "none", background: "#1B5E20", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+      {!isLoading && !error && (
+      <>
       {/* ---- Mobile Header ---- */}
       <header style={{ background: "#1B5E20", color: "#FFFFFF", padding: "18px 20px 24px", borderBottomLeftRadius: 24, borderBottomRightRadius: 24, boxShadow: "0 4px 16px rgba(27,94,32,0.2)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -522,6 +579,10 @@ export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null })
           <span>Logout</span>
         </button>
       </nav>
+
+      {/* close main-content fragment */}
+      </>
+      )}
     </div>
   );
 }

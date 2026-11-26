@@ -39,7 +39,7 @@ export default function RoleSidebar({
     return <SupervisorSidebar activeItem={activeItem} onNavigate={onNavigate} isOpen={isOpen} />;
   }
 
-  if (effectiveRole.includes("worker")) {
+  if (effectiveRole.includes("worker") || effectiveRole.includes("field")) {
     return <WorkerSidebar activeItem={activeItem} onNavigate={onNavigate} isOpen={isOpen} />;
   }
 

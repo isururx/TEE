@@ -30,6 +30,7 @@ export default function Header({
   user = { name: "Hasanth J", role: "Manager", initials: "HJ" },
   notificationCount = 3,
   onSearch = () => {},
+  onProfile = null,
   onLogout = () => {},
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -163,7 +164,17 @@ export default function Header({
                   {user.role}
                 </div>
               </div>
-              <div className="dropdown-item">
+              <div
+                className="dropdown-item"
+                onClick={() => {
+                  setMenuOpen(false);
+                  if (onProfile) {
+                    onProfile();
+                  } else {
+                    window.dispatchEvent(new CustomEvent("tee-navigate", { detail: "profile" }));
+                  }
+                }}
+              >
                 <User size={15} /> Profile
               </div>
               <div className="dropdown-item">

@@ -45,7 +45,7 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
   const [workerInfo, setWorkerInfo] = useState({
     name: "Sunil Shantha",
     workerId: "W-104",
-    id: 1,
+    id: null,
     nic: "198912345678",
     dob: "1989-05-14",
     phone: "+94 71 234 5678",
@@ -62,33 +62,8 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
     designation: "Field Worker / Senior Tea Harvester",
   });
 
-  // Worker Tasks Checklist State
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Harvest Tea Leaves - Sector 4",
-      time: "07:30 AM - 11:30 AM",
-      completed: true,
-      status: "COMPLETED",
-      priority: "HIGH",
-    },
-    {
-      id: 2,
-      title: "Leaf Disease Visual Inspection",
-      time: "11:45 AM - 01:00 PM",
-      completed: false,
-      status: "IN PROGRESS",
-      priority: "MEDIUM",
-    },
-    {
-      id: 3,
-      title: "Weed Clearing - Drain Border B",
-      time: "01:30 PM - 03:00 PM",
-      completed: false,
-      status: "QUEUED",
-      priority: "LOW",
-    },
-  ]);
+  // Worker Tasks Checklist State (populated from database)
+  const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
     if (initialModal === "profile") {
@@ -104,7 +79,11 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
       const stored = sessionStorage.getItem("tee-worker") || sessionStorage.getItem("tee-user") || localStorage.getItem("user");
       if (stored) {
         const parsed = JSON.parse(stored);
-        const wId = parsed.id || parsed.user_id || 1;
+        const rawId = parsed.id ?? parsed.user_id ?? parsed.worker_id ?? parsed.workerId;
+        const wId = typeof rawId === "string" && rawId.startsWith("W-")
+          ? Number(rawId.replace("W-", ""))
+          : Number(rawId);
+        if (!Number.isFinite(wId) || wId <= 0) return;
         setWorkerInfo((prev) => ({
           ...prev,
           name: parsed.name || parsed.full_name || prev.name,
@@ -141,15 +120,19 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
     }
   }, []);
 
-  // Fetch real worker assigned tasks from backend API
+  // Fetch real worker assigned tasks from backend API — only after real id resolves
   useEffect(() => {
+    if (!workerInfo.id) return; // never fetch id 1 as fallback
     async function fetchWorkerTasks() {
       try {
-        const workerId = workerInfo.id || 1;
-        const res = await fetch(`http://localhost:8000/api/workers/${workerId}/tasks`);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
+        const workerId = workerInfo.id;
+        const [tasksRes, summaryRes] = await Promise.all([
+          fetch(`http://localhost:8000/api/workers/${workerId}/tasks`),
+          fetch(`http://localhost:8000/api/dashboard/worker/${workerId}`),
+        ]);
+        if (tasksRes.ok) {
+          const data = await tasksRes.json();
+          if (Array.isArray(data)) {
             setTasks(
               data.map((t) => ({
                 id: t.id,
@@ -161,6 +144,14 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
               }))
             );
           }
+        }
+        if (summaryRes.ok) {
+          const summary = await summaryRes.json();
+          setWorkerInfo((prev) => ({
+            ...prev,
+            clockInTime: summary.clock_in_time || prev.clockInTime,
+            status: summary.status || prev.status,
+          }));
         }
       } catch (err) {
         // Keep fallback checklist if backend is not responding
@@ -238,12 +229,13 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
     },
   ];
 
-  // When 'tasks' tab is active, render WorkerMyTasks directly
+  // When 'tasks' tab is active, render WorkerMyTasks directly — pass resolved id so it never re-guesses id 1
   if (activeMobileTab === "tasks") {
     return (
       <WorkerMyTasks
         onNavigate={onNavigate}
         onBack={() => setActiveMobileTab("dashboard")}
+        workerId={workerInfo.id}
       />
     );
   }
