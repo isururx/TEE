@@ -132,7 +132,7 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
         ]);
         if (tasksRes.ok) {
           const data = await tasksRes.json();
-          if (Array.isArray(data)) {
+          if (Array.isArray(data) && data.length > 0) {
             setTasks(
               data.map((t) => ({
                 id: t.id,
