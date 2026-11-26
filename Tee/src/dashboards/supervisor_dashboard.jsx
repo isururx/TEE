@@ -693,7 +693,9 @@ export default function SupervisorDashboard({ onNavigate = () => { } }) {
 
           </div>
         </main>
-
+      </div>
+      {/* Footer */}
+      <Footer />
 
 
       </div>

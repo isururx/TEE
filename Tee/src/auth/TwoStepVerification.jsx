@@ -163,11 +163,31 @@ export default function TwoStepVerification({
       if (response.ok) {
         const data = await response.json();
 
-        // Save user info & role to localStorage
-        const userObj = data.user || data;
-        localStorage.setItem("user", JSON.stringify(userObj));
+        // Normalize + persist session: backend returns flat {user_id, name, email, role, access_token}
+        const normalizedUser = data.user && typeof data.user === "object"
+          ? data.user
+          : {
+              id: data.user_id ?? data.id,
+              user_id: data.user_id ?? data.id,
+              name: data.name,
+              email: data.email,
+              role: data.role,
+            };
+        localStorage.setItem("user", JSON.stringify(normalizedUser));
 
-        const role = data.role || data.user?.role;
+        let role = data.role || data.user?.role || data.user_role || data.user?.user_role;
+        if (!role) {
+          role = localStorage.getItem("user_role") || "";
+          if (!role) {
+            try {
+              const savedUser = JSON.parse(localStorage.getItem("user") || "{}");
+              role = savedUser.role || savedUser.user_role || "";
+            } catch (e) {
+              // ignore parse error
+            }
+          }
+        }
+
         if (role) {
           localStorage.setItem("user_role", role);
         }
@@ -189,6 +209,8 @@ export default function TwoStepVerification({
           targetDashboard = "workerDashboard";
         } else if (roleLower.includes("manager")) {
           targetDashboard = "managerDashboard";
+        } else if (roleLower.includes("worker")) {
+          targetDashboard = "workerDashboard";
         }
 
         setSuccess("Verification successful! Redirecting to Dashboard...");

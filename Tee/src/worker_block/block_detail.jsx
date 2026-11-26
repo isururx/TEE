@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
-import { Clock3, Edit3, Plus, RotateCcw, Trash2, UserCheck, Calendar, MapPin, X } from "lucide-react";
+import { Clock3, Edit3, Plus, RotateCcw, Trash2, UserCheck, Calendar, MapPin, X, ClipboardList, Sprout, Leaf, Settings } from "lucide-react";
 import BlockFormModal from "./block_form_modal.jsx";
 
 const teaVarieties = [
@@ -38,12 +38,9 @@ const defaultHistory = [
 	{ date: "Aug 12, 2023", teaVariety: "Assamica Gold", quantity: "1,420.5", efficiency: "91.4%", status: "VERIFIED" },
 ];
 
-const defaultActivityLog = [
-	{ title: "Soil Testing", meta: "Oct 24, 14:20  Operator: R.Chen" },
-	{ title: "Irrigation Scheduled", meta: "Oct 22, 06:00  Automated System" },
-	{ title: "Pesticide Application", meta: "Oct 19, 09:15  Operator: K.Patel" },
-	{ title: "Pruning", meta: "Oct 15, 11:45  Team Beta (12 members)" },
-];
+// MT-20: live timeline only — never seed mock activity rows. On a fetch failure
+// the section shows the empty state instead of fake operations.
+const defaultActivityLog = [];
 
 const emptyHarvestForm = {
 	date: new Date().toISOString().slice(0, 10),
@@ -52,6 +49,33 @@ const emptyHarvestForm = {
 	efficiencyPct: "",
 	status: "VERIFIED",
 };
+
+// MT-20: category icon per timeline title prefix. Matches the exact titles
+// written by log_block_event hooks (MT-15..MT-19, MT-24): "Task #..",
+// "Harvest Logged..", "Harvest Record Deleted..", "Block Registered/Updated..",
+// "Attendance:..". Unknown titles fall back to Leaf.
+function ActivityCategoryIcon({ title }) {
+	const t = (title || "").toLowerCase();
+	let Icon = Leaf;
+	let bg = "rgba(46,125,50,0.12)";
+	let color = "#2E7D32";
+	if (t.startsWith("task #") || t.startsWith("task")) {
+		Icon = ClipboardList; bg = "rgba(21,101,192,0.12)"; color = "#1565C0";
+	} else if (t.startsWith("harvest logged")) {
+		Icon = Sprout; bg = "rgba(46,125,50,0.12)"; color = "#2E7D32";
+	} else if (t.startsWith("harvest record deleted")) {
+		Icon = Trash2; bg = "rgba(198,40,40,0.10)"; color = "#C62828";
+	} else if (t.startsWith("block registered") || t.startsWith("block updated")) {
+		Icon = Settings; bg = "rgba(69,39,160,0.10)"; color = "#4527A0";
+	} else if (t.startsWith("attendance")) {
+		Icon = UserCheck; bg = "rgba(239,108,0,0.12)"; color = "#EF6C00";
+	}
+	return (
+		<span style={{ width: 32, height: 32, borderRadius: "50%", background: bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+			<Icon size={16} color={color} />
+		</span>
+	);
+}
 
 function safeParseBlock() {
 	if (typeof sessionStorage === "undefined") {
@@ -196,6 +220,20 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 		return () => controller.abort();
 	}, [block.id]);
 
+	// MT-20: re-fetch the block timeline after mutations so newly written
+	// `block_activity_logs` rows (harvest add/delete, block edit) appear without
+	// a full page reload. Non-blocking: keeps the current list on failure.
+	const reloadActivities = async () => {
+		try {
+			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}/activities`);
+			if (!response.ok) return;
+			const data = await response.json();
+			setActivityLog(Array.isArray(data) ? data : data.items ?? data.records ?? []);
+		} catch {
+			// keep the currently displayed timeline
+		}
+	};
+
 	const openEditModal = () => {
 		setFormData({
 			id: String(block.id),
@@ -238,6 +276,8 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 			setBlock(savedBlock);
 			sessionStorage.setItem("tee-selected-block", JSON.stringify(savedBlock));
 			setModalMode(null);
+			// Block edit writes a "Block Updated (...)" timeline row (MT-18)
+			await reloadActivities();
 		} catch (submitError) {
 			setError(submitError.message);
 		}
@@ -284,6 +324,8 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 				sessionStorage.setItem("tee-selected-block", JSON.stringify(refreshedBlock));
 			}
 			setModalMode(null);
+			// Harvest creation writes a "Harvest Logged (... kg)" timeline row (MT-16)
+			await reloadActivities();
 		} catch (submitError) {
 			setHarvestError(submitError.message);
 		} finally {
@@ -309,6 +351,8 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 				setBlock(refreshedBlock);
 				sessionStorage.setItem("tee-selected-block", JSON.stringify(refreshedBlock));
 			}
+			// Harvest deletion writes a "Harvest Record Deleted (ID: ...)" row (MT-17)
+			await reloadActivities();
 		} catch (deleteError) {
 			setError(deleteError.message);
 		} finally {
@@ -394,7 +438,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 							<div className="flex-between" style={{ marginBottom: "var(--space-4)" }}>
 								<div>
 									<h2 className="section-title" style={{ marginBottom: 0 }}>Activity Log</h2>
-									<p className="text-muted" style={{ fontSize: "var(--fs-sm)" }}>Recent field operations</p>
+									<p className="text-muted" style={{ fontSize: "var(--fs-sm)" }}>Live field operations for Block {block.id} ({activityLog.length})</p>
 								</div>
 								<Clock3 size={18} color="var(--color-primary)" />
 							</div>
@@ -402,10 +446,13 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 								{isLoading && <div className="text-muted">Loading activity...</div>}
 								{!isLoading && activityLog.length === 0 && <div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>No recent activity logs recorded.</div>}
 								{!isLoading && activityLog.map((item, idx) => (
-									<div key={item.id ?? idx} className="card" style={{ padding: "var(--space-3)", boxShadow: "none" }}>
-										<div style={{ fontWeight: "var(--fw-semibold)" }}>{item.title ?? item.name ?? "Activity"}</div>
-										<div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>
-											{item.timestamp ? new Date(item.timestamp).toLocaleString() : item.meta ?? "--"} {item.operator ? `• Operator: ${item.operator}` : ""}
+									<div key={item.id ?? idx} className="card" style={{ padding: "var(--space-3)", boxShadow: "none", display: "flex", alignItems: "center", gap: "var(--space-3)" }}>
+										<ActivityCategoryIcon title={item.title ?? item.name} />
+										<div style={{ minWidth: 0 }}>
+											<div style={{ fontWeight: "var(--fw-semibold)" }}>{item.title ?? item.name ?? "Activity"}</div>
+											<div className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>
+												{item.timestamp ? new Date(item.timestamp).toLocaleString() : item.meta ?? "--"} {item.operator ? `• Operator: ${item.operator}` : ""}
+											</div>
 										</div>
 									</div>
 								))}
