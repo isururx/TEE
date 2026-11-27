@@ -194,9 +194,10 @@ export default function TwoStepVerification({
           localStorage.setItem("user_role", role);
         }
         const accessToken = data.access_token || data.token;
-        if (accessToken) {
-          localStorage.setItem("token", accessToken);
+        if (!accessToken) {
+          throw new Error("The server did not return an access token. Please try again.");
         }
+        localStorage.setItem("token", accessToken);
         if (data.user_id) {
           localStorage.setItem("user_id", data.user_id);
         }
