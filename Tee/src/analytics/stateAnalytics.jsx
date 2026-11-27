@@ -120,6 +120,37 @@ function BlockFrequencyChart({ blocks }) {
   );
 }
 
+
+function BlockComparison({ blocks }) {
+  const sorted = [...blocks].sort((a, b) => b.total_detections - a.total_detections);
+  if (!sorted.length) {
+    return <div className="disease-analytics-state">No block comparison data is available for the selected period.</div>;
+  }
+
+  return (
+    <div style={{ overflowX: "auto", marginTop: 16 }}>
+      <table className="disease-analytics-table">
+        <thead>
+          <tr><th>Plantation block</th><th>Total detections</th><th>Most detected disease</th><th>Frequency</th></tr>
+        </thead>
+        <tbody>
+          {sorted.map((block) => {
+            const topDisease = [...(block.diseases ?? [])].sort((a, b) => b.frequency - a.frequency)[0];
+            return (
+              <tr key={block.block_id}>
+                <td>{block.block_name}</td>
+                <td>{formatNumber(block.total_detections)}</td>
+                <td>{topDisease?.disease_name ?? "No disease records"}</td>
+                <td>{topDisease ? formatNumber(topDisease.frequency) : "—"}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function StateAnalytics({ onNavigate = () => {} }) {
   const [dates, setDates] = useState(initialDates);
   const [appliedDates, setAppliedDates] = useState(initialDates);
@@ -318,8 +349,8 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
 
               <section className="disease-analytics-panel" style={{ marginBottom: 18 }}>
                 <h2>Block comparison</h2>
-                <p className="disease-analytics-muted">Blocks ranked by detection event frequency{selectedBlockName ? ` · Filtered to ${selectedBlockName}` : ""}</p>
-                <BlockFrequencyChart blocks={blocks} />
+                <p className="disease-analytics-muted">Compare total recorded events and the most frequently detected disease in each block{selectedBlockName ? ` · Filtered to Block ${selectedBlockName}` : ""}</p>
+                <BlockComparison blocks={blocks} />
               </section>
 
               <section className="disease-analytics-panel">
