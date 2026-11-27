@@ -38,7 +38,7 @@ export default function Login({ onNavigate = () => { } }) {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
 
       if (response.ok) {
@@ -52,6 +52,8 @@ export default function Login({ onNavigate = () => { } }) {
         localStorage.setItem("verification_email", data.masked_email || "your registered email");
         localStorage.removeItem("token");
         localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("user_role");
         if (data.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
           if (data.user.role) localStorage.setItem("user_role", data.user.role);
@@ -144,6 +146,8 @@ export default function Login({ onNavigate = () => { } }) {
                 <User size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
                   type="text"
+                  autoComplete="username"
+                  required
                   placeholder="Enter your username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -166,6 +170,8 @@ export default function Login({ onNavigate = () => { } }) {
                 <Lock size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
                   type="password"
+                  autoComplete="current-password"
+                  required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -175,10 +181,11 @@ export default function Login({ onNavigate = () => { } }) {
 
             <button
               type="submit"
+              disabled={isLoading}
               className="btn-primary"
               style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)" }}
             >
-              Login <ArrowRight size={16} />
+              {isLoading ? "Signing in..." : "Login"} <ArrowRight size={16} />
             </button>
 
             <button
