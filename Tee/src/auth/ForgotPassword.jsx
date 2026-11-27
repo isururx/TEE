@@ -64,6 +64,14 @@ export default function ForgotPassword({ onNavigate = () => {} }) {
     event.preventDefault();
     setError("");
     setMessage("");
+    if (newPassword.length < 10 || newPassword.length > 128) {
+      setError("Password must be between 10 and 128 characters.");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+      setError("Password must contain an uppercase letter, a lowercase letter and a number.");
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setError("The passwords do not match.");
       return;
