@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useEffect, useMemo, useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
@@ -168,7 +169,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 	useEffect(() => {
 		async function loadSupervisors() {
 			try {
-				const response = await fetch(`${USERS_API_URL}?role=Supervisor`);
+				const response = await apiFetch(`${USERS_API_URL}?role=Supervisor`);
 				if (response.ok) {
 					const data = await response.json();
 					const list = Array.isArray(data) ? data : data.users ?? data.items ?? [];
@@ -190,9 +191,9 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 			setError("");
 			try {
 				const [blockResponse, historyResponse, activityResponse] = await Promise.all([
-					fetch(`${BLOCKS_API_URL}/${blockId}`, { signal: controller.signal }),
-					fetch(`${BLOCKS_API_URL}/${blockId}/harvest-history`, { signal: controller.signal }),
-					fetch(`${BLOCKS_API_URL}/${blockId}/activities`, { signal: controller.signal }),
+					apiFetch(`${BLOCKS_API_URL}/${blockId}`, { signal: controller.signal }),
+					apiFetch(`${BLOCKS_API_URL}/${blockId}/harvest-history`, { signal: controller.signal }),
+					apiFetch(`${BLOCKS_API_URL}/${blockId}/activities`, { signal: controller.signal }),
 				]);
 
 				if (!blockResponse.ok) throw new Error("Unable to load block details.");
@@ -225,7 +226,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 	// a full page reload. Non-blocking: keeps the current list on failure.
 	const reloadActivities = async () => {
 		try {
-			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}/activities`);
+			const response = await apiFetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}/activities`);
 			if (!response.ok) return;
 			const data = await response.json();
 			setActivityLog(Array.isArray(data) ? data : data.items ?? data.records ?? []);
@@ -266,7 +267,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 		};
 
 		try {
-			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`, {
+			const response = await apiFetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`, {
 				method: "PUT",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(blockPayload),
@@ -301,7 +302,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 		setIsHarvestSubmitting(true);
 		setHarvestError("");
 		try {
-			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}/harvest-history`, {
+			const response = await apiFetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}/harvest-history`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -317,7 +318,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 			setHistory((current) => [savedRecord, ...current.filter((entry) => entry.id !== savedRecord.id)]);
 
 			// Refresh block totals (which are dynamically calculated by the backend)
-			const blockResponse = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`);
+			const blockResponse = await apiFetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`);
 			if (blockResponse.ok) {
 				const refreshedBlock = normalizeBlock(await blockResponse.json());
 				setBlock(refreshedBlock);
@@ -337,7 +338,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 		if (!deleteHarvestId) return;
 		setIsDeletingHarvest(true);
 		try {
-			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}/harvest-history/${deleteHarvestId}`, {
+			const response = await apiFetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}/harvest-history/${deleteHarvestId}`, {
 				method: "DELETE",
 			});
 			if (!response.ok && response.status !== 204) throw new Error("Unable to delete harvest record.");
@@ -345,7 +346,7 @@ export default function BlockDetail({ onNavigate = () => {} }) {
 			setDeleteHarvestId(null);
 
 			// Refresh block totals
-			const blockResponse = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`);
+			const blockResponse = await apiFetch(`${BLOCKS_API_URL}/${encodeURIComponent(block.id)}`);
 			if (blockResponse.ok) {
 				const refreshedBlock = normalizeBlock(await blockResponse.json());
 				setBlock(refreshedBlock);
