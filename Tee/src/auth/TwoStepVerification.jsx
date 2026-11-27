@@ -138,7 +138,7 @@ export default function TwoStepVerification({
     setError("");
 
     try {
-      const challengeId = localStorage.getItem("login_challenge_id");
+      const challengeId = sessionStorage.getItem("login_challenge_id");
       if (!challengeId) throw new Error("Your verification request has expired. Please log in again.");
 
       const data = await authRequest("/verify-2fa", {
@@ -150,7 +150,7 @@ export default function TwoStepVerification({
 
         const normalizedUser = data.user;
         saveSession({ access_token: data.access_token, user: normalizedUser });
-        localStorage.removeItem("login_challenge_id");
+        sessionStorage.removeItem("login_challenge_id");
         const role = normalizedUser.role;
 
         // Determine corresponding dashboard based on role
