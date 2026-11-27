@@ -35,8 +35,15 @@ function App() {
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const handleGlobalNavigate = (event) => {
+      if (event?.detail) setCurrentPage(event.detail);
+    };
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener("tee-navigate", handleGlobalNavigate);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("tee-navigate", handleGlobalNavigate);
+    };
   }, []);
 
   const handleNavigate = (pageKey) => {
