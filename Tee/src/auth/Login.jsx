@@ -142,14 +142,14 @@ export default function Login({ onNavigate = () => { } }) {
             )}
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Username</label>
+              <label className="form-label">Username or email</label>
               <div className="input-search" style={{ padding: "var(--space-3) var(--space-4)" }}>
                 <User size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
                   type="text"
                   autoComplete="username"
                   required
-                  placeholder="Enter your username"
+                  placeholder="Enter your username or email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
