@@ -1,94 +1,308 @@
-import React, { useState, useMemo } from "react";
-
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Header from "../common components/header.jsx";
-import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
+import RoleSidebar, { getStoredRole } from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
+import {
+  getDiseaseFrequencyByBlock,
+  getDiseaseDistribution,
+} from "../services/analyticsApi.js";
+import "./diseaseAnalytics.css";
 
-import SectorCard from "./sectorCard";
-import Pagination from "./pagination";
-import SectorDetailPanel from "./sectorDetailPanel";
+const DAY_MS = 24 * 60 * 60 * 1000;
+const COLORS = ["#2e7d32", "#81a96b", "#d6a84f", "#7b9bb8", "#9b83b5", "#d17c63"];
 
-const TEA_VARIETIES = ["Assamica CL12", "Sinensis TRI 2025", "Assamica CL16", "Sinensis DT1"];
-
-// Generate 93 mock sector blocks
-function generateSectors(count) {
-  const letters = ["A", "B", "C", "D"];
-  const sectors = [];
-  for (let i = 0; i < count; i++) {
-    const letter = letters[i % letters.length];
-    const num = String(((i * 7) % 99) + 1).padStart(2, "0");
-    const health = 58 + ((i * 13) % 41); // Health percentage between 58% and 98%
-    sectors.push({
-      id: i,
-      name: `Sector ${letter}${num}`,
-      teaVariety: TEA_VARIETIES[i % TEA_VARIETIES.length],
-      areaSize: `${(10 + ((i * 3) % 20) + Math.round(Math.random() * 10) / 10).toFixed(1)} Hectares`,
-      health,
-    });
-  }
-  return sectors;
+function toDateInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
-const ITEMS_PER_PAGE = 20;
-const ALL_SECTORS = generateSectors(93);
+function initialDates() {
+  const today = new Date();
+  return {
+    startDate: toDateInput(new Date(today.getTime() - 29 * DAY_MS)),
+    endDate: toDateInput(today),
+  };
+}
+
+function formatNumber(value) {
+  return new Intl.NumberFormat().format(Number(value) || 0);
+}
+
+function KpiCard({ label, value, description }) {
+  return (
+    <article className="disease-analytics-kpi">
+      <div className="disease-analytics-kpi-label">{label}</div>
+      <div className="disease-analytics-kpi-value">{formatNumber(value)}</div>
+      {description && <div className="disease-analytics-muted">{description}</div>}
+    </article>
+  );
+}
+
+function LoadingPanel() {
+  return (
+    <div className="disease-analytics-panel" aria-label="Loading disease analytics" aria-busy="true">
+      <div className="disease-analytics-skeleton" style={{ width: "42%" }} />
+      <div className="disease-analytics-skeleton" style={{ width: "78%" }} />
+      <div className="disease-analytics-skeleton" style={{ width: "64%" }} />
+      <div className="disease-analytics-skeleton" style={{ width: "88%" }} />
+    </div>
+  );
+}
+
+function DistributionChart({ items, total }) {
+  const safeItems = items.filter((item) => item.frequency > 0);
+  const sum = safeItems.reduce((value, item) => value + item.frequency, 0);
+  let cursor = 0;
+  const segments = safeItems.map((item, index) => {
+    const start = cursor;
+    cursor += (item.frequency / (sum || 1)) * 100;
+    return `${COLORS[index % COLORS.length]} ${start}% ${cursor}%`;
+  });
+  const background = segments.length
+    ? `conic-gradient(${segments.join(", ")})`
+    : "var(--color-border)";
+
+  if (!total || !safeItems.length) {
+    return <div className="disease-analytics-state">No disease detections are available for this period.</div>;
+  }
+
+  return (
+    <div className="disease-analytics-donut-wrap">
+      <div className="disease-analytics-donut" style={{ background }} role="img" aria-label="Disease distribution chart">
+        <div className="disease-analytics-donut-hole">
+          <strong style={{ fontSize: 25 }}>{formatNumber(total)}</strong>
+          <span className="disease-analytics-muted">Diseased</span>
+        </div>
+      </div>
+      <div className="disease-analytics-legend">
+        {safeItems.map((item, index) => (
+          <div className="disease-analytics-legend-item" key={item.disease_id ?? item.disease_name}>
+            <span className="disease-analytics-dot" style={{ background: COLORS[index % COLORS.length] }} />
+            <span>{item.disease_name}</span>
+            <strong style={{ marginLeft: "auto", color: "var(--color-text-primary)" }}>{formatNumber(item.frequency)}</strong>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function BlockFrequencyChart({ blocks }) {
+  const sorted = [...blocks].sort((a, b) => b.total_detections - a.total_detections);
+  const maximum = Math.max(1, ...sorted.map((block) => block.total_detections));
+
+  if (!sorted.length) {
+    return <div className="disease-analytics-state">No plantation block records are available.</div>;
+  }
+
+  return (
+    <div className="disease-analytics-bars">
+      {sorted.map((block) => (
+        <div key={block.block_id}>
+          <div className="disease-analytics-bar-row">
+            <span className="disease-analytics-bar-label" title={block.block_name}>{block.block_name}</span>
+            <div className="disease-analytics-track" title={`${block.total_detections} detection events`}>
+              <div className="disease-analytics-fill" style={{ width: `${(block.total_detections / maximum) * 100}%` }} />
+            </div>
+            <span className="disease-analytics-count">{formatNumber(block.total_detections)}</span>
+          </div>
+          {block.diseases?.length > 0 && (
+            <div className="disease-analytics-muted" style={{ margin: "5px 0 0 130px" }}>
+              {block.diseases.map((disease) => `${disease.disease_name}: ${formatNumber(disease.frequency)}`).join(" · ")}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function StateAnalytics({ onNavigate = () => {} }) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSector, setSelectedSector] = useState(ALL_SECTORS[0]);
+  const [dates, setDates] = useState(initialDates);
+  const [appliedDates, setAppliedDates] = useState(initialDates);
+  const [selectedBlock, setSelectedBlock] = useState("");
+  const [selectedDisease, setSelectedDisease] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({ blockId: "", diseaseId: "" });
+  const [frequencyData, setFrequencyData] = useState(null);
+  const [distributionData, setDistributionData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
-  const totalPages = Math.ceil(ALL_SECTORS.length / ITEMS_PER_PAGE);
+  const role = getStoredRole();
+  const isSupervisor = role.includes("supervisor");
+  const isEstateRole = role.includes("admin") || role.includes("manager");
 
-  const visibleSectors = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return ALL_SECTORS.slice(start, start + ITEMS_PER_PAGE);
-  }, [currentPage]);
+  const loadAnalytics = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const filters = {
+        start_date: appliedDates.startDate,
+        end_date: appliedDates.endDate,
+        ...(appliedFilters.blockId ? { block_id: appliedFilters.blockId } : {}),
+        ...(appliedFilters.diseaseId ? { disease_id: appliedFilters.diseaseId } : {}),
+      };
+      const [frequency, distribution] = await Promise.all([
+        getDiseaseFrequencyByBlock(filters),
+        getDiseaseDistribution(filters),
+      ]);
+      setFrequencyData(frequency);
+      setDistributionData(distribution);
+    } catch (requestError) {
+      setFrequencyData(null);
+      setDistributionData(null);
+      setError(requestError.message || "Unable to load disease analytics.");
+    } finally {
+      setLoading(false);
+    }
+  }, [appliedDates, appliedFilters, reloadKey]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
+
+  const blocks = frequencyData?.blocks ?? [];
+  const diseaseOptions = useMemo(() => {
+    const byId = new Map();
+    (distributionData?.disease_distribution ?? []).forEach((item) => {
+      const key = item.disease_id ?? item.disease_name;
+      byId.set(key, item);
+    });
+    return [...byId.values()];
+  }, [distributionData]);
+
+  const summary = frequencyData?.summary;
+  const affectedBlocks = blocks.filter((block) => block.total_detections > 0).length;
+  const selectedBlockName = blocks.find((block) => String(block.block_id) === appliedFilters.blockId)?.block_name;
+
+  const applyFilters = (event) => {
+    event.preventDefault();
+    if (dates.startDate && dates.endDate && dates.startDate > dates.endDate) {
+      setError("Start date must be on or before end date.");
+      return;
+    }
+    setAppliedDates(dates);
+    setAppliedFilters({ blockId: selectedBlock, diseaseId: selectedDisease });
+  };
+
+  const clearFilters = () => {
+    const defaults = initialDates();
+    setDates(defaults);
+    setAppliedDates(defaults);
+    setSelectedBlock("");
+    setSelectedDisease("");
+    setAppliedFilters({ blockId: "", diseaseId: "" });
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Header />
-
-      <div style={{ display: "flex", flex: 1 }}>
+      <div style={{ display: "flex", flex: 1, minWidth: 0 }}>
         <RoleSidebar activeItem="analytics" onNavigate={onNavigate} />
-
-        <main className="p-card" style={{ flex: 1 }}>
-          <h1 className="page-title" style={{ fontSize: "var(--fs-3xl)", marginBottom: "var(--space-6)" }}>
-            State Analytics
-          </h1>
-
-          <div className="gap-lg" style={{ display: "flex", alignItems: "flex-start" }}>
-            {/* Grid + pagination */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ marginBottom: "var(--space-4)" }}>
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                  totalItems={ALL_SECTORS.length}
-                  itemsPerPage={ITEMS_PER_PAGE}
-                />
-              </div>
-
-              <div className="grid-auto-fit">
-                {visibleSectors.map((sector) => (
-                  <SectorCard
-                    key={sector.id}
-                    name={sector.name}
-                    selected={selectedSector?.id === sector.id}
-                    onClick={() => setSelectedSector(sector)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Detail panel */}
-            <SectorDetailPanel
-              sector={selectedSector}
-              onClose={() => setSelectedSector(null)}
-            />
+        <main className="p-card disease-analytics-page" style={{ flex: 1 }}>
+          <div style={{ marginBottom: 20 }}>
+            <h1 className="page-title" style={{ fontSize: "var(--fs-3xl)", marginBottom: 5 }}>Disease Analytics</h1>
+            <p className="disease-analytics-muted">Understand recorded tea leaf disease detection events across plantation blocks.</p>
           </div>
+
+          <form className="disease-analytics-toolbar" onSubmit={applyFilters}>
+            <div className="disease-analytics-field">
+              <label htmlFor="disease-start-date">Start date</label>
+              <input id="disease-start-date" type="date" value={dates.startDate} max={dates.endDate || undefined} onChange={(event) => setDates((current) => ({ ...current, startDate: event.target.value }))} />
+            </div>
+            <div className="disease-analytics-field">
+              <label htmlFor="disease-end-date">End date</label>
+              <input id="disease-end-date" type="date" value={dates.endDate} min={dates.startDate || undefined} max={toDateInput(new Date())} onChange={(event) => setDates((current) => ({ ...current, endDate: event.target.value }))} />
+            </div>
+            <div className="disease-analytics-field">
+              <label htmlFor="disease-block-filter">Plantation block</label>
+              <select id="disease-block-filter" value={selectedBlock} onChange={(event) => setSelectedBlock(event.target.value)}>
+                <option value="">All available blocks</option>
+                {blocks.map((block) => <option key={block.block_id} value={block.block_id}>{block.block_name}</option>)}
+              </select>
+            </div>
+            <div className="disease-analytics-field">
+              <label htmlFor="disease-type-filter">Disease type</label>
+              <select id="disease-type-filter" value={selectedDisease} onChange={(event) => setSelectedDisease(event.target.value)}>
+                <option value="">All diseases</option>
+                {diseaseOptions.map((disease) => (
+                  <option key={disease.disease_id ?? disease.disease_name} value={disease.disease_id ?? ""}>{disease.disease_name}</option>
+                ))}
+              </select>
+            </div>
+            <button className="disease-analytics-button" type="submit">Apply filters</button>
+            <button className="disease-analytics-button secondary" type="button" onClick={clearFilters}>Clear</button>
+          </form>
+
+          {error && (
+            <div className="disease-analytics-alert" role="alert">
+              {error}
+              <button type="button" onClick={() => setReloadKey((key) => key + 1)} style={{ marginLeft: 12, border: 0, background: "transparent", color: "inherit", fontWeight: 700, cursor: "pointer" }}>Retry</button>
+            </div>
+          )}
+
+          {isSupervisor && !appliedFilters.blockId && !loading && (
+            <div className="disease-analytics-alert" role="status">
+              Supervisors must select an authorised plantation block before viewing analytics. If no blocks are listed, contact your estate manager.
+            </div>
+          )}
+
+          <section className="disease-analytics-kpis" aria-label="Disease detection summary">
+            <KpiCard label="Total detections" value={summary?.total_detections ?? "—"} description="Recorded detection events" />
+            <KpiCard label="Diseased detections" value={summary?.diseased_detections ?? "—"} description="Disease classifications" />
+            <KpiCard label="Healthy detections" value={summary?.healthy_detections ?? "—"} description="Healthy leaf results" />
+            <KpiCard label="Affected blocks" value={loading ? "—" : affectedBlocks} description="Blocks with detections in this period" />
+          </section>
+
+          {loading ? (
+            <div className="disease-analytics-grid"><LoadingPanel /><LoadingPanel /></div>
+          ) : error ? null : (
+            <>
+              <section className="disease-analytics-grid">
+                <article className="disease-analytics-panel">
+                  <h2>Disease frequency by block</h2>
+                  <p className="disease-analytics-muted">Number of recorded detection events per plantation block</p>
+                  <BlockFrequencyChart blocks={blocks} />
+                </article>
+                <article className="disease-analytics-panel">
+                  <h2>Overall disease distribution</h2>
+                  <p className="disease-analytics-muted">Share of diseased detection events by disease type</p>
+                  <DistributionChart items={distributionData?.disease_distribution ?? []} total={distributionData?.diseased_detections ?? 0} />
+                </article>
+              </section>
+
+              <section className="disease-analytics-panel" style={{ marginBottom: 18 }}>
+                <h2>Block comparison</h2>
+                <p className="disease-analytics-muted">Blocks ranked by detection event frequency{selectedBlockName ? ` · Filtered to ${selectedBlockName}` : ""}</p>
+                <BlockFrequencyChart blocks={blocks} />
+              </section>
+
+              <section className="disease-analytics-panel">
+                <h2>Most detected diseases</h2>
+                <p className="disease-analytics-muted">Disease frequency is the number of recorded detection events, not confirmed infected plants.</p>
+                {(distributionData?.disease_distribution ?? []).length === 0 ? (
+                  <div className="disease-analytics-state" style={{ marginTop: 16 }}>No disease detections were recorded for the selected filters and dates.</div>
+                ) : (
+                  <div className="disease-analytics-disease-list">
+                    {[...(distributionData?.disease_distribution ?? [])].sort((a, b) => b.frequency - a.frequency).map((disease) => (
+                      <div className="disease-analytics-disease-row" key={disease.disease_id ?? disease.disease_name}>
+                        <span>{disease.disease_name}</span>
+                        <strong>{formatNumber(disease.frequency)} detections</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
+          <p className="disease-analytics-muted" style={{ marginTop: 16 }}>
+            Reporting period: {appliedDates.startDate} to {appliedDates.endDate}. Unassigned detections are counted in the summary and are not attributed to a plantation block.
+          </p>
         </main>
       </div>
-
       <Footer />
     </div>
   );
