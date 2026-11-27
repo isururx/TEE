@@ -142,6 +142,7 @@ export default function Header({
   const handleLogout = () => {
     setMenuOpen(false);
     clearAuthSession();
+    window.dispatchEvent(new CustomEvent("tee-auth-changed", { detail: { user: null } }));
     if (typeof onLogout === "function") {
       onLogout();
     } else {
