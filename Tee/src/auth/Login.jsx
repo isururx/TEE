@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useState } from "react";
 import { Leaf, User, Lock, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
 import Footer from "../common components/footer.jsx";
@@ -35,7 +36,7 @@ export default function Login({ onNavigate = () => { } }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await apiFetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: username.trim(), password }),
