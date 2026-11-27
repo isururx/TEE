@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import Footer from "../common components/footer.jsx";
 import OtpResent from "./OtpResent.jsx";
+import { authRequest, saveSession } from "./authSession.js";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 const METHODS = [
   { id: "email", label: "Email Verification", detail: "Send code to user***@gmail.com", icon: Mail },
@@ -138,68 +138,20 @@ export default function TwoStepVerification({
     setError("");
 
     try {
-      let storedUserId = localStorage.getItem("user_id");
-      if (!storedUserId) {
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) {
-          try {
-            const parsedUser = JSON.parse(savedUser);
-            storedUserId = parsedUser.id || parsedUser.user_id;
-          } catch (e) {
-            console.error("Error parsing stored user:", e);
-          }
-        }
-      }
+      const challengeId = localStorage.getItem("login_challenge_id");
+      if (!challengeId) throw new Error("Your verification request has expired. Please log in again.");
 
-      const userId = storedUserId ? (isNaN(storedUserId) ? storedUserId : Number(storedUserId)) : null;
-
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-2fa`, {
+      const data = await authRequest("/verify-2fa", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          otp: code,
-        }),
+        body: JSON.stringify({ challenge_id: challengeId, otp: code }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (data.success && data.access_token) {
 
-        // Normalize + persist session: backend returns flat {user_id, name, email, role, access_token}
-        const normalizedUser = data.user && typeof data.user === "object"
-          ? data.user
-          : {
-              id: data.user_id ?? data.id,
-              user_id: data.user_id ?? data.id,
-              name: data.name,
-              email: data.email,
-              role: data.role,
-            };
-        localStorage.setItem("user", JSON.stringify(normalizedUser));
-
-        let role = data.role || data.user?.role || data.user_role || data.user?.user_role;
-        if (!role) {
-          role = localStorage.getItem("user_role") || "";
-          if (!role) {
-            try {
-              const savedUser = JSON.parse(localStorage.getItem("user") || "{}");
-              role = savedUser.role || savedUser.user_role || "";
-            } catch (e) {
-              // ignore parse error
-            }
-          }
-        }
-
-        if (role) {
-          localStorage.setItem("user_role", role);
-        }
-        const accessToken = data.access_token || data.token;
-        if (accessToken) {
-          localStorage.setItem("token", accessToken);
-        }
-        if (data.user_id) {
-          localStorage.setItem("user_id", data.user_id);
-        }
+        const normalizedUser = data.user;
+        saveSession({ access_token: data.access_token, user: normalizedUser });
+        localStorage.removeItem("login_challenge_id");
+        const role = normalizedUser.role;
 
         // Determine corresponding dashboard based on role
         const roleLower = (role || "").toLowerCase();
@@ -223,11 +175,11 @@ export default function TwoStepVerification({
         const errData = await response.json().catch(() => ({}));
         const errorMsg = errData.detail || "Invalid verification code";
         setError(errorMsg);
-        alert(`Wrong OTP: ${errorMsg}`);
+        
       }
     } catch (err) {
       console.warn("Backend 2-step verification request warning:", err.message);
-      setError("Unable to connect to the server. Please try again.");
+      setError(err.message || "Unable to connect to the server. Please try again.");
     } finally {
       setIsVerifying(false);
     }
@@ -239,20 +191,17 @@ export default function TwoStepVerification({
 
     setError("");
     setSuccess("");
-    const storedUserId = localStorage.getItem("user_id");
-    if (!storedUserId) {
-      setError("Your login session is missing. Please return to Login and try again.");
+    const challengeId = localStorage.getItem("login_challenge_id");
+    if (!challengeId) {
+      setError("Your verification request has expired. Please return to Login.");
       return;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/resend-otp`, {
+      await authRequest("/resend-otp", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: Number(storedUserId), method: "email" }),
+        body: JSON.stringify({ challenge_id: challengeId, method: "email" }),
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.detail || "Unable to resend the verification code.");
 
       setOtp(["", "", "", "", "", ""]);
       setResendTimer(300);
