@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Leaf, User, Lock, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
 import Footer from "../common components/footer.jsx";
+import { authRequest } from "./authSession.js";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 /**
  * Login Page
@@ -35,35 +35,28 @@ export default function Login({ onNavigate = () => { } }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const data = await authRequest("/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const userId = data.user_id || data.user?.id || data.user?.user_id || data.id;
-        if (!userId) {
-          setError("The server did not return a user ID. Please try again.");
-          return;
-        }
-        localStorage.setItem("user_id", String(userId));
+      if (data.success && data.requires_2fa && data.challenge_id) {
+        localStorage.setItem("login_challenge_id", data.challenge_id);
         localStorage.setItem("verification_email", data.masked_email || "your registered email");
         localStorage.removeItem("token");
         localStorage.removeItem("access_token");
+        localStorage.removeItem("user_id");
         if (data.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
           if (data.user.role) localStorage.setItem("user_role", data.user.role);
         }
         onNavigate("twoStepVerification");
       } else {
-        const errData = await response.json().catch(() => ({}));
-        setError(errData.detail || "Invalid username or password");
+        setError("Unable to start verification. Please try again.");
       }
     } catch (err) {
       console.warn("Backend login request warning:", err.message);
-      setError("Unable to connect to the server. Please try again.");
+      setError(err.message || "Unable to connect to the server. Please try again.");
     } finally {
       setIsLoading(false);
     }
