@@ -172,10 +172,7 @@ export default function TwoStepVerification({
           onNavigate(targetDashboard);
         }, 800);
       } else {
-        const errData = await response.json().catch(() => ({}));
-        const errorMsg = errData.detail || "Invalid verification code";
-        setError(errorMsg);
-        
+        setError("Invalid verification code. Please try again.");
       }
     } catch (err) {
       console.warn("Backend 2-step verification request warning:", err.message);
