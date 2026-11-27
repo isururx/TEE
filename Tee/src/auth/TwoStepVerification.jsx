@@ -5,7 +5,6 @@ import {
   AlertCircle,
   Clock,
   Mail,
-  Smartphone,
   KeyRound,
   X,
   ArrowRight,
@@ -18,7 +17,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000
 
 const METHODS = [
   { id: "email", label: "Email Verification", detail: "Send code to user***@gmail.com", icon: Mail },
-  { id: "sms", label: "SMS Verification", detail: "Send code to +94 70 *** 4164", icon: Smartphone },
 ];
 
 /**
