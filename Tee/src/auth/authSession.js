@@ -17,7 +17,7 @@ export function saveSession({ access_token, user }) {
 }
 
 export function clearSession() {
-  ["token", "access_token", "user", "user_id", "user_role", "verification_email", "login_challenge_id"].forEach((key) => localStorage.removeItem(key));
+  ["token", "access_token", "user", "user_id", "user_role", "verification_email"].forEach((key) => localStorage.removeItem(key));
   window.dispatchEvent(new CustomEvent("tee-auth-changed", { detail: { user: null } }));
 }
 
