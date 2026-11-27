@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useEffect, useState } from "react";
 import { X, Clock, CheckCircle } from "lucide-react";
 
@@ -29,8 +30,8 @@ export default function AddAttendanceModal({ onClose, onSubmit, selectedDate }) 
 		async function loadWorkers() {
 			try {
 				const [workersResponse, blocksResponse] = await Promise.all([
-					fetch("http://localhost:8000/api/workers", { signal: controller.signal }),
-					fetch("http://localhost:8000/api/blocks", { signal: controller.signal }),
+					apiFetch("http://localhost:8000/api/workers", { signal: controller.signal }),
+					apiFetch("http://localhost:8000/api/blocks", { signal: controller.signal }),
 				]);
 				if (!workersResponse.ok || !blocksResponse.ok) throw new Error("Unable to load attendance options.");
 				const workerPayload = await workersResponse.json();
@@ -86,7 +87,7 @@ export default function AddAttendanceModal({ onClose, onSubmit, selectedDate }) 
 		setIsSubmitting(true);
 		setError("");
 		try {
-			const response = await fetch("http://localhost:8000/api/attendance", {
+			const response = await apiFetch("http://localhost:8000/api/attendance", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
