@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useEffect, useMemo, useState } from "react";
 import { Users, Plus, Search, Pencil, Trash2, RefreshCw } from "lucide-react";
 import Header from "../common components/header.jsx";
@@ -36,7 +37,7 @@ export default function WorkerManagement({ onNavigate = () => {} }) {
 		setIsLoading(true);
 		setError("");
 		try {
-			const response = await fetch(WORKERS_API_URL);
+			const response = await apiFetch(WORKERS_API_URL);
 			if (!response.ok) throw new Error("Unable to load workers.");
 			const data = await response.json();
 			const list = Array.isArray(data) ? data : data.workers ?? data.items ?? [];
@@ -74,7 +75,7 @@ export default function WorkerManagement({ onNavigate = () => {} }) {
 		if (!deleteConfirm) return;
 		setIsDeleting(true);
 		try {
-			const response = await fetch(`${WORKERS_API_URL}/${deleteConfirm}`, { method: "DELETE" });
+			const response = await apiFetch(`${WORKERS_API_URL}/${deleteConfirm}`, { method: "DELETE" });
 			if (!response.ok && response.status !== 204) throw new Error("Unable to delete worker.");
 			setWorkers((current) => current.filter((w) => w.id !== deleteConfirm));
 			setDeleteConfirm(null);
