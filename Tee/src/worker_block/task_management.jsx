@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useEffect, useMemo, useState } from "react";
 import { ClipboardList, RefreshCw, Plus, Filter, Users, ShieldAlert, CheckCircle2, Clock, Pencil, Trash2 } from "lucide-react";
 import Header from "../common components/header.jsx";
@@ -55,8 +56,8 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 			try {
 				const taskQuery = query.toString() ? `?${query.toString()}` : "";
 				const [tasksResponse, metricsResponse] = await Promise.all([
-					fetch(`${TASKS_API_URL}${taskQuery}`, { signal: controller.signal }),
-					fetch(`${TASKS_API_URL}/metrics`, { signal: controller.signal }),
+					apiFetch(`${TASKS_API_URL}${taskQuery}`, { signal: controller.signal }),
+					apiFetch(`${TASKS_API_URL}/metrics`, { signal: controller.signal }),
 				]);
 				if (!tasksResponse.ok || !metricsResponse.ok) throw new Error("Unable to load task management data.");
 				const taskPayload = await tasksResponse.json();
@@ -91,7 +92,7 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 
 	const handleStatusChange = async (taskId, newStatus) => {
 		try {
-			const response = await fetch(`${TASKS_API_URL}/${taskId}/status?status=${encodeURIComponent(newStatus)}`, { method: "PUT" });
+			const response = await apiFetch(`${TASKS_API_URL}/${taskId}/status?status=${encodeURIComponent(newStatus)}`, { method: "PUT" });
 			if (!response.ok) throw new Error("Status update failed.");
 			const updated = await response.json();
 			setTasks((current) => current.map((t) => (t.id === taskId ? normalizeTask(updated) : t)));
@@ -104,7 +105,7 @@ export default function TaskManagement({ onNavigate = () => {} }) {
 		if (!deleteConfirm) return;
 		setIsDeleting(true);
 		try {
-			const response = await fetch(`${TASKS_API_URL}/${deleteConfirm}`, { method: "DELETE" });
+			const response = await apiFetch(`${TASKS_API_URL}/${deleteConfirm}`, { method: "DELETE" });
 			if (!response.ok && response.status !== 204) throw new Error("Unable to delete task.");
 			setTasks((current) => current.filter((t) => t.id !== deleteConfirm));
 			setDeleteConfirm(null);
