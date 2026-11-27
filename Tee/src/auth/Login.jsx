@@ -41,7 +41,7 @@ export default function Login({ onNavigate = () => { } }) {
       });
 
       if (data.success && data.requires_2fa && data.challenge_id) {
-        localStorage.setItem("login_challenge_id", data.challenge_id);
+        sessionStorage.setItem("login_challenge_id", data.challenge_id);
         localStorage.setItem("verification_email", data.masked_email || "your registered email");
         localStorage.removeItem("token");
         localStorage.removeItem("access_token");
