@@ -33,7 +33,7 @@ import {
  * Implements the Supervisor Dashboard layout following the exact structure,
  * design system rules, and UI conventions of Manager Dashboard.
  */
-export default function SupervisorDashboard({ onNavigate = () => {} }) {
+export default function SupervisorDashboard({ onNavigate = () => { } }) {
   // Modal state management
   const [activeModal, setActiveModal] = useState(null); // null | 'newWorker' | 'assignWorker' | 'manageSuppliers'
 
@@ -152,7 +152,7 @@ export default function SupervisorDashboard({ onNavigate = () => {} }) {
         <RoleSidebar activeItem="dashboard" role="supervisor" onNavigate={onNavigate} />
         <main style={{ flex: 1, minWidth: 0, padding: "var(--space-6) var(--space-8)" }}>
           <div style={{ maxWidth: "var(--content-max-width)", margin: "0 auto" }}>
-            
+
             {/* Toast Notification Feedback */}
             {toastMessage && (
               <div
@@ -435,7 +435,7 @@ export default function SupervisorDashboard({ onNavigate = () => {} }) {
 
               {/* ================= COLUMN 2: Manage Suppliers, Tasks & Reports ================= */}
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-                
+
                 {/* Card: Manage Suppliers */}
                 <div className="card">
                   <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
@@ -580,7 +580,7 @@ export default function SupervisorDashboard({ onNavigate = () => {} }) {
 
               {/* ================= COLUMN 3: Low Stocks & Assigned Tasks ================= */}
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
-                
+
                 {/* Card: Low Stocks */}
                 <div className="card">
                   <div className="flex-between" style={{ marginBottom: "var(--space-3)" }}>
@@ -697,6 +697,9 @@ export default function SupervisorDashboard({ onNavigate = () => {} }) {
       {/* Footer */}
       <Footer />
 
+
+      </div>
+      <Footer />
       {/* --------------------------------------------------------------------
          MODALS / DIALOGS
          -------------------------------------------------------------------- */}
