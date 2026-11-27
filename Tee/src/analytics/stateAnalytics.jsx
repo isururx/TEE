@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "../common components/header.jsx";
 import RoleSidebar, { getStoredRole } from "../common components/sidebars/RoleSidebar.jsx";
 import Footer from "../common components/footer.jsx";
@@ -55,12 +55,13 @@ function LoadingPanel() {
 function DistributionChart({ items, total }) {
   const safeItems = items.filter((item) => item.frequency > 0);
   const sum = safeItems.reduce((value, item) => value + item.frequency, 0);
-  let cursor = 0;
-  const segments = safeItems.map((item, index) => {
-    const start = cursor;
-    cursor += (item.frequency / (sum || 1)) * 100;
-    return `${COLORS[index % COLORS.length]} ${start}% ${cursor}%`;
-  });
+  const segments = safeItems.reduce((result, item, index) => {
+    const end = result.cursor + (item.frequency / (sum || 1)) * 100;
+    return {
+      cursor: end,
+      values: [...result.values, `${COLORS[index % COLORS.length]} ${result.cursor}% ${end}%`],
+    };
+  }, { cursor: 0, values: [] }).values;
   const background = segments.length
     ? `conic-gradient(${segments.join(", ")})`
     : "var(--color-border)";
@@ -190,39 +191,54 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
     return () => { active = false; };
   }, [isSupervisor]);
 
-  const loadAnalytics = useCallback(async () => {
-    if (isSupervisor && !appliedFilters.blockId) {
-      setLoading(false);
-      setError("");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const filters = {
-        start_date: appliedDates.startDate,
-        end_date: appliedDates.endDate,
-        ...(appliedFilters.blockId ? { block_id: appliedFilters.blockId } : {}),
-        ...(appliedFilters.diseaseId ? { disease_id: appliedFilters.diseaseId } : {}),
-      };
-      const [frequency, distribution] = await Promise.all([
-        getDiseaseFrequencyByBlock(filters),
-        getDiseaseDistribution(filters),
-      ]);
-      setFrequencyData(frequency);
-      setDistributionData(distribution);
-    } catch (requestError) {
-      setFrequencyData(null);
-      setDistributionData(null);
-      setError(requestError.message || "Unable to load disease analytics.");
-    } finally {
-      setLoading(false);
-    }
-  }, [appliedDates, appliedFilters, reloadKey, isSupervisor]);
-
   useEffect(() => {
+    let active = true;
+
+    const loadAnalytics = async () => {
+      // Yield before updating loading state to avoid a synchronous state update
+      // during the effect's initial execution.
+      await Promise.resolve();
+      if (!active) return;
+
+      if (isSupervisor && !appliedFilters.blockId) {
+        setLoading(false);
+        setError("");
+        setFrequencyData(null);
+        setDistributionData(null);
+        return;
+      }
+
+      setLoading(true);
+      setError("");
+      try {
+        const filters = {
+          start_date: appliedDates.startDate,
+          end_date: appliedDates.endDate,
+          ...(appliedFilters.blockId ? { block_id: appliedFilters.blockId } : {}),
+          ...(appliedFilters.diseaseId ? { disease_id: appliedFilters.diseaseId } : {}),
+        };
+        const [frequency, distribution] = await Promise.all([
+          getDiseaseFrequencyByBlock(filters),
+          getDiseaseDistribution(filters),
+        ]);
+        if (!active) return;
+        setFrequencyData(frequency);
+        setDistributionData(distribution);
+      } catch (requestError) {
+        if (!active) return;
+        setFrequencyData(null);
+        setDistributionData(null);
+        setError(requestError.message || "Unable to load disease analytics.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
     loadAnalytics();
-  }, [loadAnalytics]);
+    return () => {
+      active = false;
+    };
+  }, [appliedDates, appliedFilters, reloadKey, isSupervisor]);
 
   const blocks = frequencyData?.blocks ?? [];
   const diseaseOptions = useMemo(() => {
