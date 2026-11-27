@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Login from "./auth/Login.jsx";
+import ForgotPassword from "./auth/ForgotPassword.jsx";
 import CreateAccountUser from "./auth/CreateAccountUser.jsx";
 import UserProfile from "./auth/UserProfile.jsx";
 import UserProfileForAdmin from "./auth/UserProfileForAdmin.jsx";
@@ -55,6 +56,10 @@ function App() {
 
   if (currentPage === "login" || currentPage === "welcomePage" || currentPage === "welcome" || currentPage === "workerLogin") {
     return <Login onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "forgotPassword" || currentPage === "forgot-password") {
+    return <ForgotPassword onNavigate={handleNavigate} />;
   }
 
   if (currentPage === "twoStepVerification" || currentPage === "verification" || currentPage === "otp") {
