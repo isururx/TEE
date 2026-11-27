@@ -8,6 +8,9 @@ const AUTH_LOCAL_KEYS = [
   "user_role",
   "role",
   "token",
+  "access_token",
+  "refresh_token",
+  "verification_email",
   "auth_masked_email",
   "auth_masked_phone",
   "selected_user_id",
@@ -36,7 +39,7 @@ function getStoredUser() {
       sessionStorage.getItem("tee-worker");
     if (raw) {
       const parsed = JSON.parse(raw);
-      const name = parsed.name || parsed.full_name || parsed.username || "User";
+      const name = parsed.full_name || parsed.name || [parsed.first_name, parsed.last_name].filter(Boolean).join(" ") || parsed.display_name || parsed.username || "User";
       const role =
         parsed.role ||
         parsed.user_role ||
@@ -58,7 +61,10 @@ function getStoredUser() {
 
 export function clearAuthSession() {
   if (typeof window === "undefined") return;
-  AUTH_LOCAL_KEYS.forEach((key) => localStorage.removeItem(key));
+  AUTH_LOCAL_KEYS.forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
   sessionStorage.removeItem("tee-worker");
   sessionStorage.removeItem("tee-user");
 }
@@ -120,14 +126,18 @@ export default function Header({
     };
   }, []);
 
+  // Prefer the authenticated user saved after login; component-level defaults
+  // must not overwrite the real user's name or role.
   const activeUser =
-    user && user.name
-      ? {
-          name: user.name,
-          role: user.role || storedUser.role,
-          initials: user.initials || toInitials(user.name),
-        }
-      : storedUser;
+    storedUser.name && storedUser.name !== "User"
+      ? storedUser
+      : user && user.name
+        ? {
+            name: user.name,
+            role: user.role || storedUser.role,
+            initials: user.initials || toInitials(user.name),
+          }
+        : storedUser;
 
   const handleLogout = () => {
     setMenuOpen(false);
