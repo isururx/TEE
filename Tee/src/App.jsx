@@ -36,6 +36,7 @@ function App() {
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
+    const handleSessionExpired = () => setCurrentPage("login");
     const handleGlobalNavigate = (event) => {
       if (!event?.detail) return;
       const publicPages = ["login", "welcomePage", "welcome", "workerLogin", "forgotPassword", "forgot-password", "createAccount", "createAccountStaff", "users", "twoStepVerification", "verification", "otp", "otpResent"];
@@ -47,6 +48,7 @@ function App() {
     };
     window.addEventListener("resize", handleResize);
     window.addEventListener("tee-navigate", handleGlobalNavigate);
+    window.addEventListener("tee-session-expired", handleSessionExpired);
 
     const validateSession = async () => {
       const token = localStorage.getItem("token");
@@ -82,6 +84,7 @@ function App() {
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("tee-navigate", handleGlobalNavigate);
+      window.removeEventListener("tee-session-expired", handleSessionExpired);
     };
   }, []);
 
