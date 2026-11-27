@@ -17,8 +17,7 @@ import OtpResent from "./OtpResent.jsx";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 const METHODS = [
-  { id: "email", label: "Email Verification", detail: "Send code to user***@gmail.com", icon: Mail },
-  { id: "sms", label: "SMS Verification", detail: "Send code to +94 70 *** 4164", icon: Smartphone },
+  { id: "email", label: "Email Verification", detail: "Send a code to your registered email address", icon: Mail },
 ];
 
 /**
@@ -165,6 +164,15 @@ export default function TwoStepVerification({
       if (response.ok) {
         const data = await response.json();
 
+        // A dashboard session must never be created without a valid access token.
+        const accessToken = data.access_token || data.token;
+        if (!accessToken) {
+          setError("The server did not return an access token. Please sign in again.");
+          return;
+        }
+        localStorage.setItem("token", accessToken);
+        localStorage.removeItem("access_token");
+
         // Normalize + persist session: backend returns flat {user_id, name, email, role, access_token}
         const normalizedUser = data.user && typeof data.user === "object"
           ? data.user
@@ -192,10 +200,6 @@ export default function TwoStepVerification({
 
         if (role) {
           localStorage.setItem("user_role", role);
-        }
-        const accessToken = data.access_token || data.token;
-        if (accessToken) {
-          localStorage.setItem("token", accessToken);
         }
         if (data.user_id) {
           localStorage.setItem("user_id", data.user_id);
