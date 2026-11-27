@@ -112,7 +112,7 @@ export default function ForgotPassword({ onNavigate = () => {} }) {
             {step === "email" ? "Forgot Password?" : step === "otp" ? "Verify Your Email" : step === "password" ? "Create New Password" : "Password Reset Complete"}
           </h1>
           <p className="subtitle" style={{ textAlign: "center", marginBottom: "var(--space-6)" }}>
-            {step === "email" ? "Enter your registered email address to receive a reset code." : step === "otp" ? `Enter the 6-digit code sent to ${email}.` : step === "password" ? "Choose a new password for your TEE account." : "Your account password has been updated."}
+            {step === "email" ? "Enter your registered email address to receive a reset code." : step === "otp" ? `Enter the 6-digit code sent to ${email}.` : step === "password" ? "Use at least 10 characters, including uppercase, lowercase, and a number." : "Your account password has been updated."}
           </p>
 
           {error && <div className="alert alert-danger" role="alert" style={{ marginBottom: "var(--space-4)" }}>{error}</div>}
