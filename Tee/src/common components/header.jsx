@@ -3,6 +3,27 @@ import { Bell, Search, ChevronDown, User, Settings, LogOut, Moon, Sun } from "lu
 
 const THEME_KEY = "tee-theme";
 
+function readStoredUser() {
+  for (const storage of [window.localStorage, window.sessionStorage]) {
+    for (const key of ["user", "tee-user", "tee-worker"]) {
+      try {
+        const value = storage.getItem(key);
+        if (value) {
+          const parsed = JSON.parse(value);
+          if (parsed && typeof parsed === "object") return parsed;
+        }
+      } catch {
+        // Ignore invalid or non-JSON cached values and check the next key.
+      }
+    }
+  }
+  return {};
+}
+
+function getInitials(name) {
+  return String(name || "U").trim().split(/\\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "U";
+}
+
 function applyTheme(theme) {
   const root = document.documentElement;
   const isDark = theme === "dark";
@@ -32,6 +53,10 @@ export default function Header({
   onSearch = () => {},
   onLogout = () => {},
 }) {
+  const storedUser = readStoredUser();
+  const displayName = storedUser.full_name || storedUser.name || storedUser.username || user.name || "User";
+  const displayRole = storedUser.role || storedUser.user_role || user.role || "User";
+  const displayInitials = getInitials(displayName);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [theme, setTheme] = useState(() => {
@@ -56,6 +81,7 @@ export default function Header({
       sessionStorage.removeItem(key);
     });
     setMenuOpen(false);
+    window.dispatchEvent(new Event("tee:logout"));
     onLogout();
   };
 
@@ -155,7 +181,7 @@ export default function Header({
             style={{ cursor: "pointer" }}
             onClick={() => setMenuOpen((v) => !v)}
           >
-            <div className="avatar avatar-md">{user.initials}</div>
+            <div className="avatar avatar-md">{displayInitials}</div>
             <ChevronDown size={16} color="var(--color-text-secondary)" />
           </div>
 
@@ -166,10 +192,10 @@ export default function Header({
             >
               <div style={{ padding: "8px 12px" }}>
                 <div className="section-title" style={{ fontSize: 13 }}>
-                  {user.name}
+                  {displayName}
                 </div>
                 <div className="text-muted" style={{ fontSize: 11 }}>
-                  {user.role}
+                  {displayRole}
                 </div>
               </div>
               <div className="dropdown-item">
