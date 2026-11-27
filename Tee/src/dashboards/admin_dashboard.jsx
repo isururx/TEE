@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
@@ -18,41 +18,18 @@ import {
 
 export default function AdminDashboard({ onNavigate = () => {} }) {
   const [toastMessage, setToastMessage] = useState("");
-  const [metricsData, setMetricsData] = useState({
-    active_users: 0,
-    total_users: 0,
-    estate_managers: 0,
-    supervisors: 0,
-    total_blocks: 0,
-    system_health: "Optimal",
-  });
-  const [recentLogs, setRecentLogs] = useState([]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch("http://localhost:8000/api/dashboard/admin", { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data) return;
-        setMetricsData({
-          active_users: data.active_users ?? 0,
-          total_users: data.total_users ?? 0,
-          estate_managers: data.estate_managers ?? 0,
-          supervisors: data.supervisors ?? 0,
-          total_blocks: data.total_blocks ?? 0,
-          system_health: data.system_health || "99.9%",
-        });
-        setRecentLogs(Array.isArray(data.recent_logs) ? data.recent_logs : []);
-      })
-      .catch(() => {});
-    return () => controller.abort();
-  }, []);
 
   const systemMetrics = [
-    { label: "Active Users", value: String(metricsData.active_users), icon: Users, color: "var(--color-primary)", change: `${metricsData.total_users} total registered` },
-    { label: "Estate Managers", value: String(metricsData.estate_managers), icon: ShieldCheck, color: "#2563EB", change: "Active in DB" },
-    { label: "Supervisors", value: String(metricsData.supervisors), icon: Map, color: "#D97706", change: `Across ${metricsData.total_blocks} blocks` },
-    { label: "System Health", value: metricsData.system_health, icon: Activity, color: "#059669", change: "Optimal" },
+    { label: "Active Users", value: "48", icon: Users, color: "var(--color-primary)", change: "+4 this week" },
+    { label: "Estate Managers", value: "6", icon: ShieldCheck, color: "#2563EB", change: "All Active" },
+    { label: "Supervisors", value: "14", icon: Map, color: "#D97706", change: "Active across 12 blocks" },
+    { label: "System Health", value: "99.9%", icon: Activity, color: "#059669", change: "Optimal" },
+  ];
+
+  const recentLogs = [
+    { id: 1, user: "Kasun M.", action: "Created new worker account", time: "10 mins ago", role: "Manager" },
+    { id: 2, user: "Kamal P.", action: "Updated attendance records for Block A1", time: "25 mins ago", role: "Supervisor" },
+    { id: 3, user: "System", action: "Completed automated daily yield backup", time: "1 hour ago", role: "System" },
   ];
 
   return (
@@ -60,6 +37,7 @@ export default function AdminDashboard({ onNavigate = () => {} }) {
       <Header
         title="Admin Dashboard"
         crumbs={[{ label: "Home", href: "#" }, { label: "Admin Dashboard", href: "#" }]}
+        user={{ name: "Admin", role: "Administrator", initials: "AD" }}
       />
 
       <div style={{ minHeight: "calc(100vh - var(--topbar-height))", display: "flex" }}>
@@ -160,11 +138,7 @@ export default function AdminDashboard({ onNavigate = () => {} }) {
                   </button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
-                  {recentLogs.length === 0 ? (
-                    <div style={{ fontSize: "var(--fs-sm)", color: "var(--color-text-secondary)", padding: "var(--space-3)" }}>
-                      No recent activity logs in database.
-                    </div>
-                  ) : recentLogs.map((log) => (
+                  {recentLogs.map((log) => (
                     <div key={log.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "var(--space-3)", background: "var(--color-bg)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: "var(--fs-sm)" }}>{log.action}</div>

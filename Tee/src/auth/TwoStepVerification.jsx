@@ -14,6 +14,11 @@ import {
 import Footer from "../common components/footer.jsx";
 import OtpResent from "./OtpResent.jsx";
 
+const METHODS = [
+  { id: "email", label: "Email Verification", detail: "Send code to user***@gmail.com", icon: Mail },
+  { id: "sms", label: "SMS Verification", detail: "Send code to +94 70 *** 4164", icon: Smartphone },
+];
+
 /**
  * TwoStepVerification
  * 2-Step Verification / OTP Screen fully styled with index.css classes & design tokens.
@@ -28,12 +33,6 @@ export default function TwoStepVerification({
   onNavigate = () => { },
   onVerifySuccess = () => { },
 }) {
-  const maskedEmail = localStorage.getItem("auth_masked_email") || email;
-  const maskedPhone = localStorage.getItem("auth_masked_phone") || "+94 70 *** 4164";
-  const METHODS = [
-    { id: "email", label: "Email Verification", detail: `Send code to ${maskedEmail}`, icon: Mail },
-    { id: "sms", label: "SMS Verification", detail: `Send code to ${maskedPhone}`, icon: Smartphone },
-  ];
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -231,20 +230,6 @@ export default function TwoStepVerification({
     }
   };
 
-  const sendOtpForMethod = async (method) => {
-    const userId = localStorage.getItem("user_id");
-    if (!userId) return;
-    const res = await fetch("http://localhost:8000/api/auth/resend-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: Number(userId), method }),
-    });
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || "Unable to send verification code");
-    }
-  };
-
   // Handle Resend Code -> switches to OtpResent view
   const handleResend = async () => {
     if (resendTimer > 0) return;
@@ -253,11 +238,12 @@ export default function TwoStepVerification({
     setError("");
 
     try {
-      await sendOtpForMethod(verificationMethod);
+      await fetch("http://localhost:8000/api/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
     } catch (err) {
       console.warn("Backend resend OTP request warning:", err.message);
-      setError(err.message || "Unable to resend verification code");
-      return;
     }
 
     setResendTimer(300);
@@ -343,7 +329,7 @@ export default function TwoStepVerification({
               marginBottom: "var(--space-4)",
             }}
           >
-            {verificationMethod === "email" ? maskedEmail : maskedPhone}
+            {verificationMethod === "email" ? email : "+94 70 *** 4164"}
           </p>
 
           {/* Main Heading */}
@@ -570,18 +556,11 @@ export default function TwoStepVerification({
                       value={id}
                       className="radio-primary"
                       checked={isSelected}
-                      onChange={async () => {
+                      onChange={() => {
                         setVerificationMethod(id);
                         setShowMethodModal(false);
-                        setError("");
-                        try {
-                          await sendOtpForMethod(id);
-                          setResendTimer(300);
-                          setSuccess(`Verification code sent via ${label}.`);
-                          setTimeout(() => setSuccess(""), 3000);
-                        } catch (err) {
-                          setError(err.message || `Failed to send code via ${label}`);
-                        }
+                        setSuccess(`Verification method switched to ${label}.`);
+                        setTimeout(() => setSuccess(""), 3000);
                       }}
                     />
                     <Icon size={18} color={isSelected ? "var(--color-primary)" : "var(--color-text-secondary)"} />

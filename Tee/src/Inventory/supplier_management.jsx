@@ -100,6 +100,7 @@ const SupplierManagement = ({ onNavigate = () => {} }) => {
       <Header 
         title="Supplier Management" 
         crumbs={[{ label: "Home", href: "#" }, { label: "Suppliers", href: "#" }]} 
+        user={{ name: "Hasanth J", role: "Estate Manager", initials: "HJ" }}
       />
 
       <div style={{ display: "flex", minHeight: "calc(100vh - var(--topbar-height))" }}>

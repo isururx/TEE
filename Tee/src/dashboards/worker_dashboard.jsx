@@ -62,8 +62,33 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
     designation: "Field Worker / Senior Tea Harvester",
   });
 
-  // Worker Tasks Checklist State (populated from database)
-  const [tasks, setTasks] = useState([]);
+  // Worker Tasks Checklist State
+  const [tasks, setTasks] = useState([
+    {
+      id: 1,
+      title: "Harvest Tea Leaves - Sector 4",
+      time: "07:30 AM - 11:30 AM",
+      completed: true,
+      status: "COMPLETED",
+      priority: "HIGH",
+    },
+    {
+      id: 2,
+      title: "Leaf Disease Visual Inspection",
+      time: "11:45 AM - 01:00 PM",
+      completed: false,
+      status: "IN PROGRESS",
+      priority: "MEDIUM",
+    },
+    {
+      id: 3,
+      title: "Weed Clearing - Drain Border B",
+      time: "01:30 PM - 03:00 PM",
+      completed: false,
+      status: "QUEUED",
+      priority: "LOW",
+    },
+  ]);
 
   useEffect(() => {
     if (initialModal === "profile") {
@@ -126,12 +151,9 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
     async function fetchWorkerTasks() {
       try {
         const workerId = workerInfo.id;
-        const [tasksRes, summaryRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/workers/${workerId}/tasks`),
-          fetch(`http://localhost:8000/api/dashboard/worker/${workerId}`),
-        ]);
-        if (tasksRes.ok) {
-          const data = await tasksRes.json();
+        const res = await fetch(`http://localhost:8000/api/workers/${workerId}/tasks`);
+        if (res.ok) {
+          const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
             setTasks(
               data.map((t) => ({
@@ -144,14 +166,6 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
               }))
             );
           }
-        }
-        if (summaryRes.ok) {
-          const summary = await summaryRes.json();
-          setWorkerInfo((prev) => ({
-            ...prev,
-            clockInTime: summary.clock_in_time || prev.clockInTime,
-            status: summary.status || prev.status,
-          }));
         }
       } catch (err) {
         // Keep fallback checklist if backend is not responding

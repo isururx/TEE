@@ -8,6 +8,83 @@ import {
   Activity, Users, Eye, X, RefreshCw, Layers,
 } from "lucide-react";
 
+/* ─── Mock data ──────────────────────────────────────────────────────────── */
+const ALL_LOGS = [
+  {
+    id: 1, timestamp: "29 Aug 2026 10:30:45 AM",
+    user: "Kasun M.", email: "kasun.manager@estate.lk", initials: "KM", avatarBg: "#16A34A",
+    role: "Manager", action: "Updated Stock", actionType: "update",
+    module: "Inventory Management", description: 'Updated quantity of item "Copper Oxychloride"',
+    status: "Success", extra: "Quantity changed from 20 to 35 units.",
+  },
+  {
+    id: 2, timestamp: "29 Aug 2026 10:25:12 AM",
+    user: "Nimal Perera", email: "nimal.supervisor@estate.lk", initials: "NP", avatarBg: "#7C3AED",
+    role: "Supervisor", action: "Created Task", actionType: "create",
+    module: "Task Management", description: "Created new task for Block B-05",
+    status: "Success", extra: "Task assigned to 3 workers, deadline 30 Aug 2026.",
+  },
+  {
+    id: 3, timestamp: "29 Aug 2026 10:20:05 AM",
+    user: "Admin User", email: "admin@estate.lk", initials: "AU", avatarBg: "#1B5E20",
+    role: "Admin", action: "Approved User", actionType: "approve",
+    module: "User Management", description: "Approved registration request of user Saman",
+    status: "Success", extra: "New account activated and welcome email sent.",
+  },
+  {
+    id: 4, timestamp: "29 Aug 2026 10:15:33 AM",
+    user: "Worker01", email: "worker01@estate.lk", initials: "W1", avatarBg: "#DC2626",
+    role: "Worker", action: "Login Attempt", actionType: "login",
+    module: "Authentication", description: "Failed login attempt due to incorrect password",
+    status: "Failed", extra: "Account temporarily locked after 3 consecutive failures.",
+  },
+  {
+    id: 5, timestamp: "29 Aug 2026 10:10:22 AM",
+    user: "Saman K.", email: "saman.manager@estate.lk", initials: "SK", avatarBg: "#0EA5E9",
+    role: "Manager", action: "Deleted Item", actionType: "delete",
+    module: "Inventory Management", description: 'Deleted item "Neem Oil 1L" from inventory',
+    status: "Success", extra: "Item removed permanently. No stock remained.",
+  },
+  {
+    id: 6, timestamp: "29 Aug 2026 09:58:44 AM",
+    user: "Admin User", email: "admin@estate.lk", initials: "AU", avatarBg: "#1B5E20",
+    role: "Admin", action: "Role Changed", actionType: "update",
+    module: "User Management", description: "Changed Nimal Perera role: Worker → Supervisor",
+    status: "Success", extra: "Role updated in the system. Permissions adjusted.",
+  },
+  {
+    id: 7, timestamp: "29 Aug 2026 09:47:02 AM",
+    user: "Kasun M.", email: "kasun.manager@estate.lk", initials: "KM", avatarBg: "#16A34A",
+    role: "Manager", action: "Export Report", actionType: "export",
+    module: "Reports & Analytics", description: "Exported monthly analytics report — August 2026",
+    status: "Success", extra: "PDF report generated and downloaded.",
+  },
+  {
+    id: 8, timestamp: "29 Aug 2026 09:32:19 AM",
+    user: "Worker02", email: "worker02@estate.lk", initials: "W2", avatarBg: "#F59E0B",
+    role: "Worker", action: "Attendance Marked", actionType: "create",
+    module: "Attendance", description: "Clocked in at Block D, Row 5 — GPS verified",
+    status: "Success", extra: "Clock-in time: 09:32 AM. Location: Block D.",
+  },
+  {
+    id: 9, timestamp: "29 Aug 2026 09:15:55 AM",
+    user: "Saman K.", email: "saman.manager@estate.lk", initials: "SK", avatarBg: "#0EA5E9",
+    role: "Manager", action: "Supplier Added", actionType: "create",
+    module: "Inventory Management", description: "Registered new supplier — AgriChem Solutions Pvt Ltd",
+    status: "Success", extra: "Supplier ID: SUP-2026-009 assigned.",
+  },
+  {
+    id: 10, timestamp: "29 Aug 2026 09:01:07 AM",
+    user: "Worker03", email: "worker03@estate.lk", initials: "W3", avatarBg: "#7C3AED",
+    role: "Worker", action: "Logout", actionType: "logout",
+    module: "Authentication", description: "User session ended normally",
+    status: "Success", extra: "Session duration: 3 hours 14 minutes.",
+  },
+];
+
+const TOTAL_ENTRIES = 1245;
+const TOTAL_PAGES = Math.ceil(TOTAL_ENTRIES / 10);
+
 /* ─── Badge colour maps ──────────────────────────────────────────────────── */
 const ACTION_BADGE = {
   update: { bg: "#DBEAFE", color: "#1D4ED8" },
@@ -25,7 +102,13 @@ const ROLE_BADGE = {
   Worker: { bg: "#FEF3C7", color: "#92400E" },
 };
 
-const PAGE_SIZE = 10;
+/* ─── Stat card icons config ─────────────────────────────────────────────── */
+const STATS = [
+  { label: "Total Activities", value: "1,245", sub: "All time", icon: Layers, iconBg: "#F0F0FF", iconColor: "#6366F1" },
+  { label: "Today's Activities", value: "186", sub: "Today", icon: Calendar, iconBg: "#EFF6FF", iconColor: "#3B82F6" },
+  { label: "Active Users", value: "24", sub: "Currently online", icon: Users, iconBg: "var(--color-hover-green)", iconColor: "var(--color-primary)" },
+  { label: "Failed / Suspicious", value: "12", sub: "Today", icon: Shield, iconBg: "#FEF2F2", iconColor: "var(--color-danger)" },
+];
 
 /* ═══════════════════════════════════════════════════════════════════════════
    SKELETON ROW — uses .skeleton from index.css
@@ -195,51 +278,24 @@ export default function ActivityLogs({ onNavigate = () => { } }) {
   const [isLoading, setIsLoading] = useState(true);
   const [exportMsg, setExportMsg] = useState("");
 
-  const [logs, setLogs] = useState([]);
-  const [statsData, setStatsData] = useState({
-    total_activities: 0,
-    today_activities: 0,
-    active_users: 0,
-    failed_activities: 0,
-  });
-
+  /* Simulate loading when dropdown filters change */
   useEffect(() => {
-    const controller = new AbortController();
     setIsLoading(true);
-    fetch("http://localhost:8000/api/activity-logs", { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data) return;
-        setLogs(Array.isArray(data.logs) ? data.logs : []);
-        if (data.stats) setStatsData(data.stats);
-      })
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
-    return () => controller.abort();
-  }, []);
-
-  const STATS = [
-    { label: "Total Activities", value: String(statsData.total_activities), sub: "All time", icon: Layers, iconBg: "#F0F0FF", iconColor: "#6366F1" },
-    { label: "Today's Activities", value: String(statsData.today_activities), sub: "Today", icon: Calendar, iconBg: "#EFF6FF", iconColor: "#3B82F6" },
-    { label: "Active Users", value: String(statsData.active_users), sub: "Active in DB", icon: Users, iconBg: "var(--color-hover-green)", iconColor: "var(--color-primary)" },
-    { label: "Failed / Suspicious", value: String(statsData.failed_activities), sub: "All time", icon: Shield, iconBg: "#FEF2F2", iconColor: "var(--color-danger)" },
-  ];
+    const t = setTimeout(() => setIsLoading(false), 800);
+    return () => clearTimeout(t);
+  }, [dateRange, roleFilter, actionFilter, statusFilter]);
 
   /* Filter */
-  const filtered = logs.filter((log) => {
+  const filtered = ALL_LOGS.filter((log) => {
     const q = search.toLowerCase();
     if (q && ![log.user, log.email, log.action, log.module, log.description]
-      .some((v) => (v || "").toLowerCase().includes(q))) return false;
-    if (roleFilter !== "All Roles" && (log.role || "").toLowerCase() !== roleFilter.toLowerCase()) return false;
+      .some((v) => v.toLowerCase().includes(q))) return false;
+    if (roleFilter !== "All Roles" && log.role !== roleFilter) return false;
     if (statusFilter !== "All Status" && log.status !== statusFilter) return false;
     if (actionFilter !== "All Actions" &&
-      !(log.action || "").toLowerCase().includes(actionFilter.toLowerCase())) return false;
+      !log.action.toLowerCase().includes(actionFilter.toLowerCase())) return false;
     return true;
   });
-
-  const totalEntries = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalEntries / PAGE_SIZE));
-  const paginatedLogs = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const resetFilters = () => {
     setSearch(""); setDateRange("This Month");
@@ -253,10 +309,10 @@ export default function ActivityLogs({ onNavigate = () => { } }) {
     setTimeout(() => setExportMsg(""), 3000);
   };
 
-  const paginate = (p) => { if (p >= 1 && p <= totalPages) setCurrentPage(p); };
-  const pageNums = () => totalPages <= 5
-    ? Array.from({ length: totalPages }, (_, i) => i + 1)
-    : [1, 2, 3, "...", totalPages];
+  const paginate = (p) => { if (p >= 1 && p <= TOTAL_PAGES) setCurrentPage(p); };
+  const pageNums = () => TOTAL_PAGES <= 5
+    ? Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1)
+    : [1, 2, 3, "...", TOTAL_PAGES];
 
   return (
     <div style={{ background: "var(--color-bg)", minHeight: "100vh" }}>
@@ -265,6 +321,7 @@ export default function ActivityLogs({ onNavigate = () => { } }) {
       <Header
         title="Activity Logs"
         crumbs={[{ label: "Home", href: "#" }, { label: "System", href: "#" }]}
+        user={{ name: "Admin User", role: "System Admin", initials: "AU" }}
         onLogout={() => onNavigate("login")}
       />
 
@@ -382,7 +439,7 @@ export default function ActivityLogs({ onNavigate = () => { } }) {
                         ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
                         : filtered.length === 0
                           ? <EmptyState onReset={resetFilters} />
-                          : paginatedLogs.map((log) => {
+                          : filtered.map((log) => {
                             const aStyle = ACTION_BADGE[log.actionType] || ACTION_BADGE.update;
                             const rStyle = ROLE_BADGE[log.role] || ROLE_BADGE.Worker;
                             const ok = log.status === "Success";
@@ -464,7 +521,7 @@ export default function ActivityLogs({ onNavigate = () => { } }) {
                 {!isLoading && filtered.length > 0 && (
                   <div className="flex-between" style={{ padding: "var(--space-4) var(--space-5)", borderTop: "1px solid var(--color-border)", flexWrap: "wrap", gap: "var(--space-3)" }}>
                     <span className="text-muted" style={{ fontSize: "var(--fs-xs)" }}>
-                      Showing {((currentPage - 1) * PAGE_SIZE) + 1} to {Math.min(currentPage * PAGE_SIZE, totalEntries)} of {totalEntries.toLocaleString()} entries
+                      Showing 1 to 10 of {TOTAL_ENTRIES.toLocaleString()} entries
                     </span>
 
                     <div className="pagination">
@@ -494,7 +551,7 @@ export default function ActivityLogs({ onNavigate = () => { } }) {
                       <button
                         className="btn-ghost"
                         onClick={() => paginate(currentPage + 1)}
-                        disabled={currentPage === totalPages}
+                        disabled={currentPage === TOTAL_PAGES}
                         style={{ padding: "5px 12px", fontSize: "var(--fs-xs)", display: "flex", alignItems: "center", gap: 4 }}
                       >
                         Next <ChevronRight size={13} />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Pencil,
   Phone,
@@ -16,27 +16,17 @@ import Footer from "../common components/footer.jsx";
 import EditProfileModal from "./EditProfileModal.jsx";
 
 const initialProfile = {
-  id: null,
-  name: "",
-  initials: "U",
-  role: "",
-  employeeId: "",
-  joined: "Active",
-  tenure: "-",
-  phone: "",
-  address: "",
-  email: "",
-  status: "Active",
+  name: "Hashanth J",
+  initials: "HJ",
+  role: "Manager",
+  employeeId: "EF00123",
+  joined: "Mar 2022",
+  tenure: "2 years",
+  phone: "070654164",
+  address: "Block 4, Staff Quarters",
+  email: "harshanth@example.com",
+  status: "Active", // "Active" | "Deactivated"
 };
-
-const toInitials = (name) =>
-  (name || "U")
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0])
-    .join("")
-    .substring(0, 2)
-    .toUpperCase() || "U";
 
 /**
  * UserProfileForAdmin
@@ -44,7 +34,6 @@ const toInitials = (name) =>
  */
 export default function UserProfileForAdmin({ onNavigate = () => { } }) {
   const [user, setUser] = useState(initialProfile);
-  const [allUsers, setAllUsers] = useState([]);
 
   // Modal states
   const [isEditing, setIsEditing] = useState(false);
@@ -60,115 +49,30 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
     setTimeout(() => setActionSuccessMessage(""), 3500);
   };
 
-  const loadUserById = async (userId) => {
-    if (!userId) return;
-    try {
-      const res = await fetch(`http://localhost:8000/api/users/${userId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setUser((prev) => ({
-          ...prev,
-          ...data,
-          initials: toInitials(data.name),
-          phone: data.phone_num || "",
-          address: data.address || "Not set",
-        }));
-        setSelectedRole(data.role || "");
-      }
-    } catch (e) {
-      console.error("Failed to fetch user profile", e);
-    }
-  };
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch("http://localhost:8000/api/users", { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : []))
-      .then((list) => {
-        if (!Array.isArray(list) || list.length === 0) return;
-        setAllUsers(list);
-        const storedId = Number(localStorage.getItem("selected_user_id") || localStorage.getItem("user_id"));
-        const target = list.find((u) => u.id === storedId) || list[0];
-        loadUserById(target.id);
-      })
-      .catch(() => {});
-    return () => controller.abort();
-  }, []);
-
   // Handle Edit Profile Save
-  const handleSaveProfile = async (updatedData) => {
-    if (!user.id) return;
-    try {
-      const res = await fetch(`http://localhost:8000/api/users/${user.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: updatedData.name,
-          email: updatedData.email,
-          phone: updatedData.phone,
-          address: updatedData.address,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser((prev) => ({
-          ...prev,
-          ...data,
-          initials: toInitials(data.name),
-          phone: data.phone_num || "",
-          address: data.address || "Not set",
-        }));
-        showNotification("User profile updated successfully!");
-      }
-    } catch (e) {
-      console.error("Failed to update user profile", e);
-    }
+  const handleSaveProfile = (updatedData) => {
+    setUser((prev) => ({ ...prev, ...updatedData }));
+    showNotification("User profile updated successfully!");
   };
 
   // Handle Change Role Save
-  const handleSaveRole = async (e) => {
+  const handleSaveRole = (e) => {
     e.preventDefault();
-    if (!user.id) return;
-    try {
-      const res = await fetch(`http://localhost:8000/api/users/${user.id}/role`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: selectedRole }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser((prev) => ({ ...prev, ...data, role: data.role }));
-        setIsRoleModalOpen(false);
-        showNotification(`User role changed to ${data.role} successfully!`);
-      }
-    } catch (e) {
-      console.error("Failed to update user role", e);
-    }
+    setUser((prev) => ({ ...prev, role: selectedRole }));
+    setIsRoleModalOpen(false);
+    showNotification(`User role changed to ${selectedRole} successfully!`);
   };
 
   // Handle Deactivate / Activate Status Toggle
-  const handleToggleStatus = async () => {
-    if (!user.id) return;
-    const nextActive = user.status !== "Active";
-    try {
-      const res = await fetch(`http://localhost:8000/api/users/${user.id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_active: nextActive }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser((prev) => ({ ...prev, ...data, status: data.status }));
-        setIsDeactivateModalOpen(false);
-        showNotification(
-          data.status === "Deactivated"
-            ? "User has been deactivated."
-            : "User has been reactivated successfully."
-        );
-      }
-    } catch (e) {
-      console.error("Failed to toggle user status", e);
-    }
+  const handleToggleStatus = () => {
+    const newStatus = user.status === "Active" ? "Deactivated" : "Active";
+    setUser((prev) => ({ ...prev, status: newStatus }));
+    setIsDeactivateModalOpen(false);
+    showNotification(
+      newStatus === "Deactivated"
+        ? "User has been deactivated."
+        : "User has been reactivated successfully."
+    );
   };
 
   const statusItems = [
@@ -193,6 +97,7 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
           { label: "Home", href: "#" },
           { label: "Dashboard", href: "#" },
         ]}
+        user={{ name: "Admin", role: "Administrator", initials: "AD" }}
         onLogout={() => onNavigate("login")}
       />
 
@@ -213,22 +118,6 @@ export default function UserProfileForAdmin({ onNavigate = () => { } }) {
 
           {/* Profile Container */}
           <div style={{ maxWidth: 1024, margin: "0 auto", padding: "0 var(--space-6)" }}>
-            {allUsers.length > 0 && (
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "var(--space-4)" }}>
-                <select
-                  className="input-primary"
-                  style={{ maxWidth: 260 }}
-                  value={user.id || ""}
-                  onChange={(e) => loadUserById(Number(e.target.value))}
-                >
-                  {allUsers.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.role})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
             {/* Header section: Avatar, User Info & Action Buttons */}
             <div
               className="flex-between"

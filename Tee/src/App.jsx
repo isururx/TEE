@@ -34,15 +34,8 @@ function App() {
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
-    const handleGlobalNavigate = (e) => {
-      if (e?.detail) setCurrentPage(e.detail);
-    };
     window.addEventListener("resize", handleResize);
-    window.addEventListener("tee-navigate", handleGlobalNavigate);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("tee-navigate", handleGlobalNavigate);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleNavigate = (pageKey) => {

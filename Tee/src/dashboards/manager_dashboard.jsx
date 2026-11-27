@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import Header from "../common components/header.jsx";
 import Footer from "../common components/footer.jsx";
 import RoleSidebar from "../common components/sidebars/RoleSidebar.jsx";
-import { useOperationsDashboard } from "./useOperationsDashboard.js";
 import {
   Camera,
   Package,
@@ -41,18 +40,31 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
   // Toast / notification feedback state
   const [toastMessage, setToastMessage] = useState("");
 
-  const {
-    workers,
-    setWorkers,
-    suppliers,
-    lowStockItems,
-    assignedTasks,
-    setAssignedTasks,
-    attendancePct,
-    addSupplier,
-    removeSupplier,
-    clearDiseaseHistory,
-  } = useOperationsDashboard();
+  // Sample State Data
+  const [workers, setWorkers] = useState([
+    { id: "W001", name: "Sunil Shantha", role: "Field Worker", block: "Block A01", status: "Active" },
+    { id: "W002", name: "Kamal Perera", role: "Supervisor", block: "Block A03", status: "Active" },
+    { id: "W003", name: "Nimal Siripala", role: "Field Worker", block: "Block B02", status: "Active" },
+    { id: "W004", name: "Saman Kumara", role: "Field Worker", block: "Block C01", status: "On Leave" },
+  ]);
+
+  const [suppliers, setSuppliers] = useState([
+    { id: "SUP-01", name: "AgroChem Lanka Ltd", category: "Fungicides & Pesticides", contact: "+94 77 123 4567" },
+    { id: "SUP-02", name: "GreenCare Fertilizer Corp", category: "NPK & Organic Fertilizers", contact: "+94 71 987 6543" },
+    { id: "SUP-03", name: "Ceylon Estate Supplies", category: "Harvesting Tools & Gear", contact: "+94 81 222 3344" },
+  ]);
+
+  const [lowStockItems, setLowStockItems] = useState([
+    { id: 1, item: "Copper Fungicide 50WP", quantity: "4.5 L", threshold: "10 L", level: "Critical", statusClass: "badge-danger" },
+    { id: 2, item: "NPK 15-15-15 Fertilizer", quantity: "12 bags", threshold: "30 bags", level: "Warning", statusClass: "badge-warning" },
+    { id: 3, item: "Pruning Shears (Heavy Duty)", quantity: "3 units", threshold: "8 units", level: "Warning", statusClass: "badge-warning" },
+  ]);
+
+  const [assignedTasks, setAssignedTasks] = useState([
+    { id: "TSK-101", title: "Sector A03 Blister Blight Spraying", assignee: "Kamal Perera", role: "Supervisor", progress: 75, priority: "High" },
+    { id: "TSK-102", title: "Block B Morning Harvest Quality Audit", assignee: "Sunil Shantha", role: "Worker", progress: 40, priority: "Medium" },
+    { id: "TSK-103", title: "Soil Moisture & Drainage Inspection", assignee: "Saman Kumara", role: "Worker", progress: 90, priority: "Low" },
+  ]);
 
   // Form states for modals
   const [newWorkerData, setNewWorkerData] = useState({ name: "", role: "Field Worker", block: "Block A01" });
@@ -82,17 +94,23 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
     showToast(`Successfully registered new worker: ${newW.name}`);
   };
 
-  const handleAddSupplier = async (e) => {
+  const handleAddSupplier = (e) => {
     e.preventDefault();
     if (!newSupplierData.name) return;
-    const created = await addSupplier(newSupplierData);
+    const newSup = {
+      id: `SUP-0${suppliers.length + 1}`,
+      name: newSupplierData.name,
+      category: newSupplierData.category || "General Supplies",
+      contact: newSupplierData.contact || "N/A",
+    };
+    setSuppliers([...suppliers, newSup]);
     setNewSupplierData({ name: "", category: "", contact: "" });
-    if (created) showToast(`Added supplier: ${created.name}`);
+    showToast(`Added supplier: ${newSup.name}`);
   };
 
-  const handleRemoveSupplier = async (id) => {
-    const ok = await removeSupplier(id);
-    if (ok) showToast("Supplier removed successfully");
+  const handleRemoveSupplier = (id) => {
+    setSuppliers(suppliers.filter((s) => s.id !== id));
+    showToast("Supplier removed successfully");
   };
 
   const handleAssignTask = (e) => {
@@ -112,8 +130,7 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
     showToast(`Task "${newTask.title}" assigned to ${newTask.assignee}`);
   };
 
-  const handleClearDiseaseHistory = async () => {
-    await clearDiseaseHistory(selectedBlockToClear);
+  const handleClearDiseaseHistory = () => {
     setActiveModal(null);
     showToast(`Disease history cleared for ${selectedBlockToClear}`);
   };
@@ -124,7 +141,7 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
     { id: "inventory", label: "Inventory", icon: Package, color: "#2563EB", badge: `${lowStockItems.length} Low` },
     { id: "analytics", label: "State Analytics", icon: BarChart3, color: "#7C3AED", badge: "Live" },
     { id: "tasks", label: "Task Management", icon: CheckSquare, color: "#D97706", badge: `${assignedTasks.length} Active` },
-    { id: "attendance", label: "Attendance Tracking", icon: Clock, color: "#059669", badge: `${attendancePct}% Today` },
+    { id: "attendance", label: "Attendance Tracking", icon: Clock, color: "#059669", badge: "94% Today" },
   ];
 
   return (
@@ -133,6 +150,7 @@ export default function ManagerDashboard({ onNavigate = () => {} }) {
       <Header
         title="Manager Dashboard"
         crumbs={[{ label: "Home", href: "#" }, { label: "Dashboard", href: "#" }]}
+        user={{ name: "Hasanth J", role: "Estate Manager", initials: "HJ" }}
       />
 
       {/* Main Layout Body */}

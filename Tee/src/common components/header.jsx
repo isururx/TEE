@@ -2,66 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Bell, Search, ChevronDown, User, Settings, LogOut, Moon, Sun } from "lucide-react";
 
 const THEME_KEY = "tee-theme";
-const AUTH_LOCAL_KEYS = [
-  "user",
-  "user_id",
-  "user_role",
-  "role",
-  "token",
-  "auth_masked_email",
-  "auth_masked_phone",
-  "selected_user_id",
-];
-
-function toInitials(name) {
-  return (
-    (name || "U")
-      .split(" ")
-      .filter(Boolean)
-      .map((part) => part[0])
-      .join("")
-      .substring(0, 2)
-      .toUpperCase() || "U"
-  );
-}
-
-function getStoredUser() {
-  if (typeof window === "undefined") {
-    return { name: "User", role: "Staff", initials: "U" };
-  }
-  try {
-    const raw =
-      localStorage.getItem("user") ||
-      sessionStorage.getItem("tee-user") ||
-      sessionStorage.getItem("tee-worker");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      const name = parsed.name || parsed.full_name || parsed.username || "User";
-      const role =
-        parsed.role ||
-        parsed.user_role ||
-        parsed.designation ||
-        localStorage.getItem("user_role") ||
-        "Staff";
-      return {
-        name,
-        role,
-        initials: parsed.initials || toInitials(name),
-      };
-    }
-  } catch {
-    // ignore invalid JSON in storage
-  }
-  const directRole = localStorage.getItem("user_role") || localStorage.getItem("role") || "Staff";
-  return { name: "User", role: directRole, initials: "U" };
-}
-
-export function clearAuthSession() {
-  if (typeof window === "undefined") return;
-  AUTH_LOCAL_KEYS.forEach((key) => localStorage.removeItem(key));
-  sessionStorage.removeItem("tee-worker");
-  sessionStorage.removeItem("tee-user");
-}
 
 function applyTheme(theme) {
   const root = document.documentElement;
@@ -87,15 +27,13 @@ function applyTheme(theme) {
 export default function Header({
   title = "Dashboard",
   crumbs = [{ label: "Home", href: "#" }],
-  user = null,
+  user = { name: "Hasanth J", role: "Manager", initials: "HJ" },
   notificationCount = 3,
   onSearch = () => {},
-  onProfile = null,
-  onLogout = null,
+  onLogout = () => {},
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [storedUser, setStoredUser] = useState(getStoredUser);
   const [theme, setTheme] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem(THEME_KEY);
@@ -109,35 +47,6 @@ export default function Header({
     applyTheme(theme);
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
-
-  useEffect(() => {
-    const syncUser = () => setStoredUser(getStoredUser());
-    window.addEventListener("storage", syncUser);
-    window.addEventListener("tee-user-updated", syncUser);
-    return () => {
-      window.removeEventListener("storage", syncUser);
-      window.removeEventListener("tee-user-updated", syncUser);
-    };
-  }, []);
-
-  const activeUser =
-    user && user.name
-      ? {
-          name: user.name,
-          role: user.role || storedUser.role,
-          initials: user.initials || toInitials(user.name),
-        }
-      : storedUser;
-
-  const handleLogout = () => {
-    setMenuOpen(false);
-    clearAuthSession();
-    if (typeof onLogout === "function") {
-      onLogout();
-    } else {
-      window.dispatchEvent(new CustomEvent("tee-navigate", { detail: "login" }));
-    }
-  };
 
   const toggleTheme = () => setTheme((current) => (current === "dark" ? "light" : "dark"));
 
@@ -237,7 +146,7 @@ export default function Header({
             style={{ cursor: "pointer" }}
             onClick={() => setMenuOpen((v) => !v)}
           >
-            <div className="avatar avatar-md">{activeUser.initials}</div>
+            <div className="avatar avatar-md">{user.initials}</div>
             <ChevronDown size={16} color="var(--color-text-secondary)" />
           </div>
 
@@ -248,29 +157,19 @@ export default function Header({
             >
               <div style={{ padding: "8px 12px" }}>
                 <div className="section-title" style={{ fontSize: 13 }}>
-                  {activeUser.name}
+                  {user.name}
                 </div>
                 <div className="text-muted" style={{ fontSize: 11 }}>
-                  {activeUser.role}
+                  {user.role}
                 </div>
               </div>
-              <div
-                className="dropdown-item"
-                onClick={() => {
-                  setMenuOpen(false);
-                  if (onProfile) {
-                    onProfile();
-                  } else {
-                    window.dispatchEvent(new CustomEvent("tee-navigate", { detail: "profile" }));
-                  }
-                }}
-              >
+              <div className="dropdown-item">
                 <User size={15} /> Profile
               </div>
               <div className="dropdown-item">
                 <Settings size={15} /> Settings
               </div>
-              <div className="dropdown-item" onClick={handleLogout}>
+              <div className="dropdown-item" onClick={onLogout}>
                 <LogOut size={15} /> Logout
               </div>
             </div>

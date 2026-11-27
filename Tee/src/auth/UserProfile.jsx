@@ -6,26 +6,16 @@ import Footer from "../common components/footer.jsx";
 import EditProfileModal from "./EditProfileModal.jsx";
 
 const initialProfile = {
-  id: null,
-  name: "",
-  initials: "U",
-  role: "",
-  employeeId: "",
-  joined: "Active",
-  tenure: "-",
-  phone: "",
-  address: "",
-  email: "",
+  name: "Sunil Shantha",
+  initials: "SS",
+  role: "Field Worker",
+  employeeId: "W-104",
+  joined: "Jan 2021",
+  tenure: "3 years",
+  phone: "+94 71 234 5678",
+  address: "Block A Quarters #14, East Ridge Estate",
+  email: "sunil.estate@teafarm.lk",
 };
-
-const toInitials = (name) =>
-  (name || "U")
-    .split(" ")
-    .filter(Boolean)
-    .map((n) => n[0])
-    .join("")
-    .substring(0, 2)
-    .toUpperCase() || "U";
 
 /**
  * UserProfile
@@ -73,62 +63,14 @@ export default function UserProfile({ onNavigate = () => { } }) {
   });
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    const userId = user.id ?? user.user_id;
-    if (!userId) return;
-    const controller = new AbortController();
-    fetch(`http://localhost:8000/api/users/${userId}`, { signal: controller.signal })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data) return;
-        setUser((prev) => ({
-          ...prev,
-          ...data,
-          initials: toInitials(data.name),
-          phone: data.phone_num || prev.phone,
-          address: data.address || prev.address || "Not set",
-        }));
-      })
-      .catch(() => {});
-    return () => controller.abort();
-  }, [user.id, user.user_id]);
-
-  const handleSave = async (updatedData) => {
-    const userId = user.id ?? user.user_id;
-    let saved = updatedData;
-    if (userId) {
-      try {
-        const res = await fetch(`http://localhost:8000/api/users/${userId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: updatedData.name,
-            email: updatedData.email,
-            phone: updatedData.phone,
-            address: updatedData.address,
-          }),
-        });
-        if (res.ok) {
-          saved = await res.json();
-        }
-      } catch (e) {
-        console.error("Failed to save profile", e);
-      }
-    }
+  const handleSave = (updatedData) => {
     setUser((prev) => {
-      const next = {
-        ...prev,
-        ...saved,
-        initials: toInitials(saved.name || prev.name),
-        phone: saved.phone_num ?? saved.phone ?? prev.phone,
-        address: saved.address ?? prev.address,
-      };
+      const next = { ...prev, ...updatedData };
       try {
         const stored = localStorage.getItem("user");
         if (stored) {
           const parsed = JSON.parse(stored);
-          localStorage.setItem("user", JSON.stringify({ ...parsed, ...next }));
-          window.dispatchEvent(new Event("tee-user-updated"));
+          localStorage.setItem("user", JSON.stringify({ ...parsed, ...updatedData }));
         }
       } catch (e) {}
       return next;

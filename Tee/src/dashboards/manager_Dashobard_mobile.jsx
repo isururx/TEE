@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   X,
   UserPlus,
+  RotateCcw,
   Download,
   Calendar,
   ShieldCheck,
@@ -23,36 +24,49 @@ import {
   Settings,
   ChevronRight,
 } from "lucide-react";
-import { useOperationsDashboard } from "./useOperationsDashboard.js";
 
 /**
- * SupervisorDashboardMobile Component
+ * ManagerDashboardMobile Component
  * 
- * Mobile-optimized Supervisor Dashboard offering full feature access with touch-first controls,
+ * Mobile-optimized Manager Dashboard offering full feature access with touch-first controls,
  * single-column stacking, mobile bottom navigation, and mobile bottom-sheet dialogs.
- * Perfectly aligned with the structure and styling of Manager Dashboard Mobile.
  */
-export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
-  const [activeModal, setActiveModal] = useState(null); // null | 'newWorker' | 'assignWorker' | 'manageSuppliers'
+export default function ManagerDashboardMobile({ onNavigate = () => {} }) {
+  const [activeModal, setActiveModal] = useState(null); // null | 'newWorker' | 'assignSupervisor' | 'assignWorker' | 'clearHistory' | 'manageSuppliers'
   const [toastMessage, setToastMessage] = useState("");
   const [activeMobileTab, setActiveMobileTab] = useState("dashboard"); // 'dashboard' | 'detection' | 'tasks' | 'settings'
 
-  const {
-    workers,
-    setWorkers,
-    suppliers,
-    lowStockItems,
-    assignedTasks,
-    setAssignedTasks,
-    attendancePct,
-    addSupplier,
-    removeSupplier,
-  } = useOperationsDashboard();
+  // Data States
+  const [workers, setWorkers] = useState([
+    { id: "W001", name: "Sunil Shantha", role: "Field Worker", block: "Block A01", status: "Active" },
+    { id: "W002", name: "Kamal Perera", role: "Supervisor", block: "Block A03", status: "Active" },
+    { id: "W003", name: "Nimal Siripala", role: "Field Worker", block: "Block B02", status: "Active" },
+    { id: "W004", name: "Saman Kumara", role: "Field Worker", block: "Block C01", status: "On Leave" },
+  ]);
+
+  const [suppliers, setSuppliers] = useState([
+    { id: "SUP-01", name: "AgroChem Lanka Ltd", category: "Fungicides & Pesticides", contact: "+94 77 123 4567" },
+    { id: "SUP-02", name: "GreenCare Fertilizer Corp", category: "NPK & Fertilizers", contact: "+94 71 987 6543" },
+    { id: "SUP-03", name: "Ceylon Estate Supplies", category: "Tools & Gear", contact: "+94 81 222 3344" },
+  ]);
+
+  const [lowStockItems, setLowStockItems] = useState([
+    { id: 1, item: "Copper Fungicide 50WP", quantity: "4.5 L", threshold: "10 L", level: "Critical", statusClass: "badge-danger" },
+    { id: 2, item: "NPK 15-15-15 Fertilizer", quantity: "12 bags", threshold: "30 bags", level: "Warning", statusClass: "badge-warning" },
+    { id: 3, item: "Pruning Shears", quantity: "3 units", threshold: "8 units", level: "Warning", statusClass: "badge-warning" },
+  ]);
+
+  const [assignedTasks, setAssignedTasks] = useState([
+    { id: "TSK-101", title: "Sector A03 Blister Blight Spraying", assignee: "Kamal Perera", role: "Supervisor", progress: 75, priority: "High" },
+    { id: "TSK-102", title: "Block B Morning Harvest Audit", assignee: "Sunil Shantha", role: "Worker", progress: 40, priority: "Medium" },
+    { id: "TSK-103", title: "Soil Moisture Inspection", assignee: "Saman Kumara", role: "Worker", progress: 90, priority: "Low" },
+  ]);
 
   // Form states for modals
   const [newWorkerData, setNewWorkerData] = useState({ name: "", role: "Field Worker", block: "Block A01" });
   const [newSupplierData, setNewSupplierData] = useState({ name: "", category: "", contact: "" });
   const [taskData, setTaskData] = useState({ title: "", assignee: "", priority: "Medium" });
+  const [selectedBlockToClear, setSelectedBlockToClear] = useState("Block A01");
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -76,27 +90,33 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
     showToast(`Registered: ${newW.name}`);
   };
 
-  const handleAddSupplier = async (e) => {
+  const handleAddSupplier = (e) => {
     e.preventDefault();
     if (!newSupplierData.name) return;
-    const created = await addSupplier(newSupplierData);
+    const newSup = {
+      id: `SUP-0${suppliers.length + 1}`,
+      name: newSupplierData.name,
+      category: newSupplierData.category || "General Supplies",
+      contact: newSupplierData.contact || "N/A",
+    };
+    setSuppliers([...suppliers, newSup]);
     setNewSupplierData({ name: "", category: "", contact: "" });
-    if (created) showToast(`Added: ${created.name}`);
+    showToast(`Added: ${newSup.name}`);
   };
 
-  const handleRemoveSupplier = async (id) => {
-    const ok = await removeSupplier(id);
-    if (ok) showToast("Supplier removed");
+  const handleRemoveSupplier = (id) => {
+    setSuppliers(suppliers.filter((s) => s.id !== id));
+    showToast("Supplier removed");
   };
 
   const handleAssignTask = (e) => {
     e.preventDefault();
     if (!taskData.title || !taskData.assignee) return;
     const newTask = {
-      id: `TSK-${201 + assignedTasks.length}`,
+      id: `TSK-${101 + assignedTasks.length}`,
       title: taskData.title,
       assignee: taskData.assignee,
-      role: "Worker",
+      role: activeModal === "assignSupervisor" ? "Supervisor" : "Worker",
       progress: 0,
       priority: taskData.priority,
     };
@@ -106,13 +126,18 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
     showToast(`Task assigned to ${newTask.assignee}`);
   };
 
+  const handleClearDiseaseHistory = () => {
+    setActiveModal(null);
+    showToast(`Cleared log for ${selectedBlockToClear}`);
+  };
+
   // Mobile Shortcut Items
   const shortcuts = [
     { id: "detection", label: "Disease Detection", icon: Camera, color: "var(--color-primary)", badge: "AI Ready" },
     { id: "inventory", label: "Inventory", icon: Package, color: "#2563EB", badge: `${lowStockItems.length} Low` },
     { id: "analytics", label: "State Analytics", icon: BarChart3, color: "#7C3AED", badge: "Live" },
     { id: "tasks", label: "Task Management", icon: CheckSquare, color: "#D97706", badge: `${assignedTasks.length} Active` },
-    { id: "attendance", label: "Attendance Tracking", icon: Clock, color: "#059669", badge: `${attendancePct}%` },
+    { id: "attendance", label: "Attendance Tracking", icon: Clock, color: "#059669", badge: "94%" },
   ];
 
   return (
@@ -152,12 +177,12 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
         >
           <div className="flex-between" style={{ marginBottom: 6 }}>
             <h1 style={{ fontSize: "var(--fs-lg)", fontWeight: "var(--fw-bold)", margin: 0 }}>
-              Supervisor Dashboard
+              Manager Dashboard
             </h1>
             <span className="badge-info" style={{ fontSize: "10px" }}>Mobile Edition</span>
           </div>
           <p className="text-muted" style={{ fontSize: "var(--fs-xs)", margin: "0 0 10px 0" }}>
-            Direct Field Operations & Worker Supervision
+            Estate Monitoring & Quick Controls
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <span className="status-chip" style={{ fontSize: "10px", background: "#FFF" }}>
@@ -292,6 +317,23 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
                 <Clock size={16} color="var(--color-primary)" />
                 <span>Attendance Tracking</span>
               </button>
+
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setActiveModal("clearHistory")}
+                style={{
+                  justifyContent: "flex-start",
+                  width: "100%",
+                  minHeight: "42px",
+                  borderRadius: "var(--radius-full)",
+                  fontSize: "var(--fs-xs)",
+                  background: "#F3F4F6",
+                }}
+              >
+                <RotateCcw size={16} color="var(--color-danger)" />
+                <span>Clear Disease history of a block</span>
+              </button>
             </div>
 
             {/* Personnel List */}
@@ -365,6 +407,23 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
               <button
                 type="button"
                 className="btn-secondary"
+                onClick={() => setActiveModal("assignSupervisor")}
+                style={{
+                  justifyContent: "flex-start",
+                  width: "100%",
+                  minHeight: "42px",
+                  borderRadius: "var(--radius-full)",
+                  fontSize: "var(--fs-xs)",
+                  background: "#F3F4F6",
+                }}
+              >
+                <Send size={16} color="var(--color-primary)" />
+                <span>Assign Tasks To Supervisor</span>
+              </button>
+
+              <button
+                type="button"
+                className="btn-secondary"
                 onClick={() => setActiveModal("assignWorker")}
                 style={{
                   justifyContent: "flex-start",
@@ -392,7 +451,7 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
               <div
-                onClick={() => showToast("Exporting Field Shift Report...")}
+                onClick={() => showToast("Exporting Estate Report...")}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -404,7 +463,7 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
                   cursor: "pointer",
                 }}
               >
-                <span>Daily Field Shift & Harvest Log</span>
+                <span>Weekly Estate Yield Audit</span>
                 <Download size={14} color="var(--color-primary)" />
               </div>
 
@@ -421,7 +480,7 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
                   cursor: "pointer",
                 }}
               >
-                <span>AI Disease Diagnosis Monthly Log</span>
+                <span>AI Disease Diagnosis Log</span>
                 <Download size={14} color="var(--color-primary)" />
               </div>
             </div>
@@ -565,7 +624,7 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
 
         <button
           type="button"
-          onClick={() => onNavigate("attendance")}
+          onClick={() => setActiveModal("assignSupervisor")}
           style={{
             display: "flex",
             flexDirection: "column",
@@ -577,13 +636,13 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
             fontSize: "10px",
           }}
         >
-          <Clock size={20} />
-          <span>Attendance</span>
+          <CheckSquare size={20} />
+          <span>Tasks</span>
         </button>
 
         <button
           type="button"
-          onClick={() => showToast("Supervisor settings menu")}
+          onClick={() => showToast("Settings menu opened")}
           style={{
             display: "flex",
             flexDirection: "column",
@@ -634,7 +693,7 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
                   onChange={(e) => setNewWorkerData({ ...newWorkerData, role: e.target.value })}
                 >
                   <option value="Field Worker">Field Worker</option>
-                  <option value="Sprayer Specialist">Sprayer Specialist</option>
+                  <option value="Supervisor">Supervisor</option>
                 </select>
               </div>
               <div className="form-group">
@@ -645,8 +704,8 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
                   onChange={(e) => setNewWorkerData({ ...newWorkerData, block: e.target.value })}
                 >
                   <option value="Block A01">Block A01</option>
-                  <option value="Block A02">Block A02</option>
-                  <option value="Block B01">Block B01</option>
+                  <option value="Block A03">Block A03</option>
+                  <option value="Block B02">Block B02</option>
                 </select>
               </div>
               <div className="modal-footer">
@@ -663,12 +722,12 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
       )}
 
       {/* Modal: Assign Tasks */}
-      {activeModal === "assignWorker" && (
+      {(activeModal === "assignSupervisor" || activeModal === "assignWorker") && (
         <div className="modal-backdrop">
           <div className="modal-card" style={{ margin: "auto 16px 16px 16px" }}>
             <div className="modal-header">
               <h3 style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-bold)" }}>
-                Assign Task To Worker
+                Assign Task ({activeModal === "assignSupervisor" ? "Supervisor" : "Worker"})
               </h3>
               <button className="btn-icon" onClick={() => setActiveModal(null)}>
                 <X size={18} />
@@ -697,7 +756,7 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
                   <option value="">Select Personnel</option>
                   {workers.map((w) => (
                     <option key={w.id} value={w.name}>
-                      {w.name} ({w.block})
+                      {w.name} ({w.role})
                     </option>
                   ))}
                 </select>
@@ -711,6 +770,42 @@ export default function SupervisorDashboardMobile({ onNavigate = () => {} }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Clear Disease History */}
+      {activeModal === "clearHistory" && (
+        <div className="modal-backdrop">
+          <div className="modal-card" style={{ margin: "auto 16px 16px 16px" }}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: "var(--fs-sm)", fontWeight: "var(--fw-bold)", color: "var(--color-danger)" }}>
+                Clear Block Disease History
+              </h3>
+              <button className="btn-icon" onClick={() => setActiveModal(null)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Target Block</label>
+              <select
+                className="input-primary"
+                value={selectedBlockToClear}
+                onChange={(e) => setSelectedBlockToClear(e.target.value)}
+              >
+                <option value="Block A01">Block A01</option>
+                <option value="Block A03">Block A03</option>
+                <option value="Block B02">Block B02</option>
+              </select>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-secondary" onClick={() => setActiveModal(null)}>
+                Cancel
+              </button>
+              <button type="button" className="btn-danger" onClick={handleClearDiseaseHistory}>
+                Clear
+              </button>
+            </div>
           </div>
         </div>
       )}

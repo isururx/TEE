@@ -45,12 +45,6 @@ export default function Login({ onNavigate = () => { } }) {
         if (userId) {
           localStorage.setItem("user_id", userId);
         }
-        if (data.masked_email) {
-          localStorage.setItem("auth_masked_email", data.masked_email);
-        }
-        if (data.masked_phone) {
-          localStorage.setItem("auth_masked_phone", data.masked_phone);
-        }
         if (data.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
           if (data.user.role) localStorage.setItem("user_role", data.user.role);
@@ -168,17 +162,10 @@ export default function Login({ onNavigate = () => { } }) {
 
             <button
               type="submit"
-              disabled={isLoading}
               className="btn-primary"
-              style={{
-                width: "100%",
-                justifyContent: "center",
-                marginTop: "var(--space-2)",
-                opacity: isLoading ? 0.7 : 1,
-                cursor: isLoading ? "not-allowed" : "pointer",
-              }}
+              style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)" }}
             >
-              {isLoading ? "Logging in..." : <>Login <ArrowRight size={16} /></>}
+              Login <ArrowRight size={16} />
             </button>
 
             <button
