@@ -37,7 +37,13 @@ function App() {
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     const handleGlobalNavigate = (event) => {
-      if (event?.detail) setCurrentPage(event.detail);
+      if (!event?.detail) return;
+      const publicPages = ["login", "welcomePage", "welcome", "workerLogin", "forgotPassword", "forgot-password", "createAccount", "createAccountStaff", "users", "twoStepVerification", "verification", "otp", "otpResent"];
+      if (!publicPages.includes(event.detail) && !localStorage.getItem("token")) {
+        setCurrentPage("login");
+        return;
+      }
+      setCurrentPage(event.detail);
     };
     window.addEventListener("resize", handleResize);
     window.addEventListener("tee-navigate", handleGlobalNavigate);
