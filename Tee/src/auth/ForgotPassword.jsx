@@ -71,6 +71,8 @@ export default function ForgotPassword({ onNavigate = () => {} }) {
     setLoading(true);
     try {
       await request("reset-password", { reset_token: resetToken, new_password: newPassword });
+      setResetToken("");
+      setOtp("");
       setMessage("Your password has been reset successfully. Please log in with your new password.");
       setStep("complete");
       setNewPassword("");
@@ -135,10 +137,10 @@ export default function ForgotPassword({ onNavigate = () => {} }) {
           {step === "password" && (
             <form onSubmit={handleResetPassword} className="flex-col" style={{ gap: "var(--space-4)" }}>
               <label className="form-label" htmlFor="new-password">New password</label>
-              <input id="new-password" type="password" required autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" style={inputStyle} />
+              <input id="new-password" type="password" required minLength={10} maxLength={128} autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" style={inputStyle} />
               <label className="form-label" htmlFor="confirm-password">Confirm new password</label>
-              <input id="confirm-password" type="password" required autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" style={inputStyle} />
-              <button className="btn-primary" type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{loading ? "Updating password..." : "Reset password"}</button>
+              <input id="confirm-password" type="password" required minLength={10} maxLength={128} autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" style={inputStyle} />
+              <button className="btn-primary" type="submit" disabled={loading || newPassword.length < 10 || newPassword !== confirmPassword} style={{ width: "100%", justifyContent: "center" }}>{loading ? "Updating password..." : "Reset password"}</button>
             </form>
           )}
 
