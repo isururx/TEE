@@ -55,8 +55,9 @@ export default function Login({ onNavigate = () => { } }) {
           localStorage.setItem("user", JSON.stringify(data.user));
           if (data.user.role) localStorage.setItem("user_role", data.user.role);
         }
-        if (data.token) {
-          localStorage.setItem("token", data.token);
+        const accessToken = data.access_token || data.token;
+        if (accessToken) {
+          localStorage.setItem("token", accessToken);
         }
         onNavigate("twoStepVerification");
       } else {
@@ -180,6 +181,16 @@ export default function Login({ onNavigate = () => { } }) {
             >
               {isLoading ? "Logging in..." : <>Login <ArrowRight size={16} /></>}
             </button>
+
+            <div style={{ textAlign: "right", marginTop: "-var(--space-2)" }}>
+              <button
+                type="button"
+                onClick={() => onNavigate("forgotPassword")}
+                style={{ background: "none", border: "none", color: "var(--color-primary)", cursor: "pointer", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-medium)", padding: 0 }}
+              >
+                Forgot password?
+              </button>
+            </div>
 
             <button
               type="button"
