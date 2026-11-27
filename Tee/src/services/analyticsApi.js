@@ -50,3 +50,12 @@ export function getDiseaseDistribution(filters) {
 export function getBlockDiseaseSummary(filters) {
   return analyticsRequest("block-disease-summary", filters);
 }
+
+export async function getPlantationBlocks() {
+  const response = await fetch(`${API_BASE_URL}/api/blocks`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new Error("Unable to load plantation blocks.");
+  const data = await response.json();
+  return Array.isArray(data) ? data : [];
+}
