@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useRef, useState, useCallback } from "react";
 import ImageUploadPage from "./ImageUploadPage.jsx";
 import DetectionResultPage from "./DetectionResultPage.jsx";
@@ -176,7 +177,7 @@ async function runDetection(file) {
     const formData = new FormData();
     formData.append("image", file);
 
-    const res = await fetch(DETECTION_API_URL, {
+    const res = await apiFetch(DETECTION_API_URL, {
       method: "POST",
       body: formData,
     });
