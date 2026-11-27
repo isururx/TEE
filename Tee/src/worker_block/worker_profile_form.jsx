@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 ﻿import React, { useEffect, useMemo, useState } from "react";
 import { UserPlus, Save, X } from "lucide-react";
 
@@ -71,7 +72,7 @@ export default function WorkerProfileForm({ onClose, onCreated, onUpdated, worke
 	useEffect(() => {
 		async function loadBlocks() {
 			try {
-				const response = await fetch(BLOCKS_API_URL);
+				const response = await apiFetch(BLOCKS_API_URL);
 				if (response.ok) {
 					const data = await response.json();
 					const list = Array.isArray(data) ? data : data.blocks ?? data.items ?? [];
@@ -120,7 +121,7 @@ export default function WorkerProfileForm({ onClose, onCreated, onUpdated, worke
 			const url = isEdit ? `${WORKERS_API_URL}/${workerToEdit.id}` : WORKERS_API_URL;
 			const method = isEdit ? "PUT" : "POST";
 
-			const response = await fetch(url, {
+			const response = await apiFetch(url, {
 				method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload),
