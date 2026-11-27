@@ -24,14 +24,54 @@ import ActivityLogs from "./auth/ActivityLogs.jsx";
 import WorkerManagement from "./worker_block/worker_management.jsx";
 import WorkerMyTasks from "./worker_block/WorkerMyTasks.jsx";
 import { getStoredRole } from "./common components/sidebars/RoleSidebar.jsx";
+import { getAccessToken, loadCurrentUser, clearSession } from "./auth/authSession.js";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("StateAnalytics");
+  const [currentPage, setCurrentPage] = useState("login");
+  const [authReady, setAuthReady] = useState(false);
+  const [authenticatedUser, setAuthenticatedUser] = useState(null);
 
 
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 768 : false
   );
+
+  useEffect(() => {
+    let active = true;
+    const restoreSession = async () => {
+      if (!getAccessToken()) {
+        if (active) setAuthReady(true);
+        return;
+      }
+      try {
+        const user = await loadCurrentUser();
+        if (active) {
+          setAuthenticatedUser(user);
+          if (user.role) localStorage.setItem("user_role", user.role);
+          setCurrentPage("dashboard");
+        }
+      } catch (error) {
+        clearSession();
+        if (active) {
+          setAuthenticatedUser(null);
+          setCurrentPage("login");
+        }
+      } finally {
+        if (active) setAuthReady(true);
+      }
+    };
+    const handleAuthChanged = (event) => {
+      const user = event?.detail?.user || null;
+      setAuthenticatedUser(user);
+      if (!user) setCurrentPage("login");
+    };
+    restoreSession();
+    window.addEventListener("tee-auth-changed", handleAuthChanged);
+    return () => {
+      active = false;
+      window.removeEventListener("tee-auth-changed", handleAuthChanged);
+    };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -49,6 +89,19 @@ function App() {
   const handleNavigate = (pageKey) => {
     setCurrentPage(pageKey);
   };
+
+  if (!authReady) {
+    return (
+      <div className="flex-center" style={{ minHeight: "100vh", background: "var(--color-bg)" }}>
+        <p>Restoring your session...</p>
+      </div>
+    );
+  }
+
+  const publicPages = ["login", "welcomePage", "welcome", "workerLogin", "forgotPassword", "forgot-password", "twoStepVerification", "verification", "otp", "otpResent", "createAccount", "createAccountStaff", "users"];
+  if (!authenticatedUser && !publicPages.includes(currentPage)) {
+    return <Login onNavigate={handleNavigate} />;
+  }
 
   if (currentPage === "detection") {
     return <DiseaseDetection onNavigate={handleNavigate} />;
