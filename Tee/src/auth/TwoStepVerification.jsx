@@ -14,6 +14,8 @@ import {
 import Footer from "../common components/footer.jsx";
 import OtpResent from "./OtpResent.jsx";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
 const METHODS = [
   { id: "email", label: "Email Verification", detail: "Send code to user***@gmail.com", icon: Mail },
   { id: "sms", label: "SMS Verification", detail: "Send code to +94 70 *** 4164", icon: Smartphone },
@@ -151,7 +153,7 @@ export default function TwoStepVerification({
 
       const userId = storedUserId ? (isNaN(storedUserId) ? storedUserId : Number(storedUserId)) : null;
 
-      const response = await fetch("http://127.0.0.1:8000/api/auth/verify-2fa", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/verify-2fa`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -191,8 +193,9 @@ export default function TwoStepVerification({
         if (role) {
           localStorage.setItem("user_role", role);
         }
-        if (data.token) {
-          localStorage.setItem("token", data.token);
+        const accessToken = data.access_token || data.token;
+        if (accessToken) {
+          localStorage.setItem("token", accessToken);
         }
         if (data.user_id) {
           localStorage.setItem("user_id", data.user_id);
@@ -234,20 +237,29 @@ export default function TwoStepVerification({
   const handleResend = async () => {
     if (resendTimer > 0) return;
 
-    setOtp(["", "", "", "", "", ""]);
     setError("");
-
-    try {
-      await fetch("http://localhost:8000/api/resend-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
-    } catch (err) {
-      console.warn("Backend resend OTP request warning:", err.message);
+    setSuccess("");
+    const storedUserId = localStorage.getItem("user_id");
+    if (!storedUserId) {
+      setError("Your login session is missing. Please return to Login and try again.");
+      return;
     }
 
-    setResendTimer(300);
-    setIsResentView(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/resend-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: Number(storedUserId), method: "email" }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || "Unable to resend the verification code.");
+
+      setOtp(["", "", "", "", "", ""]);
+      setResendTimer(300);
+      setIsResentView(true);
+    } catch (err) {
+      setError(err.message || "Unable to resend the verification code. Please try again.");
+    }
   };
 
   // If Resent Confirmation View is active, render OtpResent screen

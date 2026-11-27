@@ -50,6 +50,15 @@ export default function Header({
 
   const toggleTheme = () => setTheme((current) => (current === "dark" ? "light" : "dark"));
 
+  const handleLogout = () => {
+    ["token", "access_token", "user", "user_id", "user_role", "verification_email"].forEach((key) => {
+      localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
+    });
+    setMenuOpen(false);
+    onLogout();
+  };
+
   return (
     <header
       className="flex-between"
@@ -169,7 +178,7 @@ export default function Header({
               <div className="dropdown-item">
                 <Settings size={15} /> Settings
               </div>
-              <div className="dropdown-item" onClick={onLogout}>
+              <div className="dropdown-item" onClick={handleLogout}>
                 <LogOut size={15} /> Logout
               </div>
             </div>
