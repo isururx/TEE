@@ -26,7 +26,8 @@ import WorkerMyTasks from "./worker_block/WorkerMyTasks.jsx";
 import { getStoredRole } from "./common components/sidebars/RoleSidebar.jsx";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState("StateAnalytics");
+  const [currentPage, setCurrentPage] = useState("login");
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
 
   const [isMobile, setIsMobile] = useState(
@@ -40,6 +41,38 @@ function App() {
     };
     window.addEventListener("resize", handleResize);
     window.addEventListener("tee-navigate", handleGlobalNavigate);
+
+    const validateSession = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setCurrentPage("login");
+        setIsCheckingSession(false);
+        return;
+      }
+      try {
+        const apiBase = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+        const response = await fetch(apiBase + "/api/auth/me", {
+          headers: { Authorization: "Bearer " + token },
+        });
+        if (!response.ok) throw new Error("Session expired");
+        const user = await response.json();
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("user_role", user.role || "");
+        localStorage.setItem("user_id", String(user.id));
+        setCurrentPage("dashboard");
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("user_role");
+        localStorage.removeItem("user_id");
+        setCurrentPage("login");
+      } finally {
+        setIsCheckingSession(false);
+      }
+    };
+    validateSession();
+
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("tee-navigate", handleGlobalNavigate);
@@ -47,8 +80,17 @@ function App() {
   }, []);
 
   const handleNavigate = (pageKey) => {
+    const publicPages = new Set(["login", "welcomePage", "welcome", "workerLogin", "forgotPassword", "forgot-password", "createAccount", "createAccountStaff", "users", "twoStepVerification", "verification", "otp", "otpResent"]);
+    if (!publicPages.has(pageKey) && !localStorage.getItem("token")) {
+      setCurrentPage("login");
+      return;
+    }
     setCurrentPage(pageKey);
   };
+
+  if (isCheckingSession) {
+    return <div className="flex-center" style={{ minHeight: "100vh" }}>Checking secure session...</div>;
+  }
 
   if (currentPage === "detection") {
     return <DiseaseDetection onNavigate={handleNavigate} />;
