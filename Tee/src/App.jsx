@@ -39,6 +39,13 @@ function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Handle logout from every shared Header, including pages without an onLogout prop.
+  useEffect(() => {
+    const handleGlobalLogout = () => setCurrentPage("login");
+    window.addEventListener("tee:logout", handleGlobalLogout);
+    return () => window.removeEventListener("tee:logout", handleGlobalLogout);
+  }, []);
+
   const handleNavigate = (pageKey) => {
     setCurrentPage(pageKey);
   };
