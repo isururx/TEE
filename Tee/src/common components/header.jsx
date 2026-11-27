@@ -48,7 +48,6 @@ function applyTheme(theme) {
 export default function Header({
   title = "Dashboard",
   crumbs = [{ label: "Home", href: "#" }],
-  user = { name: "User", role: "User", initials: "U" },
   notificationCount = 3,
   onSearch = () => {},
   onLogout = () => {},
