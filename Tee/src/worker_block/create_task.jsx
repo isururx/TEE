@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useEffect, useState } from "react";
 import { X, Play, Save } from "lucide-react";
 
@@ -31,8 +32,8 @@ export default function CreateTaskModal({ onClose, onSubmit, taskToEdit = null }
 		async function loadOptions() {
 			try {
 				const [workersResponse, blocksResponse] = await Promise.all([
-					fetch("http://localhost:8000/api/workers", { signal: controller.signal }),
-					fetch("http://localhost:8000/api/blocks", { signal: controller.signal }),
+					apiFetch("http://localhost:8000/api/workers", { signal: controller.signal }),
+					apiFetch("http://localhost:8000/api/blocks", { signal: controller.signal }),
 				]);
 				if (!workersResponse.ok || !blocksResponse.ok) throw new Error("Unable to load task assignment options.");
 				const workerPayload = await workersResponse.json();
@@ -81,7 +82,7 @@ export default function CreateTaskModal({ onClose, onSubmit, taskToEdit = null }
 				? `http://localhost:8000/api/tasks/${taskToEdit.id}`
 				: "http://localhost:8000/api/tasks";
 			const method = isEdit ? "PUT" : "POST";
-			const response = await fetch(url, {
+			const response = await apiFetch(url, {
 				method,
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
