@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Login from "./auth/Login.jsx";
+import ForgotPassword from "./auth/ForgotPassword.jsx";
 import CreateAccountUser from "./auth/CreateAccountUser.jsx";
 import UserProfile from "./auth/UserProfile.jsx";
 import UserProfileForAdmin from "./auth/UserProfileForAdmin.jsx";
@@ -50,8 +51,12 @@ function App() {
     return <Login onNavigate={handleNavigate} />;
   }
 
+  if (currentPage === "forgotPassword" || currentPage === "forgot-password") {
+    return <ForgotPassword onNavigate={handleNavigate} />;
+  }
+
   if (currentPage === "twoStepVerification" || currentPage === "verification" || currentPage === "otp") {
-    return <TwoStepVerification onNavigate={handleNavigate} email="user***@gmail.com" />;
+    return <TwoStepVerification onNavigate={handleNavigate} email={localStorage.getItem("verification_email") || "your registered email"} />;
   }
 
   if (currentPage === "otpResent") {
