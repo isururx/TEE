@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useState, useRef, useEffect } from "react";
 import {
   Camera,
@@ -122,7 +123,7 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
           assignedBlock: parsed.assigned_block ? `Block ${parsed.assigned_block}` : prev.assignedBlock,
         }));
 
-        fetch(`http://localhost:8000/api/workers/${wId}`)
+        apiFetch(`http://localhost:8000/api/workers/${wId}`)
           .then((r) => (r.ok ? r.json() : null))
           .then((data) => {
             if (data) {
@@ -151,7 +152,7 @@ export default function WorkerDashboard({ onNavigate = () => {}, initialTab = "d
     async function fetchWorkerTasks() {
       try {
         const workerId = workerInfo.id;
-        const res = await fetch(`http://localhost:8000/api/workers/${workerId}/tasks`);
+        const res = await apiFetch(`http://localhost:8000/api/workers/${workerId}/tasks`);
         if (res.ok) {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {

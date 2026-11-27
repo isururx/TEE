@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Edit3, Leaf, MapPinned, Plus, Search, SquareActivity, Trash2, UserCheck } from "lucide-react";
 import Header from "../common components/header.jsx";
@@ -66,7 +67,7 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 	useEffect(() => {
 		async function loadSupervisors() {
 			try {
-				const response = await fetch(`${USERS_API_URL}?role=Supervisor`);
+				const response = await apiFetch(`${USERS_API_URL}?role=Supervisor`);
 				if (response.ok) {
 					const data = await response.json();
 					const list = Array.isArray(data) ? data : data.users ?? data.items ?? [];
@@ -88,7 +89,7 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 			setError("");
 			try {
 				const url = query ? `${BLOCKS_API_URL}?search=${encodeURIComponent(query)}` : BLOCKS_API_URL;
-				const response = await fetch(url, { signal: controller.signal });
+				const response = await apiFetch(url, { signal: controller.signal });
 				if (!response.ok) throw new Error("Unable to load plantation blocks.");
 				const payload = await response.json();
 				const records = Array.isArray(payload) ? payload : payload.items ?? payload.blocks ?? [];
@@ -164,7 +165,7 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 		setError("");
 		try {
 			const endpoint = modalMode === "edit" ? `${BLOCKS_API_URL}/${encodeURIComponent(formData.id)}` : BLOCKS_API_URL;
-			const response = await fetch(endpoint, {
+			const response = await apiFetch(endpoint, {
 				method: modalMode === "edit" ? "PUT" : "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(blockPayload),
@@ -191,7 +192,7 @@ export default function BlockManagement({ onNavigate = () => {} }) {
 
 		setError("");
 		try {
-			const response = await fetch(`${BLOCKS_API_URL}/${encodeURIComponent(selectedBlock.id)}`, { method: "DELETE" });
+			const response = await apiFetch(`${BLOCKS_API_URL}/${encodeURIComponent(selectedBlock.id)}`, { method: "DELETE" });
 			if (!response.ok) throw new Error("Unable to remove the selected block.");
 			setBlocks((current) => current.filter((block) => block.id !== selectedBlock.id));
 			setSelectedBlockId("");

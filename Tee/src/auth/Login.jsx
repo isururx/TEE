@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useState } from "react";
 import { Leaf, User, Lock, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
 import Footer from "../common components/footer.jsx";
@@ -35,10 +36,10 @@ export default function Login({ onNavigate = () => { } }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await apiFetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
 
       if (response.ok) {
@@ -52,6 +53,8 @@ export default function Login({ onNavigate = () => { } }) {
         localStorage.setItem("verification_email", data.masked_email || "your registered email");
         localStorage.removeItem("token");
         localStorage.removeItem("access_token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("user_role");
         if (data.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
           if (data.user.role) localStorage.setItem("user_role", data.user.role);
@@ -139,12 +142,14 @@ export default function Login({ onNavigate = () => { } }) {
             )}
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Username</label>
+              <label className="form-label">Username or email</label>
               <div className="input-search" style={{ padding: "var(--space-3) var(--space-4)" }}>
                 <User size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
                   type="text"
-                  placeholder="Enter your username"
+                  autoComplete="username"
+                  required
+                  placeholder="Enter your username or email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
@@ -166,6 +171,8 @@ export default function Login({ onNavigate = () => { } }) {
                 <Lock size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
                   type="password"
+                  autoComplete="current-password"
+                  required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -175,10 +182,11 @@ export default function Login({ onNavigate = () => { } }) {
 
             <button
               type="submit"
+              disabled={isLoading}
               className="btn-primary"
               style={{ width: "100%", justifyContent: "center", marginTop: "var(--space-2)" }}
             >
-              Login <ArrowRight size={16} />
+              {isLoading ? "Signing in..." : "Login"} <ArrowRight size={16} />
             </button>
 
             <button

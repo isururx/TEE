@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useState } from "react";
 import { ArrowLeft, CheckCircle2, KeyRound, Leaf, Mail, ShieldCheck } from "lucide-react";
 import Footer from "../common components/footer.jsx";
@@ -16,7 +17,7 @@ export default function ForgotPassword({ onNavigate = () => {} }) {
   const [loading, setLoading] = useState(false);
 
   const request = async (path, body) => {
-    const response = await fetch(`${API_BASE_URL}/api/auth/${path}`, {
+    const response = await apiFetch(`${API_BASE_URL}/api/auth/${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -71,6 +72,8 @@ export default function ForgotPassword({ onNavigate = () => {} }) {
     setLoading(true);
     try {
       await request("reset-password", { reset_token: resetToken, new_password: newPassword });
+      setResetToken("");
+      setOtp("");
       setMessage("Your password has been reset successfully. Please log in with your new password.");
       setStep("complete");
       setNewPassword("");
@@ -109,7 +112,7 @@ export default function ForgotPassword({ onNavigate = () => {} }) {
             {step === "email" ? "Forgot Password?" : step === "otp" ? "Verify Your Email" : step === "password" ? "Create New Password" : "Password Reset Complete"}
           </h1>
           <p className="subtitle" style={{ textAlign: "center", marginBottom: "var(--space-6)" }}>
-            {step === "email" ? "Enter your registered email address to receive a reset code." : step === "otp" ? `Enter the 6-digit code sent to ${email}.` : step === "password" ? "Choose a new password for your TEE account." : "Your account password has been updated."}
+            {step === "email" ? "Enter your registered email address to receive a reset code." : step === "otp" ? `Enter the 6-digit code sent to ${email}.` : step === "password" ? "Use at least 10 characters, including uppercase, lowercase, and a number." : "Your account password has been updated."}
           </p>
 
           {error && <div className="alert alert-danger" role="alert" style={{ marginBottom: "var(--space-4)" }}>{error}</div>}
@@ -135,10 +138,10 @@ export default function ForgotPassword({ onNavigate = () => {} }) {
           {step === "password" && (
             <form onSubmit={handleResetPassword} className="flex-col" style={{ gap: "var(--space-4)" }}>
               <label className="form-label" htmlFor="new-password">New password</label>
-              <input id="new-password" type="password" required autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" style={inputStyle} />
+              <input id="new-password" type="password" required minLength={10} maxLength={128} autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Enter new password" style={inputStyle} />
               <label className="form-label" htmlFor="confirm-password">Confirm new password</label>
-              <input id="confirm-password" type="password" required autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" style={inputStyle} />
-              <button className="btn-primary" type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{loading ? "Updating password..." : "Reset password"}</button>
+              <input id="confirm-password" type="password" required minLength={10} maxLength={128} autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter new password" style={inputStyle} />
+              <button className="btn-primary" type="submit" disabled={loading || newPassword.length < 10 || newPassword !== confirmPassword} style={{ width: "100%", justifyContent: "center" }}>{loading ? "Updating password..." : "Reset password"}</button>
             </form>
           )}
 

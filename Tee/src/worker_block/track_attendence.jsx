@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useEffect, useMemo, useState } from "react";
 import { Filter, Calendar, Search, Clock, Users, UserCheck, AlertTriangle, Plus } from "lucide-react";
 import Header from "../common components/header.jsx";
@@ -55,8 +56,8 @@ export default function TrackAttendance({ onNavigate = () => {} }) {
 			setError("");
 			try {
 				const [attendanceResponse, metricsResponse] = await Promise.all([
-					fetch(`http://localhost:8000/api/attendance?${query.toString()}`, { signal: controller.signal }),
-					fetch(`http://localhost:8000/api/attendance/metrics?target_date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal }),
+					apiFetch(`http://localhost:8000/api/attendance?${query.toString()}`, { signal: controller.signal }),
+					apiFetch(`http://localhost:8000/api/attendance/metrics?target_date=${encodeURIComponent(selectedDate)}`, { signal: controller.signal }),
 				]);
 				if (!attendanceResponse.ok || !metricsResponse.ok) throw new Error("Unable to load attendance data.");
 				const attendancePayload = await attendanceResponse.json();

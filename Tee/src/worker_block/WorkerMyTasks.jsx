@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useState, useEffect, useMemo } from "react";
 import {
   ClipboardList,
@@ -79,7 +80,7 @@ export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null, w
     setIsLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/workers/${id}/tasks`);
+      const res = await apiFetch(`${API_BASE}/workers/${id}/tasks`);
       if (!res.ok) {
         if (res.status === 404) throw new Error("Worker not found or has no assigned tasks.");
         throw new Error("Could not load assigned tasks.");
@@ -110,7 +111,7 @@ export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null, w
   // Status transition handler: Start Task
   const handleStartTask = async (taskId) => {
     try {
-      const res = await fetch(`${API_BASE}/workers/${worker.id}/tasks/${taskId}`, {
+      const res = await apiFetch(`${API_BASE}/workers/${worker.id}/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "IN PROGRESS" })
@@ -129,7 +130,7 @@ export default function WorkerMyTasks({ onNavigate = () => { }, onBack = null, w
     if (!completingTask) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE}/workers/${worker.id}/tasks/${completingTask.id}`, {
+      const res = await apiFetch(`${API_BASE}/workers/${worker.id}/tasks/${completingTask.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
