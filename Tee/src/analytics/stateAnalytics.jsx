@@ -5,6 +5,7 @@ import Footer from "../common components/footer.jsx";
 import {
   getDiseaseFrequencyByBlock,
   getDiseaseDistribution,
+  getPlantationBlocks,
 } from "../services/analyticsApi.js";
 import "./diseaseAnalytics.css";
 
@@ -27,7 +28,7 @@ function initialDates() {
 }
 
 function formatNumber(value) {
-  return new Intl.NumberFormat().format(Number(value) || 0);
+  return value === "—" ? "—" : new Intl.NumberFormat().format(Number(value) || 0);
 }
 
 function KpiCard({ label, value, description }) {
@@ -125,6 +126,7 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
   const [selectedBlock, setSelectedBlock] = useState("");
   const [selectedDisease, setSelectedDisease] = useState("");
   const [appliedFilters, setAppliedFilters] = useState({ blockId: "", diseaseId: "" });
+  const [plantationBlocks, setPlantationBlocks] = useState([]);
   const [frequencyData, setFrequencyData] = useState(null);
   const [distributionData, setDistributionData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -133,9 +135,36 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
 
   const role = getStoredRole();
   const isSupervisor = role.includes("supervisor");
-  const isEstateRole = role.includes("admin") || role.includes("manager");
+
+
+  useEffect(() => {
+    let active = true;
+    getPlantationBlocks()
+      .then((records) => {
+        if (!active) return;
+        const userId = localStorage.getItem("user_id");
+        const visibleBlocks = isSupervisor
+          ? records.filter((block) => String(block.supervisor_id) === String(userId))
+          : records;
+        setPlantationBlocks(visibleBlocks);
+        if (isSupervisor && visibleBlocks.length === 1) {
+          const onlyBlockId = String(visibleBlocks[0].id);
+          setSelectedBlock(onlyBlockId);
+          setAppliedFilters((current) => ({ ...current, blockId: onlyBlockId }));
+        }
+      })
+      .catch(() => {
+        if (active) setPlantationBlocks([]);
+      });
+    return () => { active = false; };
+  }, [isSupervisor]);
 
   const loadAnalytics = useCallback(async () => {
+    if (isSupervisor && !appliedFilters.blockId) {
+      setLoading(false);
+      setError("");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -158,7 +187,7 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
     } finally {
       setLoading(false);
     }
-  }, [appliedDates, appliedFilters, reloadKey]);
+  }, [appliedDates, appliedFilters, reloadKey, isSupervisor]);
 
   useEffect(() => {
     loadAnalytics();
@@ -176,10 +205,14 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
 
   const summary = frequencyData?.summary;
   const affectedBlocks = blocks.filter((block) => block.total_detections > 0).length;
-  const selectedBlockName = blocks.find((block) => String(block.block_id) === appliedFilters.blockId)?.block_name;
+  const selectedBlockName = plantationBlocks.find((block) => String(block.id) === appliedFilters.blockId)?.id;
 
   const applyFilters = (event) => {
     event.preventDefault();
+    if (isSupervisor && !selectedBlock) {
+      setError("Please select one of your authorised plantation blocks.");
+      return;
+    }
     if (dates.startDate && dates.endDate && dates.startDate > dates.endDate) {
       setError("Start date must be on or before end date.");
       return;
@@ -190,6 +223,15 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
 
   const clearFilters = () => {
     const defaults = initialDates();
+    if (isSupervisor && plantationBlocks.length === 1) {
+      const onlyBlockId = String(plantationBlocks[0].id);
+      setSelectedBlock(onlyBlockId);
+      setAppliedFilters({ blockId: onlyBlockId, diseaseId: "" });
+      setSelectedDisease("");
+      setDates(defaults);
+      setAppliedDates(defaults);
+      return;
+    }
     setDates(defaults);
     setAppliedDates(defaults);
     setSelectedBlock("");
@@ -221,7 +263,7 @@ export default function StateAnalytics({ onNavigate = () => {} }) {
               <label htmlFor="disease-block-filter">Plantation block</label>
               <select id="disease-block-filter" value={selectedBlock} onChange={(event) => setSelectedBlock(event.target.value)}>
                 <option value="">All available blocks</option>
-                {blocks.map((block) => <option key={block.block_id} value={block.block_id}>{block.block_name}</option>)}
+                {plantationBlocks.map((block) => <option key={block.id} value={block.id}>Block {block.id}</option>)}
               </select>
             </div>
             <div className="disease-analytics-field">
