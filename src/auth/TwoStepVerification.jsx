@@ -192,8 +192,9 @@ export default function TwoStepVerification({
         if (role) {
           localStorage.setItem("user_role", role);
         }
-        if (data.token) {
-          localStorage.setItem("token", data.token);
+        const accessToken = data.access_token || data.token;
+        if (accessToken) {
+          localStorage.setItem("token", accessToken);
         }
         if (data.user_id) {
           localStorage.setItem("user_id", data.user_id);
