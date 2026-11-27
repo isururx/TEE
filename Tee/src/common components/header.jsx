@@ -48,14 +48,16 @@ function applyTheme(theme) {
 export default function Header({
   title = "Dashboard",
   crumbs = [{ label: "Home", href: "#" }],
-  user = { name: "Hasanth J", role: "Manager", initials: "HJ" },
+  user = { name: "User", role: "User", initials: "U" },
   notificationCount = 3,
   onSearch = () => {},
   onLogout = () => {},
 }) {
   const storedUser = readStoredUser();
-  const displayName = storedUser.full_name || storedUser.name || storedUser.username || user.name || "User";
-  const displayRole = storedUser.role || storedUser.user_role || user.role || "User";
+  const storedFirstName = storedUser.first_name || "";
+  const storedLastName = storedUser.last_name || "";
+  const displayName = storedUser.full_name || storedUser.name || storedUser.display_name || [storedFirstName, storedLastName].filter(Boolean).join(" ") || storedUser.username || "User";
+  const displayRole = storedUser.role || storedUser.user_role || localStorage.getItem("user_role") || localStorage.getItem("role") || "User";
   const displayInitials = getInitials(displayName);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -76,7 +78,7 @@ export default function Header({
   const toggleTheme = () => setTheme((current) => (current === "dark" ? "light" : "dark"));
 
   const handleLogout = () => {
-    ["token", "access_token", "user", "user_id", "user_role", "verification_email"].forEach((key) => {
+    ["token", "access_token", "refresh_token", "user", "user_id", "user_role", "role", "verification_email", "tee-user", "tee-worker"].forEach((key) => {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
     });
