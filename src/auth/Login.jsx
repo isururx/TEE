@@ -155,7 +155,16 @@ export default function Login({ onNavigate = () => { } }) {
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Password</label>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-2)" }}>
+                <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("forgotPassword")}
+                  style={{ background: "none", border: "none", color: "var(--color-primary)", cursor: "pointer", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-medium)", padding: 0 }}
+                >
+                  Forgot password?
+                </button>
+              </div>
               <div className="input-search" style={{ padding: "var(--space-3) var(--space-4)" }}>
                 <Lock size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
@@ -181,16 +190,6 @@ export default function Login({ onNavigate = () => { } }) {
             >
               {isLoading ? "Logging in..." : <>Login <ArrowRight size={16} /></>}
             </button>
-
-            <div style={{ textAlign: "right", marginTop: "-var(--space-2)" }}>
-              <button
-                type="button"
-                onClick={() => onNavigate("forgotPassword")}
-                style={{ background: "none", border: "none", color: "var(--color-primary)", cursor: "pointer", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-medium)", padding: 0 }}
-              >
-                Forgot password?
-              </button>
-            </div>
 
             <button
               type="button"
