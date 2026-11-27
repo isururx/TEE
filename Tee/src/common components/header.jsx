@@ -13,6 +13,7 @@ const AUTH_LOCAL_KEYS = [
   "verification_email",
   "auth_masked_email",
   "auth_masked_phone",
+  "login_challenge_id",
   "selected_user_id",
 ];
 
