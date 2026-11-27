@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useState } from "react";
 import { ArrowLeft, CheckCircle2, KeyRound, Leaf, Mail, ShieldCheck } from "lucide-react";
 import Footer from "../common components/footer.jsx";
@@ -16,7 +17,7 @@ export default function ForgotPassword({ onNavigate = () => {} }) {
   const [loading, setLoading] = useState(false);
 
   const request = async (path, body) => {
-    const response = await fetch(`${API_BASE_URL}/api/auth/${path}`, {
+    const response = await apiFetch(`${API_BASE_URL}/api/auth/${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
