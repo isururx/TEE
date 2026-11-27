@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Leaf, User, Lock, ArrowRight, UserPlus, AlertCircle } from "lucide-react";
 import Footer from "../common components/footer.jsx";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
 /**
  * Login Page
  * Matches the reference UI: tea-plantation background, centered glassmorphic login card, and footer.
@@ -33,7 +35,7 @@ export default function Login({ onNavigate = () => { } }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -42,15 +44,17 @@ export default function Login({ onNavigate = () => { } }) {
       if (response.ok) {
         const data = await response.json();
         const userId = data.user_id || data.user?.id || data.user?.user_id || data.id;
-        if (userId) {
-          localStorage.setItem("user_id", userId);
+        if (!userId) {
+          setError("The server did not return a user ID. Please try again.");
+          return;
         }
+        localStorage.setItem("user_id", String(userId));
+        localStorage.setItem("verification_email", data.masked_email || "your registered email");
+        localStorage.removeItem("token");
+        localStorage.removeItem("access_token");
         if (data.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
           if (data.user.role) localStorage.setItem("user_role", data.user.role);
-        }
-        if (data.token) {
-          localStorage.setItem("token", data.token);
         }
         onNavigate("twoStepVerification");
       } else {
@@ -148,7 +152,16 @@ export default function Login({ onNavigate = () => { } }) {
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Password</label>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "var(--space-2)" }}>
+                <label className="form-label" style={{ marginBottom: 0 }}>Password</label>
+                <button
+                  type="button"
+                  onClick={() => onNavigate("forgotPassword")}
+                  style={{ background: "none", border: "none", color: "var(--color-primary)", cursor: "pointer", fontSize: "var(--fs-sm)", fontWeight: "var(--fw-medium)", padding: 0 }}
+                >
+                  Forgot password?
+                </button>
+              </div>
               <div className="input-search" style={{ padding: "var(--space-3) var(--space-4)" }}>
                 <Lock size={16} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                 <input
