@@ -1,3 +1,4 @@
+import { apiFetch } from "../api/apiClient.js";
 import React, { useState, useRef, useEffect } from "react";
 import {
   ShieldCheck,
@@ -152,7 +153,7 @@ export default function TwoStepVerification({
 
       const userId = storedUserId ? (isNaN(storedUserId) ? storedUserId : Number(storedUserId)) : null;
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-2fa`, {
+      const response = await apiFetch(`${API_BASE_URL}/api/auth/verify-2fa`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -250,7 +251,7 @@ export default function TwoStepVerification({
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/resend-otp`, {
+      const response = await apiFetch(`${API_BASE_URL}/api/auth/resend-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: Number(storedUserId), method: "email" }),
