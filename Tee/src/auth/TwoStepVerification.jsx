@@ -199,13 +199,16 @@ export default function TwoStepVerification({
       });
       setVerificationMethod(method);
       setMaskedPhone(data.masked_phone || maskedPhone);
+      localStorage.setItem("verification_delivery_status", data.delivery_status || "sent");
       localStorage.setItem("verification_method", method);
       localStorage.setItem("verification_phone", data.masked_phone || maskedPhone);
       localStorage.setItem("verification_email", data.masked_email || email);
       setOtp(["", "", "", "", "", ""]);
       setResendTimer(300);
       setShowMethodModal(false);
-      setSuccess(`A new verification code was sent using ${label}.`);
+      setSuccess(data.delivery_status === "console"
+        ? "Development mode: the new OTP was printed in the backend terminal."
+        : `A new verification code was sent using ${label}.`);
     } catch (err) {
       setError(err.message || "Unable to change the verification method.");
     }
@@ -318,6 +321,12 @@ export default function TwoStepVerification({
           >
             {verificationMethod === "email" ? (localStorage.getItem("verification_email") || email) : maskedPhone}
           </p>
+
+          {localStorage.getItem("verification_delivery_status") === "console" && (
+            <div className="alert alert-info" style={{ marginBottom: "var(--space-4)", textAlign: "left" }}>
+              Development mode: check the backend terminal for your OTP.
+            </div>
+          )}
 
           {/* Main Heading */}
           <h1
