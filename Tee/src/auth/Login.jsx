@@ -45,6 +45,7 @@ export default function Login({ onNavigate = () => { } }) {
         localStorage.setItem("verification_email", data.masked_email || "your registered email");
         localStorage.setItem("verification_phone", data.masked_phone || "No phone number configured");
         localStorage.setItem("verification_method", data.delivery_method || "email");
+        localStorage.setItem("verification_delivery_status", data.delivery_status || "sent");
         localStorage.removeItem("token");
         localStorage.removeItem("access_token");
         localStorage.removeItem("user_id");
