@@ -13,6 +13,7 @@ const AUTH_LOCAL_KEYS = [
   "verification_email",
   "auth_masked_email",
   "auth_masked_phone",
+  "login_challenge_id",
   "selected_user_id",
 ];
 
@@ -142,6 +143,7 @@ export default function Header({
   const handleLogout = () => {
     setMenuOpen(false);
     clearAuthSession();
+    window.dispatchEvent(new CustomEvent("tee-auth-changed", { detail: { user: null } }));
     if (typeof onLogout === "function") {
       onLogout();
     } else {

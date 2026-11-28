@@ -13,12 +13,12 @@ import {
 } from "lucide-react";
 import Footer from "../common components/footer.jsx";
 import OtpResent from "./OtpResent.jsx";
+import { authRequest, saveSession } from "./authSession.js";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
 const METHODS = [
-  { id: "email", label: "Email Verification", detail: "Send code to user***@gmail.com", icon: Mail },
-  { id: "sms", label: "SMS Verification", detail: "Send code to +94 70 *** 4164", icon: Smartphone },
+  { id: "email", label: "Email Verification", detail: `Send code to ${localStorage.getItem("verification_email") || "your registered email"}`, icon: Mail },
+  { id: "sms", label: "SMS Verification", detail: `Send code to ${localStorage.getItem("verification_phone") || "your registered phone"}`, icon: Smartphone },
 ];
 
 /**
@@ -40,7 +40,8 @@ export default function TwoStepVerification({
   const [success, setSuccess] = useState("");
   const [resendTimer, setResendTimer] = useState(300);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationMethod, setVerificationMethod] = useState("email"); // "email" | "sms" | "app"
+  const [verificationMethod, setVerificationMethod] = useState(localStorage.getItem("verification_method") || "email");
+  const [maskedPhone, setMaskedPhone] = useState(localStorage.getItem("verification_phone") || "No phone number configured");
   const [showMethodModal, setShowMethodModal] = useState(false);
   const [isResentView, setIsResentView] = useState(false);
 
@@ -138,68 +139,20 @@ export default function TwoStepVerification({
     setError("");
 
     try {
-      let storedUserId = localStorage.getItem("user_id");
-      if (!storedUserId) {
-        const savedUser = localStorage.getItem("user");
-        if (savedUser) {
-          try {
-            const parsedUser = JSON.parse(savedUser);
-            storedUserId = parsedUser.id || parsedUser.user_id;
-          } catch (e) {
-            console.error("Error parsing stored user:", e);
-          }
-        }
-      }
+      const challengeId = sessionStorage.getItem("login_challenge_id");
+      if (!challengeId) throw new Error("Your verification request has expired. Please log in again.");
 
-      const userId = storedUserId ? (isNaN(storedUserId) ? storedUserId : Number(storedUserId)) : null;
-
-      const response = await fetch(`${API_BASE_URL}/api/auth/verify-2fa`, {
+      const data = await authRequest("/verify-2fa", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: userId,
-          otp: code,
-        }),
+        body: JSON.stringify({ challenge_id: challengeId, otp: code }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (data.success && data.access_token) {
 
-        // Normalize + persist session: backend returns flat {user_id, name, email, role, access_token}
-        const normalizedUser = data.user && typeof data.user === "object"
-          ? data.user
-          : {
-              id: data.user_id ?? data.id,
-              user_id: data.user_id ?? data.id,
-              name: data.name,
-              email: data.email,
-              role: data.role,
-            };
-        localStorage.setItem("user", JSON.stringify(normalizedUser));
-
-        let role = data.role || data.user?.role || data.user_role || data.user?.user_role;
-        if (!role) {
-          role = localStorage.getItem("user_role") || "";
-          if (!role) {
-            try {
-              const savedUser = JSON.parse(localStorage.getItem("user") || "{}");
-              role = savedUser.role || savedUser.user_role || "";
-            } catch (e) {
-              // ignore parse error
-            }
-          }
-        }
-
-        if (role) {
-          localStorage.setItem("user_role", role);
-        }
-        const accessToken = data.access_token || data.token;
-        if (accessToken) {
-          localStorage.setItem("token", accessToken);
-        }
-        if (data.user_id) {
-          localStorage.setItem("user_id", data.user_id);
-        }
+        const normalizedUser = data.user;
+        saveSession({ access_token: data.access_token, user: normalizedUser });
+        sessionStorage.removeItem("login_challenge_id");
+        const role = normalizedUser.role;
 
         // Determine corresponding dashboard based on role
         const roleLower = (role || "").toLowerCase();
@@ -220,16 +173,44 @@ export default function TwoStepVerification({
           onNavigate(targetDashboard);
         }, 800);
       } else {
-        const errData = await response.json().catch(() => ({}));
-        const errorMsg = errData.detail || "Invalid verification code";
-        setError(errorMsg);
-        alert(`Wrong OTP: ${errorMsg}`);
+        setError("Invalid verification code. Please try again.");
       }
     } catch (err) {
       console.warn("Backend 2-step verification request warning:", err.message);
-      setError("Unable to connect to the server. Please try again.");
+      setError(err.message || "Unable to connect to the server. Please try again.");
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const switchVerificationMethod = async (method, label) => {
+    const challengeId = sessionStorage.getItem("login_challenge_id");
+    if (!challengeId) {
+      setError("Your verification request has expired. Please log in again.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    try {
+      const data = await authRequest("/resend-otp", {
+        method: "POST",
+        body: JSON.stringify({ challenge_id: challengeId, method }),
+      });
+      setVerificationMethod(method);
+      setMaskedPhone(data.masked_phone || maskedPhone);
+      localStorage.setItem("verification_delivery_status", data.delivery_status || "sent");
+      localStorage.setItem("verification_method", method);
+      localStorage.setItem("verification_phone", data.masked_phone || maskedPhone);
+      localStorage.setItem("verification_email", data.masked_email || email);
+      setOtp(["", "", "", "", "", ""]);
+      setResendTimer(300);
+      setShowMethodModal(false);
+      setSuccess(data.delivery_status === "console"
+        ? "Development mode: the new OTP was printed in the backend terminal."
+        : `A new verification code was sent using ${label}.`);
+    } catch (err) {
+      setError(err.message || "Unable to change the verification method.");
     }
   };
 
@@ -239,20 +220,17 @@ export default function TwoStepVerification({
 
     setError("");
     setSuccess("");
-    const storedUserId = localStorage.getItem("user_id");
-    if (!storedUserId) {
-      setError("Your login session is missing. Please return to Login and try again.");
+    const challengeId = sessionStorage.getItem("login_challenge_id");
+    if (!challengeId) {
+      setError("Your verification request has expired. Please return to Login.");
       return;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/resend-otp`, {
+      await authRequest("/resend-otp", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: Number(storedUserId), method: "email" }),
+        body: JSON.stringify({ challenge_id: challengeId, method: verificationMethod }),
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.detail || "Unable to resend the verification code.");
 
       setOtp(["", "", "", "", "", ""]);
       setResendTimer(300);
@@ -341,8 +319,14 @@ export default function TwoStepVerification({
               marginBottom: "var(--space-4)",
             }}
           >
-            {verificationMethod === "email" ? email : "+94 70 *** 4164"}
+            {verificationMethod === "email" ? (localStorage.getItem("verification_email") || email) : maskedPhone}
           </p>
+
+          {localStorage.getItem("verification_delivery_status") === "console" && (
+            <div className="alert alert-info" style={{ marginBottom: "var(--space-4)", textAlign: "left" }}>
+              Development mode: check the backend terminal for your OTP.
+            </div>
+          )}
 
           {/* Main Heading */}
           <h1
@@ -569,10 +553,7 @@ export default function TwoStepVerification({
                       className="radio-primary"
                       checked={isSelected}
                       onChange={() => {
-                        setVerificationMethod(id);
-                        setShowMethodModal(false);
-                        setSuccess(`Verification method switched to ${label}.`);
-                        setTimeout(() => setSuccess(""), 3000);
+                        switchVerificationMethod(id, label);
                       }}
                     />
                     <Icon size={18} color={isSelected ? "var(--color-primary)" : "var(--color-text-secondary)"} />
