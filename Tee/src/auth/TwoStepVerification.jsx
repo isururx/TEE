@@ -17,8 +17,8 @@ import { authRequest, saveSession } from "./authSession.js";
 
 
 const METHODS = [
-  { id: "email", label: "Email Verification", detail: "Send code to user***@gmail.com", icon: Mail },
-  { id: "sms", label: "SMS Verification", detail: "Send code to +94 70 *** 4164", icon: Smartphone },
+  { id: "email", label: "Email Verification", detail: `Send code to ${localStorage.getItem("verification_email") || "your registered email"}`, icon: Mail },
+  { id: "sms", label: "SMS Verification", detail: `Send code to ${localStorage.getItem("verification_phone") || "your registered phone"}`, icon: Smartphone },
 ];
 
 /**
@@ -40,7 +40,8 @@ export default function TwoStepVerification({
   const [success, setSuccess] = useState("");
   const [resendTimer, setResendTimer] = useState(300);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationMethod, setVerificationMethod] = useState("email"); // "email" | "sms" | "app"
+  const [verificationMethod, setVerificationMethod] = useState(localStorage.getItem("verification_method") || "email");
+  const [maskedPhone, setMaskedPhone] = useState(localStorage.getItem("verification_phone") || "No phone number configured");
   const [showMethodModal, setShowMethodModal] = useState(false);
   const [isResentView, setIsResentView] = useState(false);
 
@@ -182,13 +183,41 @@ export default function TwoStepVerification({
     }
   };
 
+  const switchVerificationMethod = async (method, label) => {
+    const challengeId = sessionStorage.getItem("login_challenge_id");
+    if (!challengeId) {
+      setError("Your verification request has expired. Please log in again.");
+      return;
+    }
+
+    setError("");
+    setSuccess("");
+    try {
+      const data = await authRequest("/resend-otp", {
+        method: "POST",
+        body: JSON.stringify({ challenge_id: challengeId, method }),
+      });
+      setVerificationMethod(method);
+      setMaskedPhone(data.masked_phone || maskedPhone);
+      localStorage.setItem("verification_method", method);
+      localStorage.setItem("verification_phone", data.masked_phone || maskedPhone);
+      localStorage.setItem("verification_email", data.masked_email || email);
+      setOtp(["", "", "", "", "", ""]);
+      setResendTimer(300);
+      setShowMethodModal(false);
+      setSuccess(`A new verification code was sent using ${label}.`);
+    } catch (err) {
+      setError(err.message || "Unable to change the verification method.");
+    }
+  };
+
   // Handle Resend Code -> switches to OtpResent view
   const handleResend = async () => {
     if (resendTimer > 0) return;
 
     setError("");
     setSuccess("");
-    const challengeId = localStorage.getItem("login_challenge_id");
+    const challengeId = sessionStorage.getItem("login_challenge_id");
     if (!challengeId) {
       setError("Your verification request has expired. Please return to Login.");
       return;
@@ -197,7 +226,7 @@ export default function TwoStepVerification({
     try {
       await authRequest("/resend-otp", {
         method: "POST",
-        body: JSON.stringify({ challenge_id: challengeId, method: "email" }),
+        body: JSON.stringify({ challenge_id: challengeId, method: verificationMethod }),
       });
 
       setOtp(["", "", "", "", "", ""]);
@@ -287,7 +316,7 @@ export default function TwoStepVerification({
               marginBottom: "var(--space-4)",
             }}
           >
-            {verificationMethod === "email" ? email : "+94 70 *** 4164"}
+            {verificationMethod === "email" ? (localStorage.getItem("verification_email") || email) : maskedPhone}
           </p>
 
           {/* Main Heading */}
@@ -515,10 +544,7 @@ export default function TwoStepVerification({
                       className="radio-primary"
                       checked={isSelected}
                       onChange={() => {
-                        setVerificationMethod(id);
-                        setShowMethodModal(false);
-                        setSuccess(`Verification method switched to ${label}.`);
-                        setTimeout(() => setSuccess(""), 3000);
+                        switchVerificationMethod(id, label);
                       }}
                     />
                     <Icon size={18} color={isSelected ? "var(--color-primary)" : "var(--color-text-secondary)"} />
